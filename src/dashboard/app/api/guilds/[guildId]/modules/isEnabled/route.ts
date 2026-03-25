@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { auth } from "@/app/auth";
 import { checkAdminPermission } from "@/lib/discord";
+import clientPromise from "@/lib/mongodb";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ guildId: string }> }
+  { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
-  
+
   const { searchParams } = new URL(request.url);
   const targetModule = searchParams.get("module");
 
@@ -17,7 +17,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const hasPermission = await checkAdminPermission(guildId, session.accessToken);
+  const hasPermission = await checkAdminPermission(
+    guildId,
+    session.accessToken,
+  );
   if (!hasPermission) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -26,7 +29,9 @@ export async function GET(
     const client = await clientPromise;
     const db = client.db("SharkBot");
 
-    let settings = (await db.collection("module_setting").findOne({ guildId })) as any;
+    let settings = (await db
+      .collection("module_setting")
+      .findOne({ guildId })) as any;
 
     if (!settings) {
       const defaultSettings = {
@@ -41,12 +46,11 @@ export async function GET(
       const isEnabled = !!settings.modules?.[targetModule];
       return NextResponse.json({
         module: targetModule,
-        enabled: isEnabled
+        enabled: isEnabled,
       });
     }
 
     return NextResponse.json(settings);
-
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "DB接続エラー" }, { status: 500 });

@@ -1,47 +1,47 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useParams, usePathname } from "next/navigation"
-import { 
-  ShieldCheck, 
-  Menu, 
+import {
+  BotIcon,
   Home,
   HomeIcon,
-  BotIcon,
-  ShieldQuestion
-} from "lucide-react"
+  Menu,
+  ShieldCheck,
+  ShieldQuestion,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams, usePathname } from "next/navigation";
+import { useState } from "react";
 
-import { modules as modules_list } from "@/lib/modules"
+import { modules as modules_list } from "@/lib/modules";
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const params = useParams()
-  const pathname = usePathname()
-  const guildId = params.guildId as string
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const params = useParams();
+  const pathname = usePathname();
+  const guildId = params.guildId as string;
 
   const navigation = [
-    { 
-      name: "ホーム", 
-      href: `/dashboard/${guildId}`, 
-      icon: HomeIcon 
-    }
-  ]
-  
-  modules_list.forEach(m => {
+    {
+      name: "ホーム",
+      href: `/dashboard/${guildId}`,
+      icon: HomeIcon,
+    },
+  ];
+
+  modules_list.forEach((m) => {
     navigation.push({
       name: m.name,
       href: `/dashboard/${guildId}/${m.id}`,
-      icon: m.icon || ShieldQuestion
-    })
+      icon: m.icon || ShieldQuestion,
+    });
   });
 
-  const NavItem = ({ item }: { item: typeof navigation[0] }) => {
-    const isActive = pathname === item.href
+  const NavItem = ({ item }: { item: (typeof navigation)[0] }) => {
+    const isActive = pathname === item.href;
     return (
       <Link
         key={item.name}
@@ -53,25 +53,29 @@ export default function DashboardLayout({
             : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         }`}
       >
-        <item.icon className={`h-5 w-5 ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
+        <item.icon
+          className={`h-5 w-5 ${isActive ? "text-indigo-600" : "text-slate-400"}`}
+        />
         {item.name}
       </Link>
-    )
-  }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      <aside className={`
+      <aside
+        className={`
         fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}>
+      `}
+      >
         <div className="h-full flex flex-col p-6">
           <div className="flex items-center gap-3 px-2 mb-10">
             <div className="bg-indigo-600 p-2 rounded-lg">
@@ -111,14 +115,14 @@ export default function DashboardLayout({
           >
             <Menu className="h-6 w-6" />
           </button>
-          <span className="font-bold text-slate-900 text-sm">管理ダッシュボード</span>
+          <span className="font-bold text-slate-900 text-sm">
+            管理ダッシュボード
+          </span>
           <div className="w-10" />
         </header>
 
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
-  )
+  );
 }

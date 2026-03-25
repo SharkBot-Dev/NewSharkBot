@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface CommandData {
   name: string;
@@ -21,7 +21,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
   const fetchStatus = useCallback(async () => {
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       const res = await fetch(`/api/guilds/${guildId}/commands`, {
         method: "POST",
@@ -33,7 +33,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
     } catch (err) {
       console.error("Failed to fetch status", err);
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   }, [guildId]);
 
@@ -47,8 +47,8 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
 
     try {
       const action = existing ? "delete" : "add";
-      const payload = existing 
-        ? { commandId: existing.id } 
+      const payload = existing
+        ? { commandId: existing.id }
         : { command: { name: cmd.name, description: cmd.description } };
 
       const res = await fetch(`/api/guilds/${guildId}/commands`, {
@@ -58,7 +58,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
       });
 
       if (res.ok) {
-        await fetchStatus(); 
+        await fetchStatus();
       }
     } catch (err) {
       console.error("Toggle failed", err);
@@ -70,7 +70,10 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
   const SkeletonLoader = () => (
     <div className="animate-pulse">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+        <div
+          key={i}
+          className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800"
+        >
           <div className="space-y-2">
             <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded"></div>
             <div className="h-3 w-40 bg-slate-100 dark:bg-slate-800 rounded"></div>
@@ -92,12 +95,19 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
             const isProcessing = loadingIds.includes(cmd.name);
 
             return (
-              <li key={cmd.name} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+              <li
+                key={cmd.name}
+                className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+              >
                 <div className="flex flex-col">
-                  <span className={`text-sm font-semibold transition-opacity ${isProcessing ? 'opacity-50' : 'text-slate-700 dark:text-slate-200'}`}>
+                  <span
+                    className={`text-sm font-semibold transition-opacity ${isProcessing ? "opacity-50" : "text-slate-700 dark:text-slate-200"}`}
+                  >
                     /{cmd.name}
                   </span>
-                  <span className="text-xs text-slate-500">{cmd.description}</span>
+                  <span className="text-xs text-slate-500">
+                    {cmd.description}
+                  </span>
                 </div>
 
                 <div className="relative z-20 flex items-center">
@@ -108,23 +118,40 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
                       toggleCommand(cmd);
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                      isProcessing ? 'opacity-50 cursor-wait' : ''
+                      isProcessing ? "opacity-50 cursor-wait" : ""
                     } ${
-                      isEnabled ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'
+                      isEnabled
+                        ? "bg-indigo-600"
+                        : "bg-slate-200 dark:bg-slate-700"
                     }`}
                   >
                     {isProcessing && (
                       <span className="absolute inset-0 flex items-center justify-center">
-                         <svg className="animate-spin h-3 w-3 text-white" viewBox="0 0 24 24">
-                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                         </svg>
+                        <svg
+                          className="animate-spin h-3 w-3 text-white"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
                       </span>
                     )}
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
-                        isEnabled ? 'translate-x-6' : 'translate-x-1'
-                      } ${isProcessing ? 'opacity-0' : 'opacity-100'}`}
+                        isEnabled ? "translate-x-6" : "translate-x-1"
+                      } ${isProcessing ? "opacity-0" : "opacity-100"}`}
                     />
                   </button>
                 </div>
@@ -133,7 +160,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
           })}
         </ul>
       )}
-      
+
       {!isLoading && targetCommands.length === 0 && (
         <div className="p-8 text-center text-sm text-slate-500">
           管理可能なコマンドがありません。

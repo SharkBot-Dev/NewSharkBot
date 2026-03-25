@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { 
-  addSlashCommand, 
-  getSlashCommands, 
-  deleteSlashCommand, 
-  checkAdminPermission 
-} from "@/lib/discord"; 
-import { commands } from "@/lib/commands";
 import { auth } from "@/app/auth";
+import { commands } from "@/lib/commands";
+import {
+  addSlashCommand,
+  checkAdminPermission,
+  deleteSlashCommand,
+  getSlashCommands,
+} from "@/lib/discord";
 
-export async function POST(req: Request, { params }: { params: Promise<{ guildId: string }> }) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ guildId: string }> },
+) {
   const { guildId } = await params;
   const session = await auth();
 
@@ -19,7 +22,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ guildId
   const { action, command, commandId } = await req.json();
 
   if (!guildId || !session?.accessToken) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 },
+    );
   }
 
   const isAdmin = await checkAdminPermission(guildId, session?.accessToken);
@@ -29,14 +35,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ guildId
 
   try {
     switch (action) {
-      case "fetch":
+      case "fetch": {
         const currentCommands = await getSlashCommands(guildId);
         return NextResponse.json(currentCommands);
+      }
 
-      case "add":
-        if (!commands.includes(command.name)) return NextResponse.json({ error: "Invalid command" }, { status: 400 });
+      case "add": {
+        if (!commands.includes(command.name))
+          return NextResponse.json(
+            { error: "Invalid command" },
+            { status: 400 },
+          );
         const added = await addSlashCommand(guildId, command);
         return NextResponse.json(added);
+      }
 
       case "delete":
         await deleteSlashCommand(guildId, commandId);
@@ -46,7 +58,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ guildId
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
   } catch (error: any) {
-    console.log(error.message)
+    console.log(error.message);
     return NextResponse.json({ error: "Error." }, { status: 500 });
   }
 }

@@ -1,31 +1,37 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 const ADMIN_PERMISSION = 0x8;
 
 export default function Client() {
-  const [guilds, setGuilds] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [guilds, setGuilds] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/discord/guilds")
-      .then(res => res.json())
-      .then(data => {
-        const filtered = data.filter((g: any) => 
-          (BigInt(g.permissions) & BigInt(ADMIN_PERMISSION)) === BigInt(ADMIN_PERMISSION)
+      .then((res) => res.json())
+      .then((data) => {
+        const filtered = data.filter(
+          (g: any) =>
+            (BigInt(g.permissions) & BigInt(ADMIN_PERMISSION)) ===
+            BigInt(ADMIN_PERMISSION),
         );
-        setGuilds(filtered)
-        setLoading(false)
-      })
-  }, [])
+        setGuilds(filtered);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4">
       <div className="max-w-md mx-auto">
         <header className="mb-8 text-center">
-          <h1 className="text-2xl font-extrabold text-slate-900">サーバー選択</h1>
-          <p className="text-sm text-slate-500 mt-2">管理するサーバーを選んでください</p>
+          <h1 className="text-2xl font-extrabold text-slate-900">
+            サーバー選択
+          </h1>
+          <p className="text-sm text-slate-500 mt-2">
+            管理するサーバーを選んでください
+          </p>
         </header>
 
         {loading ? (
@@ -38,7 +44,9 @@ export default function Client() {
               guilds.map((g) => (
                 <li key={g.id}>
                   <button
-                    onClick={() => (window.location.href = `/dashboard/${g.id}`)}
+                    onClick={() =>
+                      (window.location.href = `/dashboard/${g.id}`)
+                    }
                     className="w-full flex items-center p-4 rounded-2xl border bg-white border-slate-200 shadow-sm active:scale-[0.98] hover:border-indigo-300 transition-all duration-200"
                   >
                     <div className="relative flex-shrink-0">
@@ -56,12 +64,24 @@ export default function Client() {
                     </div>
 
                     <div className="ml-4 text-left flex-grow">
-                      <p className="font-bold text-slate-800 line-clamp-1">{g.name}</p>
+                      <p className="font-bold text-slate-800 line-clamp-1">
+                        {g.name}
+                      </p>
                       <p className="text-xs text-indigo-600">管理可能</p>
                     </div>
 
-                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="9 5l7 7-7 7" />
+                    <svg
+                      className="w-5 h-5 text-slate-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                 </li>
@@ -75,5 +95,5 @@ export default function Client() {
         )}
       </div>
     </div>
-  )
+  );
 }

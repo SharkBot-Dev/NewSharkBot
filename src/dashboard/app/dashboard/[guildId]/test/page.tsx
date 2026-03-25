@@ -1,9 +1,9 @@
 "use client";
 
+import { ChevronLeft, Settings2, Terminal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Terminal, Settings2 } from "lucide-react";
-import CommandsControl from "@/app/components/commands";
 import { useEffect, useState } from "react";
+import CommandsControl from "@/app/components/commands";
 
 export default function TestModuleSetting() {
   const params = useParams();
@@ -14,14 +14,16 @@ export default function TestModuleSetting() {
 
   useEffect(() => {
     async function init() {
-      (await fetch("/api/guilds/" + guildId + "/modules/isEnabled?module=test")).json().then((data) => {
-        if (data.enabled) {
-          setLoading(false);
-        } else {
-          alert("このサーバーではモジュールが有効になっていません。");
-          router.push("/dashboard/" + guildId);
-        }
-      });
+      (await fetch("/api/guilds/" + guildId + "/modules/isEnabled?module=test"))
+        .json()
+        .then((data) => {
+          if (data.enabled) {
+            setLoading(false);
+          } else {
+            alert("このサーバーではモジュールが有効になっていません。");
+            router.push("/dashboard/" + guildId);
+          }
+        });
     }
     init();
   }, []);
@@ -31,7 +33,7 @@ export default function TestModuleSetting() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin h-8 w-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -58,25 +60,26 @@ export default function TestModuleSetting() {
                 コマンド管理
               </h2>
             </div>
-            
+
             <div className="shadow-sm">
-              <CommandsControl 
-                guildId={guildId} 
+              <CommandsControl
+                guildId={guildId}
                 targetCommands={[
                   {
                     name: "test",
-                    description: "テストと返します。動作確認用に使用してください。",
-                  }
-                ]} 
+                    description:
+                      "テストと返します。動作確認用に使用してください。",
+                  },
+                ]}
               />
             </div>
-            
+
             <p className="mt-4 text-xs text-slate-900">
-              ※ 反映まで数分かかる場合があります。同期が完了しない場合はページを更新してください。
+              ※
+              反映まで数分かかる場合があります。同期が完了しない場合はページを更新してください。
             </p>
           </section>
         </div>
-
       </div>
     </div>
   );

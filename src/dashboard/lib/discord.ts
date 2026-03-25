@@ -8,20 +8,23 @@ const headers = {
 export async function getGuilds(accessToken: string) {
   const res = await fetch("https://discord.com/api/users/@me/guilds", {
     headers: {
-      Authorization: `Bearer ${accessToken}`
-    }
-  })
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
-  if (!res.ok) throw new Error("取得失敗")
+  if (!res.ok) throw new Error("取得失敗");
 
-  return res.json()
+  return res.json();
 }
 
-export async function checkAdminPermission(guildId: string, accessToken: string) {
+export async function checkAdminPermission(
+  guildId: string,
+  accessToken: string,
+) {
   try {
     const res = await fetch("https://discord.com/api/users/@me/guilds", {
       headers: { Authorization: `Bearer ${accessToken}` },
-      next: { revalidate: 60 }
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) return false;
@@ -30,7 +33,7 @@ export async function checkAdminPermission(guildId: string, accessToken: string)
     const guild = guilds.find((g) => g.id === guildId);
 
     if (!guild) return false;
-    
+
     return (BigInt(guild.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION;
   } catch {
     return false;
@@ -40,7 +43,7 @@ export async function checkAdminPermission(guildId: string, accessToken: string)
 export async function addSlashCommand(guildId: string, commandData: any) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
-  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands`
+  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -59,12 +62,12 @@ export async function addSlashCommand(guildId: string, commandData: any) {
 export async function getSlashCommands(guildId: string) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
-  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands`
+  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands`;
 
   const response = await fetch(url, {
     method: "GET",
     headers,
-    next: { revalidate: 15 }
+    next: { revalidate: 15 },
   });
 
   if (!response.ok) {
@@ -79,7 +82,7 @@ export async function deleteSlashCommand(guildId: string, commandId: string) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
   const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands/${commandId}`;
-  
+
   const response = await fetch(url, {
     method: "DELETE",
     headers,

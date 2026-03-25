@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { auth } from "@/app/auth";
-
-import { checkAdminPermission } from "@/lib/discord"
+import { checkAdminPermission } from "@/lib/discord";
+import clientPromise from "@/lib/mongodb";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ guildId: string }> }
+  { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
   const session = await auth();
@@ -15,7 +14,10 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const hasPermission = await checkAdminPermission(guildId, session.accessToken);
+  const hasPermission = await checkAdminPermission(
+    guildId,
+    session.accessToken,
+  );
   if (!hasPermission) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -42,7 +44,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ guildId: string }> }
+  { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
   const session = await auth();
@@ -51,7 +53,10 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const hasPermission = await checkAdminPermission(guildId, session.accessToken);
+  const hasPermission = await checkAdminPermission(
+    guildId,
+    session.accessToken,
+  );
   if (!hasPermission) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -62,11 +67,13 @@ export async function POST(
     const client = await clientPromise;
     const db = client.db("SharkBot");
 
-    await db.collection("module_setting").updateOne(
-      { guildId },
-      { $set: { [`modules.${moduleId}`]: enabled } },
-      { upsert: true }
-    );
+    await db
+      .collection("module_setting")
+      .updateOne(
+        { guildId },
+        { $set: { [`modules.${moduleId}`]: enabled } },
+        { upsert: true },
+      );
 
     return NextResponse.json({ success: true });
   } catch (e) {
