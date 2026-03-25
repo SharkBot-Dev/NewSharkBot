@@ -13,9 +13,9 @@ export async function getGuildRequest(guildId: string) {
   try {
     const response = await fetch(
       `https://discord.com/api/v10/guilds/${guildId}`,
-      { 
+      {
         next: { revalidate: 60 },
-        headers: headers
+        headers: headers,
       },
     );
 
@@ -25,7 +25,7 @@ export async function getGuildRequest(guildId: string) {
 
     const guild = await response.json();
     return guild;
-  } catch (error) {;
+  } catch {
     return null;
   }
 }

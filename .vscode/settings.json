@@ -1,0 +1,4 @@
+{
+	"biome.lsp.bin": "./src/dashboard/node_modules/.bin/biome",
+	"eslint.enable": false
+}
