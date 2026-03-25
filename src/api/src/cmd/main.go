@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	config "github.com/SharkBot-Dev/NewSharkBot/api/src/internal"
-	"github.com/SharkBot-Dev/NewSharkBot/api/src/internal/models"
+	"github.com/SharkBot-Dev/NewSharkBot/api/src/internal/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// マイグレート
-	db.AutoMigrate(&models.GuildSetting{})
+	db.AutoMigrate(&model.GuildSetting{})
 
 	// デフォルトミドルウェア（loggerとrecovery）を含むGinルーターを作成
 	r := gin.Default()
