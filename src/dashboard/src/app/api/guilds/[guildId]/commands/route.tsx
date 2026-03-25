@@ -25,7 +25,7 @@ export async function POST(
       headers: await headers(),
     });
     const discordAccountData = allLinkedAccounts.find(
-      (account) => account.providerId === "discord",
+      (account: any) => account.providerId === "discord",
     );
     if (!discordAccountData) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -77,7 +77,6 @@ export async function POST(
             { error: "Invalid command" },
             { status: 400 },
           );
-        console.log("Adding command:", command);
         const added = await addSlashCommand(guildId, command);
         return NextResponse.json(added);
       }

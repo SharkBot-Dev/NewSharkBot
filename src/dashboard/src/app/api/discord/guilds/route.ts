@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { DISCORD_API_BASE_URL } from "@/constants/Discord/endpoints";
 import { auth } from "@/lib/auth";
 import type { DiscordGuild } from "@/types/Discord";
+import { NextResponse } from "next/server";
 
 const ADMIN_PERMISSION = BigInt(0x8);
 
@@ -30,53 +31,53 @@ export async function GET() {
         userId: discordAccountData.userId,
       },
     });
+
+    if (
+      !discordToken.accessTokenExpiresAt ||
+      Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
+    ) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+      const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
+        headers: {
+          Authorization: `Bearer ${discordToken.accessToken}`,
+        },
+        next: {
+          revalidate: 60,
+          tags: [`guilds-${discordAccountData.accountId}`],
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        return Response.json(
+          { error: "Discord API error", details: errorData },
+          { status: res.status },
+        );
+      }
+
+      const guilds: DiscordGuild[] = await res.json();
+
+      const managedGuilds = guilds.map((g) => ({
+        id: g.id,
+        name: g.name,
+        icon: g.icon,
+        isAdmin: g.permissions
+          ? (BigInt(g.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION
+          : false,
+        permissions: g.permissions,
+        owner: g.owner,
+      }));
+
+      return Response.json(managedGuilds);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    }
   } catch (e) {
     console.log("Error fetching access token:", e);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (
-    !discordToken.accessTokenExpiresAt ||
-    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
-  ) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
-    const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
-      headers: {
-        Authorization: `Bearer ${discordToken.accessToken}`,
-      },
-      next: {
-        revalidate: 60,
-        tags: [`guilds-${discordAccountData.accountId}`],
-      },
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      return Response.json(
-        { error: "Discord API error", details: errorData },
-        { status: res.status },
-      );
-    }
-
-    const guilds: DiscordGuild[] = await res.json();
-
-    const managedGuilds = guilds.map((g) => ({
-      id: g.id,
-      name: g.name,
-      icon: g.icon,
-      isAdmin: g.permissions
-        ? (BigInt(g.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION
-        : false,
-      permissions: g.permissions,
-      owner: g.owner,
-    }));
-
-    return Response.json(managedGuilds);
-  } catch (error) {
-    console.error("Fetch error:", error);
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
