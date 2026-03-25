@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams, usePathname } from "next/navigation"
 import { 
@@ -23,6 +23,36 @@ export default function DashboardLayout({
   const params = useParams()
   const pathname = usePathname()
   const guildId = params.guildId as string
+
+  const [loading, setLoading] = useState(true)
+  
+  useEffect(() => {
+    async function checkPermission() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/discord/guild/${guildId}`);
+        if (!res.ok) {
+          alert("Botを導入する画面にリダイレクトします。");
+          window.location.href = `https://discord.com/oauth2/authorize?client_id=${process.env.PUBLIC_DISCORD_CLIENT_ID}&permissions=8&integration_type=0&scope=bot+applications.commands`;
+          return;
+        };
+      } catch (error) {
+        console.error("Error checking permission:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    checkPermission();
+  }, [guildId]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin h-8 w-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div>
+      </div>
+    )
+  }
 
   const navigation = [
     { 

@@ -5,6 +5,29 @@ const headers = {
   "Content-Type": "application/json",
 };
 
+export async function getGuildRequest(guildId: string) {
+  try {
+    const response = await fetch(
+      `https://discord.com/api/v10/guilds/${guildId}`,
+      { 
+        next: { revalidate: 60 },
+        headers: headers
+      },
+    );
+
+    console.log("Guild API Response:", response);
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const guild = await response.json();
+    return guild;
+  } catch (error) {;
+    return null;
+  }
+}
+
 export async function getGuilds(accessToken: string) {
   const res = await fetch("https://discord.com/api/users/@me/guilds", {
     headers: {
