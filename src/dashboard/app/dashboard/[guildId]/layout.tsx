@@ -8,8 +8,11 @@ import {
   Menu, 
   Home,
   HomeIcon,
-  BotIcon
+  BotIcon,
+  ShieldQuestion
 } from "lucide-react"
+
+import { modules as modules_list } from "@/lib/modules"
 
 export default function DashboardLayout({
   children,
@@ -26,13 +29,16 @@ export default function DashboardLayout({
       name: "ホーム", 
       href: `/dashboard/${guildId}`, 
       icon: HomeIcon 
-    },
-    { 
-      name: "テストモジュール", 
-      href: `/dashboard/${guildId}/test`,
-      icon: ShieldCheck 
     }
   ]
+  
+  modules_list.forEach(m => {
+    navigation.push({
+      name: m.name,
+      href: `/dashboard/${guildId}/${m.id}`,
+      icon: m.icon || ShieldQuestion
+    })
+  });
 
   const NavItem = ({ item }: { item: typeof navigation[0] }) => {
     const isActive = pathname === item.href

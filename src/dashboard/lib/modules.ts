@@ -2,7 +2,8 @@ export interface ModuleSetting {
   id: string
   name: string
   description: string
-  enabled: boolean
+  enabled: boolean,
+  icon: any
 }
 
 export const modules = new Map<string, ModuleSetting>([
@@ -12,7 +13,8 @@ export const modules = new Map<string, ModuleSetting>([
       id: "test",
       name: "テストモジュール",
       description: "テストモジュールです",
-      enabled: false
+      enabled: false,
+      icon: null
     }
   ],
 ]);
