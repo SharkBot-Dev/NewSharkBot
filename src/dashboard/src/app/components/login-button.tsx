@@ -7,7 +7,7 @@ export function SignIn() {
         "use server";
         await authClient.signIn.social({
           provider: "discord",
-          callbackURL: `/dashbaord`,
+          callbackURL: `/dashboard`,
         });
       }}
     >
