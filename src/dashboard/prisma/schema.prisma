@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["public", "auth", "dashboard"]
+  schemas  = ["auth", "dashboard"]
 }
 
 model User {
