@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { RESOURCE_API_BASE_URL } from "@/constants/api/endpoints";
+import { parseResponse, serializeRequest } from "@/lib/api/parsers";
 import { checkAdminPermission, getAccessToken } from "@/lib/Discord/User";
+import type { GuildSettings } from "@/types/api/GuildSettings";
 
 export async function GET(
   _request: Request,
@@ -19,24 +22,17 @@ export async function GET(
   }
 
   try {
-    /* TODO: Impliment DB connection and fetching module settings
-    const client = await clientPromise;
-    const db = client.db("SharkBot");
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds`);
 
-    let settings = await db.collection("module_setting").findOne({ guildId });
-
-    if (!settings) {
-      settings = {
+    if (response.status === 404) {
+      const defaultSettings = {
         guildId,
-        modules: { test: false },
-      } as any;
-      await db.collection("module_setting").insertOne(settings as any);
+        enabledModules: { test: false },
+      };
+      return NextResponse.json(defaultSettings);
     }
-    */
-    const settings = {
-      guildId,
-      modules: { test: false },
-    };
+
+    const settings = parseResponse<GuildSettings>(await response.json());
 
     return NextResponse.json(settings);
   } catch {
@@ -48,7 +44,7 @@ export async function GET(
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
@@ -65,21 +61,30 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // const { moduleId, enabled } = await request.json();
+  const { moduleId, enabled } = await request.json();
 
   try {
-    /* TODO: Impliment DB connection and updating module settings
-    const client = await clientPromise;
-    const db = client.db("SharkBot");
+    const response = await fetch(
+      `${RESOURCE_API_BASE_URL}/guilds/${guildId}/modules`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(
+          serializeRequest({ enabledModules: { [moduleId]: enabled } }),
+        ),
+      },
+    );
 
-    await db
-      .collection("module_setting")
-      .updateOne(
-        { guildId },
-        { $set: { [`modules.${moduleId}`]: enabled } },
-        { upsert: true },
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log("Error response from API:", errorData);
+      return NextResponse.json(
+        { error: "Failed to update module settings" },
+        { status: response.status },
       );
-    */
+    }
 
     return NextResponse.json({ success: true });
   } catch {
