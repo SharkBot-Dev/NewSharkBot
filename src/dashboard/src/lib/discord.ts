@@ -1,4 +1,5 @@
 import { DISCORD_API_BASE_URL } from "@/constants/Discord/endpoints";
+import type { DiscordGuild } from "@/types/Discord";
 
 const ADMIN_PERMISSION = BigInt(0x8);
 
@@ -51,12 +52,14 @@ export async function checkAdminPermission(
 
     if (!res.ok) return false;
 
-    const guilds: any[] = await res.json();
+    const guilds: DiscordGuild[] = await res.json();
     const guild = guilds.find((g) => g.id === guildId);
 
     if (!guild) return false;
 
-    return (BigInt(guild.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION;
+    return guild.permissions
+      ? (BigInt(guild.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION
+      : false;
   } catch {
     return false;
   }
