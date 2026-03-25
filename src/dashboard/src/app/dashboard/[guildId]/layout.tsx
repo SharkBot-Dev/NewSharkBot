@@ -49,21 +49,30 @@ export default function DashboardLayout({
 
   const navigation = [
     {
-      name: "ホーム",
-      href: `/dashboard/${guildId}`,
-      icon: HomeIcon,
+      category: "メイン",
+      items: [{ name: "ホーム", href: `/dashboard/${guildId}`, icon: HomeIcon }],
     },
   ];
 
+  const groupedModules: Record<string, any[]> = {};
+
   modules_list.forEach((m) => {
-    navigation.push({
+    const groupName = m.group || "その他";
+    if (!groupedModules[groupName]) {
+      groupedModules[groupName] = [];
+    }
+    groupedModules[groupName].push({
       name: m.name,
       href: `/dashboard/${guildId}/${m.id}`,
       icon: m.icon || ShieldQuestion,
     });
   });
 
-  const NavItem = ({ item }: { item: (typeof navigation)[0] }) => {
+  Object.entries(groupedModules).forEach(([category, items]) => {
+    navigation.push({ category, items });
+  });
+
+  const NavItem = ({ item }: { item: { name: string; href: string; icon: any } }) => {
     const isActive = pathname === item.href;
     return (
       <Link
@@ -86,7 +95,6 @@ export default function DashboardLayout({
 
   return (
     <div className="h-screen bg-slate-50 flex overflow-hidden">
-      {/* モバイル用オーバーレイ */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
@@ -94,7 +102,6 @@ export default function DashboardLayout({
         />
       )}
 
-      {/* サイドバー */}
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 
@@ -104,7 +111,7 @@ export default function DashboardLayout({
         `}
       >
         <div className="flex flex-col h-full p-6">
-          <div className="flex items-center gap-3 px-2 mb-10 shrink-0"> {/* shrink-0で潰れないように */}
+          <div className="flex items-center gap-3 px-2 mb-10 shrink-0">
             <div className="bg-indigo-600 p-2 rounded-lg">
               <BotIcon className="h-6 w-6 text-white" />
             </div>
@@ -113,13 +120,19 @@ export default function DashboardLayout({
             </span>
           </div>
 
-          {/* ナビゲーション部分のみをスクロール可能に */}
           <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar pr-2">
             <p className="px-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
               Menu
             </p>
-            {navigation.map((item) => (
-              <NavItem key={item.name} item={item} />
+            {navigation.map((category) => (
+              <div key={category.category}>
+                <p className="px-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-4">
+                  {category.category}
+                </p>
+                {category.items.map((item) => (
+                  <NavItem key={item.name} item={item} />
+                ))}
+              </div>
             ))}
           </nav>
 

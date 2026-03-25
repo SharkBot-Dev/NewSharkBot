@@ -6,6 +6,7 @@ export interface ModuleSetting {
   description: string;
   enabled: boolean;
   icon: any;
+  group?: string;
 }
 
 export const modules = new Map<string, ModuleSetting>([
@@ -17,6 +18,7 @@ export const modules = new Map<string, ModuleSetting>([
       description: "テストモジュールです",
       enabled: false,
       icon: null,
+      group: "デバッグ用",
     },
   ],
   [
@@ -27,6 +29,7 @@ export const modules = new Map<string, ModuleSetting>([
       description: "コマンドの説明を表示するモジュールです",
       enabled: true,
       icon: HelpCircle,
+      group: "ユーティリティ",
     },
   ],
   [
@@ -37,6 +40,7 @@ export const modules = new Map<string, ModuleSetting>([
       description: "サーバー内の埋め込みを作成＆管理できます",
       enabled: true,
       icon: Hand,
+      group: "ユーティリティ",
     },
   ],
   [
@@ -47,6 +51,7 @@ export const modules = new Map<string, ModuleSetting>([
       description: "新規参加者に挨拶したり、退出者にさようならを言うモジュールです",
       enabled: true,
       icon: Hand,
+      group: "サーバー管理",
     },
   ],
 ]);
