@@ -6,6 +6,7 @@ interface CommandData {
   name: string;
   description: string;
   id?: string;
+  options?: any[];
 }
 
 interface Props {
@@ -49,7 +50,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
       const action = existing ? "delete" : "add";
       const payload = existing
         ? { commandId: existing.id }
-        : { command: { name: cmd.name, description: cmd.description } };
+        : { command: { name: cmd.name, description: cmd.description, options: cmd.options } };
 
       const res = await fetch(`/api/guilds/${guildId}/commands`, {
         method: "POST",

@@ -17,7 +17,7 @@ class TestCog(commands.Cog):
 
         print("init -> TestCog")
 
-    async def test_command(self, interaction: discord.Interaction):
+    async def test_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.send_message(content="テストです。", ephemeral=True)
 
 async def setup(bot):

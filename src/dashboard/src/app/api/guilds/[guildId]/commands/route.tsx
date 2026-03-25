@@ -46,6 +46,7 @@ export async function POST(
             { error: "Invalid command" },
             { status: 400 },
           );
+        console.log("Adding command:", command);
         const added = await addSlashCommand(guildId, command);
         return NextResponse.json(added);
       }

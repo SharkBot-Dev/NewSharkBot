@@ -1,3 +1,5 @@
+import { HelpCircle } from "lucide-react";
+
 export interface ModuleSetting {
   id: string;
   name: string;
@@ -15,6 +17,16 @@ export const modules = new Map<string, ModuleSetting>([
       description: "テストモジュールです",
       enabled: false,
       icon: null,
+    },
+  ],
+  [
+    "help",
+    {
+      id: "help",
+      name: "ヘルプモジュール",
+      description: "コマンドの説明を表示するモジュールです",
+      enabled: true,
+      icon: HelpCircle,
     },
   ],
 ]);
