@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { checkAdminPermission } from "@/lib/discord";
+import { checkAdminPermission } from "@/lib/Discord/User";
 
 export async function GET(
   _request: Request,

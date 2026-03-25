@@ -1,7 +1,8 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { checkAdminPermission } from "@/lib/discord";
+import { RESOURCE_API_BASE_URL } from "@/constants/api/endpoints";
+import { parseResponse } from "@/lib/api/parsers";
+import { checkAdminPermission, getAccessToken } from "@/lib/Discord/User";
+import type { GuildSettings } from "@/types/api/GuildSettings";
 
 export async function GET(
   request: Request,
@@ -12,76 +13,36 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const targetModule = searchParams.get("module");
 
-  let discordToken: {
-    accessToken: string;
-    accessTokenExpiresAt: Date | undefined;
-    scopes: string[];
-    idToken: string | undefined;
-  };
   try {
-    const allLinkedAccounts = await auth.api.listUserAccounts({
-      headers: await headers(),
-    });
-    const discordAccountData = allLinkedAccounts.find(
-      (account) => account.providerId === "discord",
-    );
-    if (!discordAccountData) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    const accessToken = await getAccessToken();
+    const hasPermission = await checkAdminPermission(guildId, accessToken);
+
+    if (!hasPermission) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    discordToken = await auth.api.getAccessToken({
-      headers: await headers(),
-      body: {
-        providerId: "discord",
-        accountId: discordAccountData.accountId,
-        userId: discordAccountData.userId,
-      },
-    });
   } catch (e) {
-    console.log("Error fetching access token:", e);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (
-    !discordToken.accessTokenExpiresAt ||
-    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
-  ) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const hasPermission = await checkAdminPermission(
-    guildId,
-    discordToken.accessToken,
-  );
-  if (!hasPermission) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    console.error(e);
+    return NextResponse.json(
+      { error: "Failed to fetch access token" },
+      { status: 401 },
+    );
   }
 
   try {
-    /* TODO: Impliment
-    const client = await clientPromise;
-    const db = client.db("SharkBot");
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/${guildId}`);
 
-    let settings = (await db
-      .collection("module_setting")
-      .findOne({ guildId })) as any;
-
-    if (!settings) {
+    if (response.status === 404) {
       const defaultSettings = {
         guildId,
-        modules: { test: false },
+        enabledModules: { test: false },
       };
-      await db.collection("module_setting").insertOne(defaultSettings);
-      settings = defaultSettings;
+      return NextResponse.json(defaultSettings);
     }
-    */
-    const defaultSettings = {
-      guildId,
-      modules: { test: false },
-    };
-    const settings = defaultSettings;
+
+    const settings = parseResponse<GuildSettings>(await response.json());
 
     if (targetModule) {
-      const isEnabled = !!settings.modules?.[targetModule];
+      const isEnabled = !!settings.enabledModules?.[targetModule];
       return NextResponse.json({
         module: targetModule,
         enabled: isEnabled,

@@ -3,11 +3,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { commands } from "@/lib/commands";
 import {
-  addSlashCommand,
-  checkAdminPermission,
   deleteSlashCommand,
-  getSlashCommands,
-} from "@/lib/discord";
+  getAllSlashCommands,
+  registerSlashCommand,
+} from "@/lib/Discord/Bot";
+import { checkAdminPermission } from "@/lib/Discord/User";
 
 export async function POST(
   req: Request,
@@ -67,7 +67,7 @@ export async function POST(
   try {
     switch (action) {
       case "fetch": {
-        const currentCommands = await getSlashCommands(guildId);
+        const currentCommands = await getAllSlashCommands(guildId);
         return NextResponse.json(currentCommands);
       }
 
@@ -77,7 +77,7 @@ export async function POST(
             { error: "Invalid command" },
             { status: 400 },
           );
-        const added = await addSlashCommand(guildId, command);
+        const added = await registerSlashCommand(guildId, command);
         return NextResponse.json(added);
       }
 

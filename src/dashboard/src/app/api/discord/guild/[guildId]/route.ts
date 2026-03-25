@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { checkAdminPermission, getGuildRequest } from "@/lib/discord";
+import { getAllJoinedGuilds } from "@/lib/Discord/Bot";
+import { checkAdminPermission } from "@/lib/Discord/User";
 
 export async function GET(
   _request: Request,
@@ -53,7 +54,7 @@ export async function GET(
   }
 
   try {
-    const guild = await getGuildRequest(guildId);
+    const guild = await getAllJoinedGuilds(guildId);
 
     if (!guild?.id) {
       return NextResponse.json({ error: "Guild not found" }, { status: 404 });
