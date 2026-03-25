@@ -1,23 +1,9 @@
 "use client";
 
-<<<<<<< HEAD:src/dashboard/app/dashboard/[guildId]/layout.tsx
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { useParams, usePathname } from "next/navigation"
-import { 
-  ShieldCheck, 
-  Menu, 
-  Home,
-  HomeIcon,
-  BotIcon,
-  ShieldQuestion
-} from "lucide-react"
-=======
 import { BotIcon, Home, HomeIcon, Menu, ShieldQuestion } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
->>>>>>> 12cc6bf78c6a295e5614f4c2a257bccc33488348:src/dashboard/src/app/dashboard/[guildId]/layout.tsx
+import { useState, useEffect } from "react";
 
 import { modules as modules_list } from "@/lib/modules";
 
@@ -40,7 +26,7 @@ export default function DashboardLayout({
         const res = await fetch(`/api/discord/guild/${guildId}`);
         if (!res.ok) {
           alert("Botを導入する画面にリダイレクトします。");
-          window.location.href = `https://discord.com/oauth2/authorize?client_id=${process.env.PUBLIC_DISCORD_CLIENT_ID}&permissions=8&integration_type=0&scope=bot+applications.commands`;
+          window.location.href = `https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID}&permissions=8&integration_type=0&scope=bot+applications.commands`;
           return;
         };
       } catch (error) {

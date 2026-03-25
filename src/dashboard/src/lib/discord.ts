@@ -15,8 +15,6 @@ export async function getGuildRequest(guildId: string) {
       },
     );
 
-    console.log("Guild API Response:", response);
-
     if (!response.ok) {
       return null;
     }
