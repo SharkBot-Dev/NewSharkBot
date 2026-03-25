@@ -57,8 +57,8 @@ export async function POST(
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
-  } catch (error: any) {
-    console.log(error.message);
+  } catch (error) {
+    console.log(error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "Error." }, { status: 500 });
   }
 }

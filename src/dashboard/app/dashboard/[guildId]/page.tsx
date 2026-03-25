@@ -61,7 +61,7 @@ export default function DashboardPage() {
     }
 
     init();
-  }, [guildId]);
+  }, [guildId, router]);
 
   const toggleModule = async (moduleId: string) => {
     const target = modules.find((m) => m.id === moduleId);
@@ -81,7 +81,7 @@ export default function DashboardPage() {
       });
 
       if (!res.ok) throw new Error("保存失敗");
-    } catch (error) {
+    } catch {
       alert("設定の保存に失敗しました");
       setModules((prev) =>
         prev.map((m) => (m.id === moduleId ? { ...m, enabled: !newState } : m)),
@@ -106,7 +106,8 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-500 font-mono">ID: {guildId}</p>
           </div>
           <button
-            onClick={() => router.push("/dashboard")}
+            type="button"
+            onClick={() => router.push(`/dashboard/${guildId}`)}
             className="text-sm text-indigo-600 hover:underline"
           >
             ← 戻る
@@ -120,6 +121,7 @@ export default function DashboardPage() {
               className="group relative flex flex-col justify-between p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all duration-200"
             >
               <button
+                type="button"
                 onClick={() => router.push(`/dashboard/${guildId}/${mod.id}`)}
                 className="absolute inset-0 z-0 text-left rounded-2xl focus:outline-none"
                 aria-label={`${mod.name}の設定を開く`}

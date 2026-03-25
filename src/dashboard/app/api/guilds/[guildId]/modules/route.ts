@@ -4,7 +4,7 @@ import { checkAdminPermission } from "@/lib/discord";
 import clientPromise from "@/lib/mongodb";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
@@ -37,13 +37,13 @@ export async function GET(
     }
 
     return NextResponse.json(settings);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "DB接続エラー" }, { status: 500 });
   }
 }
 
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
@@ -76,7 +76,10 @@ export async function POST(
       );
 
     return NextResponse.json({ success: true });
-  } catch (e) {
-    return NextResponse.json({ error: "保存失敗" }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to update module settings" },
+      { status: 500 },
+    );
   }
 }

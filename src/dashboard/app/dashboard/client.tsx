@@ -44,12 +44,13 @@ export default function Client() {
               guilds.map((g) => (
                 <li key={g.id}>
                   <button
+                    type="button"
                     onClick={() =>
                       (window.location.href = `/dashboard/${g.id}`)
                     }
                     className="w-full flex items-center p-4 rounded-2xl border bg-white border-slate-200 shadow-sm active:scale-[0.98] hover:border-indigo-300 transition-all duration-200"
                   >
-                    <div className="relative flex-shrink-0">
+                    <div className="relative shrink-0">
                       {g.icon ? (
                         <img
                           src={`https://cdn.discordapp.com/icons/${g.id}/${g.icon}.png`}
@@ -63,7 +64,7 @@ export default function Client() {
                       )}
                     </div>
 
-                    <div className="ml-4 text-left flex-grow">
+                    <div className="ml-4 text-left grow">
                       <p className="font-bold text-slate-800 line-clamp-1">
                         {g.name}
                       </p>
@@ -76,6 +77,7 @@ export default function Client() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
+                      <title>サーバー管理画面へ</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"

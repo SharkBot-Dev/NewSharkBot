@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  BotIcon,
-  Home,
-  HomeIcon,
-  Menu,
-  ShieldCheck,
-  ShieldQuestion,
-} from "lucide-react";
+import { BotIcon, Home, HomeIcon, Menu, ShieldQuestion } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
@@ -110,6 +103,7 @@ export default function DashboardLayout({
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200">
           <button
+            type="button"
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 rounded-md text-slate-500 hover:bg-slate-100"
           >

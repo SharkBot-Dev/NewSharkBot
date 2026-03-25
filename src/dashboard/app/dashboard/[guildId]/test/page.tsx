@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Settings2, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import CommandsControl from "@/app/components/commands";
@@ -14,19 +14,19 @@ export default function TestModuleSetting() {
 
   useEffect(() => {
     async function init() {
-      (await fetch("/api/guilds/" + guildId + "/modules/isEnabled?module=test"))
+      (await fetch(`/api/guilds/${guildId}/modules/isEnabled?module=test`))
         .json()
         .then((data) => {
           if (data.enabled) {
             setLoading(false);
           } else {
             alert("このサーバーではモジュールが有効になっていません。");
-            router.push("/dashboard/" + guildId);
+            router.push(`/dashboard/${guildId}`);
           }
         });
     }
     init();
-  }, []);
+  }, [guildId, router]);
 
   if (loading) {
     return (
