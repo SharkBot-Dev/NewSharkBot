@@ -41,7 +41,7 @@ export async function POST(
 
   const { action, command, commandId } = await req.json();
 
-  if (!guildId) {
+  if (!action || (["add", "delete"].includes(action) && !command)) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 },
