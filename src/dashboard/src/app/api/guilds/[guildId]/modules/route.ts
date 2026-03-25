@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { checkAdminPermission } from "@/lib/discord";
-import clientPromise from "@/lib/mongodb";
 
 export async function GET(
   _request: Request,
@@ -54,6 +53,7 @@ export async function GET(
   }
 
   try {
+    /* TODO: Impliment DB connection and fetching module settings
     const client = await clientPromise;
     const db = client.db("SharkBot");
 
@@ -66,6 +66,11 @@ export async function GET(
       } as any;
       await db.collection("module_setting").insertOne(settings as any);
     }
+    */
+    const settings = {
+      guildId,
+      modules: { test: false },
+    };
 
     return NextResponse.json(settings);
   } catch {
@@ -74,7 +79,7 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
@@ -122,9 +127,10 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { moduleId, enabled } = await _request.json();
+  // const { moduleId, enabled } = await request.json();
 
   try {
+    /* TODO: Impliment DB connection and updating module settings
     const client = await clientPromise;
     const db = client.db("SharkBot");
 
@@ -135,6 +141,7 @@ export async function POST(
         { $set: { [`modules.${moduleId}`]: enabled } },
         { upsert: true },
       );
+    */
 
     return NextResponse.json({ success: true });
   } catch {

@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { checkAdminPermission } from "@/lib/discord";
-import clientPromise from "@/lib/mongodb";
 
 export async function GET(
   request: Request,
@@ -58,6 +57,7 @@ export async function GET(
   }
 
   try {
+    /* TODO: Impliment
     const client = await clientPromise;
     const db = client.db("SharkBot");
 
@@ -73,6 +73,12 @@ export async function GET(
       await db.collection("module_setting").insertOne(defaultSettings);
       settings = defaultSettings;
     }
+    */
+    const defaultSettings = {
+      guildId,
+      modules: { test: false },
+    };
+    const settings = defaultSettings;
 
     if (targetModule) {
       const isEnabled = !!settings.modules?.[targetModule];

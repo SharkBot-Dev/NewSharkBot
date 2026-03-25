@@ -81,10 +81,7 @@ export default function HelpModuleSetting() {
             </div>
 
             <div className="shadow-sm">
-              <CommandsControl
-                guildId={guildId}
-                targetCommands={commands}
-              />
+              <CommandsControl guildId={guildId} targetCommands={commands} />
             </div>
 
             <p className="mt-4 text-xs text-slate-900">
