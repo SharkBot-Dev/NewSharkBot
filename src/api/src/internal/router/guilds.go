@@ -1,13 +1,13 @@
 package router
 
 import (
-	"github.com/SharkBot-Dev/NewSharkBot/api/src/internal/dto"
-	"github.com/SharkBot-Dev/NewSharkBot/api/src/internal/model"
+	"github.com/SharkBot-Dev/NewSharkBot/api/internal/dto"
+	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func RegisterGuildsRoutes(router *gin.RouterGroup, db *gorm.DB) {
+func RegisterGuildsRoutes(router *gin.RouterGroup) {
 	guilds := router.Group("/guilds")
 	{
 		guilds.GET("/", listGuilds)

@@ -1,0 +1,61 @@
+basePath: /
+definitions:
+  cmd.HealthResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  github_com_SharkBot-Dev_NewSharkBot_api_src_internal_dto.ListGuildsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.GuildSetting'
+        type: array
+    type: object
+  model.GuildSetting:
+    properties:
+      createdAt:
+        type: string
+      enabledModules:
+        additionalProperties:
+          type: boolean
+        type: object
+      guildID:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /guilds/:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of guilds
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_SharkBot-Dev_NewSharkBot_api_src_internal_dto.ListGuildsResponse'
+      summary: List guilds
+      tags:
+      - Guilds
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: システムの稼働状況を確認するためのエンドポイントです。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cmd.HealthResponse'
+      summary: health check endpoint
+      tags:
+      - system info
+swagger: "2.0"
