@@ -1,4 +1,3 @@
-import { request } from "http";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -64,7 +63,7 @@ export async function GET(
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
