@@ -1,10 +1,12 @@
+"use client";
+
 import { authClient } from "@/lib/auth-client";
 
 export function SignIn() {
   return (
     <form
-      action={async () => {
-        "use server";
+      onSubmit={async (e) => {
+        e.preventDefault();
         await authClient.signIn.social({
           provider: "discord",
           callbackURL: `/dashboard`,
