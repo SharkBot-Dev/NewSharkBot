@@ -1,13 +1,38 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Terminal, Settings2 } from "lucide-react"; // アイコンを追加
+import { ChevronLeft, Terminal, Settings2 } from "lucide-react";
 import CommandsControl from "@/app/components/commands";
+import { useEffect, useState } from "react";
 
 export default function TestModuleSetting() {
   const params = useParams();
   const router = useRouter();
   const guildId = params.guildId as string;
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function init() {
+      (await fetch("/api/guilds/" + guildId + "/modules/isEnabled?module=test")).json().then((data) => {
+        if (data.enabled) {
+          setLoading(false);
+        } else {
+          alert("このサーバーではモジュールが有効になっていません。");
+          router.push("/dashboard/" + guildId);
+        }
+      });
+    }
+    init();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin h-8 w-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen p-6 md:p-12">
