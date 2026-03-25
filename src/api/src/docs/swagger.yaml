@@ -1,16 +1,23 @@
 basePath: /
 definitions:
-  cmd.HealthResponse:
+  dto.CreateOrUpdateGuildSettingRequest:
     properties:
-      status:
-        type: string
+      enabledModules:
+        additionalProperties:
+          type: boolean
+        type: object
     type: object
-  github_com_SharkBot-Dev_NewSharkBot_api_src_internal_dto.ListGuildsResponse:
+  dto.ListGuildsResponse:
     properties:
       data:
         items:
           $ref: '#/definitions/model.GuildSetting'
         type: array
+    type: object
+  main.HealthResponse:
+    properties:
+      status:
+        type: string
     type: object
   model.GuildSetting:
     properties:
@@ -39,8 +46,55 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_SharkBot-Dev_NewSharkBot_api_src_internal_dto.ListGuildsResponse'
+            $ref: '#/definitions/dto.ListGuildsResponse'
       summary: List guilds
+      tags:
+      - Guilds
+  /guilds/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get guild setting by ID
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.GuildSetting'
+      summary: Get guild setting by ID
+      tags:
+      - Guilds
+    put:
+      consumes:
+      - application/json
+      description: Create or update guild setting
+      parameters:
+      - description: Guild ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Guild setting
+        in: body
+        name: setting
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateOrUpdateGuildSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.GuildSetting'
+      summary: Create or update guild setting
       tags:
       - Guilds
   /health:
@@ -54,7 +108,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/cmd.HealthResponse'
+            $ref: '#/definitions/main.HealthResponse'
       summary: health check endpoint
       tags:
       - system info

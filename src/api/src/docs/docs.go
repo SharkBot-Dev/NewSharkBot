@@ -32,7 +32,78 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_SharkBot-Dev_NewSharkBot_api_src_internal_dto.ListGuildsResponse"
+                            "$ref": "#/definitions/dto.ListGuildsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/guilds/{id}": {
+            "get": {
+                "description": "Get guild setting by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guilds"
+                ],
+                "summary": "Get guild setting by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.GuildSetting"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Create or update guild setting",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Guilds"
+                ],
+                "summary": "Create or update guild setting",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Guild ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Guild setting",
+                        "name": "setting",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateOrUpdateGuildSettingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.GuildSetting"
                         }
                     }
                 }
@@ -55,7 +126,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/cmd.HealthResponse"
+                            "$ref": "#/definitions/main.HealthResponse"
                         }
                     }
                 }
@@ -63,15 +134,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "cmd.HealthResponse": {
+        "dto.CreateOrUpdateGuildSettingRequest": {
             "type": "object",
             "properties": {
-                "status": {
-                    "type": "string"
+                "enabledModules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
                 }
             }
         },
-        "github_com_SharkBot-Dev_NewSharkBot_api_src_internal_dto.ListGuildsResponse": {
+        "dto.ListGuildsResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -79,6 +153,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.GuildSetting"
                     }
+                }
+            }
+        },
+        "main.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
                 }
             }
         },
