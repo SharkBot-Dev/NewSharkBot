@@ -3,7 +3,7 @@
 import { Terminal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import CommandsControl from "@/app/components/commands";
+import CommandsControl from "@/components/commands";
 
 const commands = [
   {
