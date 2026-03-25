@@ -6,5 +6,4 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "discord-py>=2.7.1",
-    "motor>=3.7.1",
 ]
