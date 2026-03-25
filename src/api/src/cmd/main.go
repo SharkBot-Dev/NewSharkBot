@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	config "github.com/SharkBot-Dev/NewSharkBot/api/src/internal"
 	"github.com/SharkBot-Dev/NewSharkBot/api/src/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -10,9 +11,14 @@ import (
 )
 
 func main() {
+	// configをロード
+	config, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
 	// gormを使用してPostgreSQLデータベースに接続
-	dsn := "postgres://postgres:password@localhost:5432/mydb?sslmode=disable"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(config.DatabaseURL), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -23,9 +29,10 @@ func main() {
 	// デフォルトミドルウェア（loggerとrecovery）を含むGinルーターを作成
 	r := gin.Default()
 
-	// GinのContextを使用して、データベース接続をルートハンドラーに渡すためのミドルウェアを定義
+	// GinのContextを使用して、データベース接続とconfigをルートハンドラーに渡すためのミドルウェアを定義
 	r.Use(func(c *gin.Context) {
 		c.Set("db", db)
+		c.Set("config", config)
 		c.Next()
 	})
 
