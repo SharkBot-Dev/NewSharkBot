@@ -1,20 +1,45 @@
-import { auth } from "@/app/auth";
+import { headers } from "next/headers";
+import { DISCORD_API_BASE_URL } from "@/constants/Discord/endpoints";
+import { auth } from "@/lib/auth";
+import type { DiscordGuild } from "@/types/Discord";
 
 const ADMIN_PERMISSION = BigInt(0x8);
 
 export async function GET() {
-  const session = await auth();
+  const allLinkedAccounts = await auth.api.listUserAccounts({
+    headers: await headers(),
+  });
+  const discordAccountData = allLinkedAccounts.find(
+    (account) => account.providerId === "discord",
+  );
+  if (!discordAccountData) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const discordToken = await auth.api.getAccessToken({
+    headers: await headers(),
+    body: {
+      providerId: "discord",
+      accountId: discordAccountData.accountId,
+      userId: discordAccountData.userId,
+    },
+  });
 
-  if (!session?.accessToken || !session?.user?.id) {
+  if (
+    !discordToken.accessTokenExpiresAt ||
+    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
+  ) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const res = await fetch("https://discord.com/api/users/@me/guilds", {
+    const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${discordToken.accessToken}`,
       },
-      next: { revalidate: 60, tags: [`guilds-${session.user.id}`] },
+      next: {
+        revalidate: 60,
+        tags: [`guilds-${discordAccountData.accountId}`],
+      },
     });
 
     if (!res.ok) {
@@ -25,13 +50,15 @@ export async function GET() {
       );
     }
 
-    const guilds: any[] = await res.json();
+    const guilds: DiscordGuild[] = await res.json();
 
     const managedGuilds = guilds.map((g) => ({
       id: g.id,
       name: g.name,
       icon: g.icon,
-      isAdmin: (BigInt(g.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION,
+      isAdmin: g.permissions
+        ? (BigInt(g.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION
+        : false,
       permissions: g.permissions,
       owner: g.owner,
     }));
