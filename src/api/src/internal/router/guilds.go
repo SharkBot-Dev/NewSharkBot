@@ -12,6 +12,7 @@ func RegisterGuildsRoutes(router *gin.RouterGroup) {
 	{
 		guilds.GET("/", listGuilds)
 		guilds.GET("/:id", getGuildSettingByID)
+		guilds.PUT("/:id", createOrUpdateGuildSetting)
 	}
 }
 
@@ -50,6 +51,42 @@ func getGuildSettingByID(c *gin.Context) {
 	if result.Error != nil {
 		c.JSON(404, gin.H{"error": "Guild not found"})
 		return
+	}
+	c.JSON(200, guildSetting)
+}
+
+// createOrUpdateGuildSetting godoc
+// @Summary Create or update guild setting
+// @Description Create or update guild setting
+// @Tags Guilds
+// @Accept json
+// @Produce json
+// @Param id path string true "Guild ID"
+// @Param setting body dto.CreateOrUpdateGuildSettingRequest true "Guild setting"
+// @Success 200 {object} model.GuildSetting
+// @Router /guilds/{id} [put]
+func createOrUpdateGuildSetting(c *gin.Context) {
+	id := c.Param("id")
+	var req dto.CreateOrUpdateGuildSettingRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	var guildSetting model.GuildSetting
+	db, _ := c.Get("db")
+	result := db.(*gorm.DB).First(&guildSetting, "guild_id = ?", id)
+	if result.Error != nil {
+		// Create new guild setting
+		guildSetting = model.GuildSetting{
+			GuildID:        id,
+			EnabledModules: req.EnabledModules,
+		}
+		db.(*gorm.DB).Create(&guildSetting)
+	} else {
+		// Update existing guild setting
+		guildSetting.EnabledModules = req.EnabledModules
+		db.(*gorm.DB).Save(&guildSetting)
 	}
 	c.JSON(200, guildSetting)
 }
