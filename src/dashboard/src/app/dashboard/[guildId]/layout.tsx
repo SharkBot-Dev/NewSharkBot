@@ -105,11 +105,11 @@ export default function DashboardLayout({
               <BotIcon className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-slate-900 tracking-tight">
-              SharkBot
+              SudoBot
             </span>
           </div>
 
-          <nav className="flex-1 space-y-1">
+          <nav className="flex-1 space-y-1 overflow-y-auto max-h-[calc(100vh-100px)] custom-scrollbar">
             <p className="px-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
               Menu
             </p>
