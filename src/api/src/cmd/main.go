@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"net/http"
 
+	"github.com/SharkBot-Dev/NewSharkBot/api/src/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -17,13 +17,17 @@ func main() {
 		panic("failed to connect database")
 	}
 
-	ctx := context.Background()
-
 	// マイグレート
-	//db.AutoMigrate(&Product{})
+	db.AutoMigrate(&models.GuildSetting{})
 
 	// デフォルトミドルウェア（loggerとrecovery）を含むGinルーターを作成
 	r := gin.Default()
+
+	// GinのContextを使用して、データベース接続をルートハンドラーに渡すためのミドルウェアを定義
+	r.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", func(c *gin.Context) {
