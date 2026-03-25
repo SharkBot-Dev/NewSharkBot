@@ -39,6 +39,19 @@ export async function getGuilds(accessToken: string) {
   return res.json();
 }
 
+export async function getGuildChannels(guildId: string) {
+  try {
+    const res = await fetch(`${DISCORD_API_BASE_URL}/guilds/${guildId}/channels`, {
+      headers: headers,
+      next: { revalidate: 30 },
+    });
+    return res.json();
+  } catch {
+    return [];
+  }
+
+}
+
 export async function checkAdminPermission(
   guildId: string,
   accessToken: string,

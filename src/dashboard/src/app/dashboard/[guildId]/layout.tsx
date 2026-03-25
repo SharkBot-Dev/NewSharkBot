@@ -41,7 +41,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin h-8 w-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div>
       </div>
     );
@@ -85,7 +85,8 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="h-screen bg-slate-50 flex overflow-hidden">
+      {/* モバイル用オーバーレイ */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
@@ -93,14 +94,17 @@ export default function DashboardLayout({
         />
       )}
 
+      {/* サイドバー */}
       <aside
         className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
+          fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 
+          transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          flex flex-col h-full // 高さを100%に固定
+        `}
       >
-        <div className="h-full flex flex-col p-6">
-          <div className="flex items-center gap-3 px-2 mb-10">
+        <div className="flex flex-col h-full p-6">
+          <div className="flex items-center gap-3 px-2 mb-10 shrink-0"> {/* shrink-0で潰れないように */}
             <div className="bg-indigo-600 p-2 rounded-lg">
               <BotIcon className="h-6 w-6 text-white" />
             </div>
@@ -109,7 +113,8 @@ export default function DashboardLayout({
             </span>
           </div>
 
-          <nav className="flex-1 space-y-1 overflow-y-auto max-h-[calc(100vh-100px)] custom-scrollbar">
+          {/* ナビゲーション部分のみをスクロール可能に */}
+          <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar pr-2">
             <p className="px-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
               Menu
             </p>
@@ -118,7 +123,7 @@ export default function DashboardLayout({
             ))}
           </nav>
 
-          <div className="pt-6 border-t border-slate-100">
+          <div className="pt-6 border-t border-slate-100 shrink-0 mt-auto">
             <Link
               href="/dashboard"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-colors"
@@ -130,8 +135,8 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        <header className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 shrink-0">
           <button
             type="button"
             onClick={() => setIsSidebarOpen(true)}
@@ -145,7 +150,11 @@ export default function DashboardLayout({
           <div className="w-10" />
         </header>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto focus:outline-none bg-slate-50">
+          <div className="max-w-7xl mx-auto p-4 lg:p-8">
+             {children}
+          </div>
+        </main>
       </div>
     </div>
   );

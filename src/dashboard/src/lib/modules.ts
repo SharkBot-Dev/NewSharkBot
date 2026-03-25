@@ -1,4 +1,4 @@
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Hand } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -27,6 +27,26 @@ export const modules = new Map<string, ModuleSetting>([
       description: "コマンドの説明を表示するモジュールです",
       enabled: true,
       icon: HelpCircle,
+    },
+  ],
+  [
+    "embed",
+    {
+      id: "embed",
+      name: "埋め込み作成モジュール",
+      description: "サーバー内の埋め込みを作成＆管理できます",
+      enabled: true,
+      icon: Hand,
+    },
+  ],
+  [
+    "welcome",
+    {
+      id: "welcome",
+      name: "よろしく＆さようならモジュール",
+      description: "新規参加者に挨拶したり、退出者にさようならを言うモジュールです",
+      enabled: true,
+      icon: Hand,
     },
   ],
 ]);
