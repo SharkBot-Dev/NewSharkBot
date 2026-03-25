@@ -4,6 +4,7 @@ import asyncio
 
 from main import NewSharkBot
 
+
 class CommandsCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
         self.bot = bot
@@ -15,6 +16,7 @@ class CommandsCog(commands.Cog):
             return
 
         commands_list = self.bot.slashcommands
+<<<<<<< HEAD
         cmd_name = interaction.data.get('name', "none")
         command = commands_list.get(cmd_name, None)
 
@@ -22,6 +24,13 @@ class CommandsCog(commands.Cog):
             await interaction.response.send_message(
                 ephemeral=True, 
                 content="そのコマンドは見つかりません。\n削除された可能性があります。"
+=======
+        command = commands_list.get(interaction.data.get("name", "none"), None)
+        if not command:
+            await interaction.response.send_message(
+                ephemeral=True,
+                content="そのコマンドは見つかりません。\n削除された可能性があります。",
+>>>>>>> 293bed9c031a0858d785715f4367d794db9c56d3
             )
             return
 
@@ -34,6 +43,7 @@ class CommandsCog(commands.Cog):
             resolved_args[arg_name] = arg_value
 
         asyncio.create_task(command.execute(interaction, **resolved_args))
+
 
 async def setup(bot):
     await bot.add_cog(CommandsCog(bot))

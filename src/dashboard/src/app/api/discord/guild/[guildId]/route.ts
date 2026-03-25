@@ -1,21 +1,53 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { auth } from "@/app/auth";
-
-import { checkAdminPermission, getGuildRequest } from "@/lib/discord"
+import { auth } from "@/lib/auth";
+import { checkAdminPermission, getGuildRequest } from "@/lib/discord";
 
 export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ guildId: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
-  const session = await auth();
-
-  if (!session?.accessToken) {
+  let discordToken: {
+    accessToken: string;
+    accessTokenExpiresAt: Date | undefined;
+    scopes: string[];
+    idToken: string | undefined;
+  };
+  try {
+    const allLinkedAccounts = await auth.api.listUserAccounts({
+      headers: await headers(),
+    });
+    const discordAccountData = allLinkedAccounts.find(
+      (account) => account.providerId === "discord",
+    );
+    if (!discordAccountData) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    discordToken = await auth.api.getAccessToken({
+      headers: await headers(),
+      body: {
+        providerId: "discord",
+        accountId: discordAccountData.accountId,
+        userId: discordAccountData.userId,
+      },
+    });
+  } catch (e) {
+    console.log("Error fetching access token:", e);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const hasPermission = await checkAdminPermission(guildId, session.accessToken);
+  if (
+    !discordToken.accessTokenExpiresAt ||
+    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
+  ) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const hasPermission = await checkAdminPermission(
+    guildId,
+    discordToken.accessToken,
+  );
   if (!hasPermission) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -28,7 +60,7 @@ export async function GET(
     }
 
     return NextResponse.json(guild);
-  } catch (e) {
-    return NextResponse.json({ error: "エラー" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Unhandled error" }, { status: 500 });
   }
 }

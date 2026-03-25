@@ -11,13 +11,14 @@ from lib.command import Command
 
 dotenv.load_dotenv()
 
+
 class NewSharkBot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix="!",
             help_command=None,
             intents=discord.Intents.all(),
-            tree_cls=tree.CustomTree
+            tree_cls=tree.CustomTree,
         )
         print("InitDone")
         self.async_db = AsyncIOMotorClient("mongodb://localhost:27017")
@@ -27,7 +28,9 @@ class NewSharkBot(commands.AutoShardedBot):
     def add_slashcommand(self, command: Command):
         self.slashcommands[command.name] = command
 
+
 bot = NewSharkBot()
+
 
 async def load_cogs(bot: commands.Bot, base_folder="cogs"):
     for root, dirs, files in os.walk(base_folder):
@@ -45,6 +48,7 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
 @bot.event
 async def setup_hook() -> None:
     await load_cogs(bot)
+
 
 if __name__ == "__main__":
     bot.run(os.environ.get("DISCORD_TOKEN"))
