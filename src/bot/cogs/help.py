@@ -38,7 +38,7 @@ class HelpCog(commands.Cog):
         else:
             embed.title = "コマンド一覧"
             cmd_list = []
-            for cmd in self.bot.slashcommands.values():
+            for cmd in await self.bot.tree.fetch_commands(guild=interaction.guild):
                 cmd_list.append(f"`/{cmd.name}` - {cmd.description}")
             
             embed.description = "\n".join(cmd_list) if cmd_list else "利用可能なコマンドはありません。"

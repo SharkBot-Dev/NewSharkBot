@@ -18,7 +18,9 @@ class TestCog(commands.Cog):
         print("init -> TestCog")
 
     async def test_command(self, interaction: discord.Interaction, **kwargs):
-        await interaction.response.send_message(content="テストです。", ephemeral=True)
+        ws_latency_ms = self.bot.latency * 1000
+
+        await interaction.response.send_message(content=f"テストです。\n\nWsPing: {ws_latency_ms:.2f}ms", ephemeral=True)
 
 
 async def setup(bot):
