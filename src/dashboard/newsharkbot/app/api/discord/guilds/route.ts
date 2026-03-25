@@ -5,7 +5,7 @@ const ADMIN_PERMISSION = BigInt(0x8);
 export async function GET() {
   const session = await auth()
 
-  if (!session?.accessToken) {
+  if (!session?.accessToken || !session?.user?.id) {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -14,7 +14,7 @@ export async function GET() {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },
-      next: { revalidate: 60 } 
+      next: { revalidate: 60, tags: [`guilds-${session.user.id}`] } 
     })
 
     if (!res.ok) {
