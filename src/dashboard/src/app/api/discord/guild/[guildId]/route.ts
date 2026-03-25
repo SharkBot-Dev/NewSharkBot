@@ -8,23 +8,34 @@ export async function GET(
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
-  const allLinkedAccounts = await auth.api.listUserAccounts({
-    headers: await headers(),
-  });
-  const discordAccountData = allLinkedAccounts.find(
-    (account) => account.providerId === "discord",
-  );
-  if (!discordAccountData) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  let discordToken: {
+    accessToken: string;
+    accessTokenExpiresAt: Date | undefined;
+    scopes: string[];
+    idToken: string | undefined;
+  };
+  try {
+    const allLinkedAccounts = await auth.api.listUserAccounts({
+      headers: await headers(),
+    });
+    const discordAccountData = allLinkedAccounts.find(
+      (account) => account.providerId === "discord",
+    );
+    if (!discordAccountData) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    discordToken = await auth.api.getAccessToken({
+      headers: await headers(),
+      body: {
+        providerId: "discord",
+        accountId: discordAccountData.accountId,
+        userId: discordAccountData.userId,
+      },
+    });
+  } catch (e) {
+    console.log("Error fetching access token:", e);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const discordToken = await auth.api.getAccessToken({
-    headers: await headers(),
-    body: {
-      providerId: "discord",
-      accountId: discordAccountData.accountId,
-      userId: discordAccountData.userId,
-    },
-  });
 
   if (
     !discordToken.accessTokenExpiresAt ||
@@ -49,7 +60,7 @@ export async function GET(
     }
 
     return NextResponse.json(guild);
-  } catch (e) {
-    return NextResponse.json({ error: "エラー" }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Unhandled error" }, { status: 500 });
   }
 }
