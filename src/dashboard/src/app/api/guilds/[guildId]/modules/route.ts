@@ -40,7 +40,10 @@ export async function GET(
 
     return NextResponse.json(settings);
   } catch {
-    return NextResponse.json({ error: "DB接続エラー" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch module settings" },
+      { status: 500 },
+    );
   }
 }
 
