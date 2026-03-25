@@ -1,5 +1,9 @@
 const ADMIN_PERMISSION = BigInt(0x8);
 
+const isValidDiscordId = (id: string) => /^\d{17,20}$/.test(id);
+
+const BASE_URL = "https://discord.com/api/v10";
+
 const headers = {
   Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
   "Content-Type": "application/json",
@@ -64,7 +68,11 @@ export async function checkAdminPermission(
 export async function addSlashCommand(guildId: string, commandData: any) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
-  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands`;
+  if (!clientId || !isValidDiscordId(clientId) || !isValidDiscordId(guildId)) {
+    throw new Error("Invalid Client ID or Guild ID");
+  }
+
+  const url = `${BASE_URL}/applications/${clientId}/guilds/${guildId}/commands`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -73,7 +81,7 @@ export async function addSlashCommand(guildId: string, commandData: any) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({}));
     throw new Error(`Failed to add command: ${JSON.stringify(error)}`);
   }
 
@@ -83,7 +91,11 @@ export async function addSlashCommand(guildId: string, commandData: any) {
 export async function getSlashCommands(guildId: string) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
-  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands`;
+  if (!clientId || !isValidDiscordId(clientId) || !isValidDiscordId(guildId)) {
+    throw new Error("Invalid Client ID or Guild ID");
+  }
+
+  const url = `${BASE_URL}/applications/${clientId}/guilds/${guildId}/commands`;
 
   const response = await fetch(url, {
     method: "GET",
@@ -92,7 +104,7 @@ export async function getSlashCommands(guildId: string) {
   });
 
   if (!response.ok) {
-    const error = await response.json();
+    const error = await response.json().catch(() => ({}));
     throw new Error(`Failed to fetch commands: ${JSON.stringify(error)}`);
   }
 
@@ -102,7 +114,16 @@ export async function getSlashCommands(guildId: string) {
 export async function deleteSlashCommand(guildId: string, commandId: string) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
-  const url = `https://discord.com/api/v10/applications/${clientId}/guilds/${guildId}/commands/${commandId}`;
+  if (
+    !clientId || 
+    !isValidDiscordId(clientId) || 
+    !isValidDiscordId(guildId) || 
+    !isValidDiscordId(commandId)
+  ) {
+    throw new Error("Invalid ID parameters");
+  }
+
+  const url = `${BASE_URL}/applications/${clientId}/guilds/${guildId}/commands/${commandId}`;
 
   const response = await fetch(url, {
     method: "DELETE",
