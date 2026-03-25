@@ -1,2 +1,2 @@
 #!/bin/bash
-swag i -g cmd/server/main.go
+swag i -g cmd/main.go
