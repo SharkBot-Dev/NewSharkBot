@@ -1,0 +1,4 @@
+BETTER_AUTH_SECRET="$(openssl rand -hex 32)"
+BETTER_AUTH_URL="http://localhost:3000" # Base URL of your app
+DATABASE_URL="postgresql://postgres:password@localhost:5432/better_auth_db?schema=public"
+PORT=3000
