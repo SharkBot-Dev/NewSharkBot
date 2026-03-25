@@ -1,5 +1,6 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { auth } from "@/app/auth";
+import { auth } from "@/lib/auth";
 import { commands } from "@/lib/commands";
 import {
   addSlashCommand,
@@ -13,22 +14,41 @@ export async function POST(
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
-  const session = await auth();
+  const allLinkedAccounts = await auth.api.listUserAccounts({
+    headers: await headers(),
+  });
+  const discordAccountData = allLinkedAccounts.find(
+    (account) => account.providerId === "discord",
+  );
+  if (!discordAccountData) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const discordToken = await auth.api.getAccessToken({
+    headers: await headers(),
+    body: {
+      providerId: "discord",
+      accountId: discordAccountData.accountId,
+      userId: discordAccountData.userId,
+    },
+  });
 
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (
+    !discordToken.accessTokenExpiresAt ||
+    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
+  ) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { action, command, commandId } = await req.json();
 
-  if (!guildId || !session?.accessToken) {
+  if (!guildId) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 },
     );
   }
 
-  const isAdmin = await checkAdminPermission(guildId, session?.accessToken);
+  const isAdmin = await checkAdminPermission(guildId, discordToken.accessToken);
   if (!isAdmin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }

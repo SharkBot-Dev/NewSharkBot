@@ -1,11 +1,14 @@
-import { signIn } from "@/app/auth";
+import { authClient } from "@/lib/auth-client";
 
 export function SignIn() {
   return (
     <form
       action={async () => {
         "use server";
-        await signIn("discord", { redirectTo: "/dashboard" });
+        await authClient.signIn.social({
+          provider: "discord",
+          callbackURL: `/dashbaord`,
+        });
       }}
     >
       <button

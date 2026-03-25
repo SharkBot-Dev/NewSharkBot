@@ -1,5 +1,7 @@
+import { request } from "http";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { auth } from "@/app/auth";
+import { auth } from "@/lib/auth";
 import { checkAdminPermission } from "@/lib/discord";
 import clientPromise from "@/lib/mongodb";
 
@@ -8,15 +10,34 @@ export async function GET(
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
-  const session = await auth();
+  const allLinkedAccounts = await auth.api.listUserAccounts({
+    headers: await headers(),
+  });
+  const discordAccountData = allLinkedAccounts.find(
+    (account) => account.providerId === "discord",
+  );
+  if (!discordAccountData) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const discordToken = await auth.api.getAccessToken({
+    headers: await headers(),
+    body: {
+      providerId: "discord",
+      accountId: discordAccountData.accountId,
+      userId: discordAccountData.userId,
+    },
+  });
 
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (
+    !discordToken.accessTokenExpiresAt ||
+    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
+  ) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const hasPermission = await checkAdminPermission(
     guildId,
-    session.accessToken,
+    discordToken.accessToken,
   );
   if (!hasPermission) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -47,15 +68,34 @@ export async function POST(
   { params }: { params: Promise<{ guildId: string }> },
 ) {
   const { guildId } = await params;
-  const session = await auth();
+  const allLinkedAccounts = await auth.api.listUserAccounts({
+    headers: await headers(),
+  });
+  const discordAccountData = allLinkedAccounts.find(
+    (account) => account.providerId === "discord",
+  );
+  if (!discordAccountData) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const discordToken = await auth.api.getAccessToken({
+    headers: await headers(),
+    body: {
+      providerId: "discord",
+      accountId: discordAccountData.accountId,
+      userId: discordAccountData.userId,
+    },
+  });
 
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (
+    !discordToken.accessTokenExpiresAt ||
+    Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
+  ) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const hasPermission = await checkAdminPermission(
     guildId,
-    session.accessToken,
+    discordToken.accessToken,
   );
   if (!hasPermission) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
