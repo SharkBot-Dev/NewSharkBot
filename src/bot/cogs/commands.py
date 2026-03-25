@@ -16,30 +16,22 @@ class CommandsCog(commands.Cog):
             return
 
         commands_list = self.bot.slashcommands
-<<<<<<< HEAD
-        cmd_name = interaction.data.get('name', "none")
+        cmd_name = interaction.data.get("name", "none")
         command = commands_list.get(cmd_name, None)
 
         if not command:
             await interaction.response.send_message(
-                ephemeral=True, 
-                content="そのコマンドは見つかりません。\n削除された可能性があります。"
-=======
-        command = commands_list.get(interaction.data.get("name", "none"), None)
-        if not command:
-            await interaction.response.send_message(
                 ephemeral=True,
                 content="そのコマンドは見つかりません。\n削除された可能性があります。",
->>>>>>> 293bed9c031a0858d785715f4367d794db9c56d3
             )
             return
 
         resolved_args = {}
-        options = interaction.data.get('options', [])
-        
+        options = interaction.data.get("options", [])
+
         for option in options:
-            arg_name = option.get('name')
-            arg_value = option.get('value')
+            arg_name = option.get("name")
+            arg_value = option.get("value")
             resolved_args[arg_name] = arg_value
 
         asyncio.create_task(command.execute(interaction, **resolved_args))
