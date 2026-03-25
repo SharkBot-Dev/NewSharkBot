@@ -62,7 +62,7 @@ export async function GET(
     if (!settings) {
       settings = {
         guildId,
-        modules: { test: false },
+        modules: { help: true },
       } as any;
       await db.collection("module_setting").insertOne(settings as any);
     }
@@ -122,7 +122,7 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { moduleId, enabled } = await _request.json();
+  const { moduleId, enabled } = await request.json();
 
   try {
     const client = await clientPromise;
