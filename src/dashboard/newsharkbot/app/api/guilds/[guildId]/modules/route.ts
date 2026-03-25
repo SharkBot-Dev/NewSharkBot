@@ -17,7 +17,7 @@ export async function GET(
 
   const hasPermission = await checkAdminPermission(guildId, session.accessToken);
   if (!hasPermission) {
-    return NextResponse.json({ error: "Forbidden: No Admin Permission" }, { status: 403 });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

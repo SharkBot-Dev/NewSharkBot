@@ -6,7 +6,8 @@ import discord
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from types.command import Command
+from lib import tree
+from lib.command import Command
 
 dotenv.load_dotenv()
 
@@ -15,7 +16,8 @@ class NewSharkBot(commands.AutoShardedBot):
         super().__init__(
             command_prefix="!",
             help_command=None,
-            intents=discord.Intents.all()
+            intents=discord.Intents.all(),
+            tree_cls=tree.CustomTree
         )
         print("InitDone")
         self.async_db = AsyncIOMotorClient("mongodb://localhost:27017")
@@ -44,4 +46,5 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
 async def setup_hook() -> None:
     await load_cogs(bot)
 
-bot.run(os.environ.get("TOKEN"))
+if __name__ == "__main__":
+    bot.run(os.environ.get("DISCORD_TOKEN"))

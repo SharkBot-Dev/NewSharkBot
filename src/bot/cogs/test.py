@@ -4,7 +4,7 @@ import asyncio
 
 from main import NewSharkBot
 
-from types.command import Command
+from lib.command import Command
 
 class TestCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
