@@ -27,7 +27,11 @@ func RegisterGuildsRoutes(router *gin.RouterGroup) {
 func listGuilds(c *gin.Context) {
 	// gormでDBのGuildSettingを取得
 	var guildSettings []model.GuildSetting
-	db, _ := c.Get("db")
+	db, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
 	db.(*gorm.DB).Find(&guildSettings)
 	c.JSON(200, dto.ListGuildsResponse{
 		Data: guildSettings,
