@@ -3,8 +3,8 @@
 import { Terminal, Save } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import DiscordEmbedBuilder from "@/app/components/EmbedBuilder";
-import CollapsibleSection from "@/app/components/CollapsibleSection";
+import DiscordEmbedBuilder from "@/components/EmbedBuilder";
+import CollapsibleSection from "@/components/CollapsibleSection";
 
 export default function WelcomeGoodbyeModulePage() {
   const params = useParams();

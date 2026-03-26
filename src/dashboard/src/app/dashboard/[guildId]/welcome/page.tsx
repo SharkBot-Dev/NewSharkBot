@@ -3,11 +3,10 @@
 import { Save, Terminal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import CommandsControl from "@/app/components/commands";
-import ChannelSelecter from "@/app/components/channel-selecter";
-import CollapsibleSection from "@/app/components/CollapsibleSection";
-import EmbedSelecter from "@/app/components/EmbedSelecter";
-import ToggleSwitch from "@/app/components/toggleSwitch";
+import ChannelSelecter from "@/components/channel-selecter";
+import CollapsibleSection from "@/components/CollapsibleSection";
+import EmbedSelecter from "@/components/EmbedSelecter";
+import ToggleSwitch from "@/components/toggleSwitch";
 
 export default function WelcomeGoodbyeModulePage() {
   const params = useParams();

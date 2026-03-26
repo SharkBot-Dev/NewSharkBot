@@ -6,6 +6,7 @@ import discord
 
 from lib import tree
 from lib.command import Command
+from lib.embed import Embed as customEmbed
 
 dotenv.load_dotenv()
 
