@@ -1,4 +1,4 @@
-import { HelpCircle, Hand } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -69,7 +69,7 @@ export const modules = new Map<string, ModuleSetting>([
       name: "検索",
       description: "Web上のコンテンツをなんでも検索できます。",
       enabled: true,
-      icon: Hand,
+      icon: SearchIcon,
       group: "ユーティリティ",
     },
   ]
