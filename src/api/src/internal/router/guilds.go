@@ -50,10 +50,18 @@ func listGuilds(c *gin.Context) {
 func getGuildSettingByID(c *gin.Context) {
 	id := c.Param("id")
 	var guildSetting model.GuildSetting
-	db, _ := c.Get("db")
+	db, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
 	result := db.(*gorm.DB).First(&guildSetting, "guild_id = ?", id)
 	if result.Error != nil {
-		c.JSON(404, gin.H{"error": "Guild not found"})
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(404, gin.H{"error": "Guild not found"})
+		} else {
+			c.JSON(500, gin.H{"error": result.Error.Error()})
+		}
 		return
 	}
 	c.JSON(200, guildSetting)
@@ -78,19 +86,35 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 	}
 
 	var guildSetting model.GuildSetting
-	db, _ := c.Get("db")
+	db, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
 	result := db.(*gorm.DB).First(&guildSetting, "guild_id = ?", id)
 	if result.Error != nil {
+		if result.Error != gorm.ErrRecordNotFound {
+			c.JSON(500, gin.H{"error": result.Error.Error()})
+			return
+		}
 		// Create new guild setting
 		guildSetting = model.GuildSetting{
 			GuildID:        id,
 			EnabledModules: req.EnabledModules,
 		}
-		db.(*gorm.DB).Create(&guildSetting)
+		result := db.(*gorm.DB).Create(&guildSetting)
+		if result.Error != nil {
+			c.JSON(500, gin.H{"error": result.Error.Error()})
+			return
+		}
 	} else {
 		// Update existing guild setting
 		guildSetting.EnabledModules = req.EnabledModules
-		db.(*gorm.DB).Save(&guildSetting)
+		result := db.(*gorm.DB).Save(&guildSetting)
+		if result.Error != nil {
+			c.JSON(500, gin.H{"error": result.Error.Error()})
+			return
+		}
 	}
 	c.JSON(200, guildSetting)
 }
