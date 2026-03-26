@@ -22,7 +22,7 @@ export async function GET(
   }
 
   try {
-    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds`);
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/${guildId}`);
 
     if (response.status === 404) {
       const defaultSettings = {
@@ -57,6 +57,7 @@ export async function POST(
 ) {
   const { guildId } = await params;
 
+  let moduleId: string, enabled: boolean;
   try {
     const accessToken = await getAccessToken();
 
@@ -64,12 +65,11 @@ export async function POST(
     if (!hasPermission) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+    ({ moduleId, enabled } = await request.json());
   } catch (e) {
     console.log("Error fetching access token or checking permissions:", e);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const { moduleId, enabled } = await request.json();
 
   try {
     const response = await fetch(

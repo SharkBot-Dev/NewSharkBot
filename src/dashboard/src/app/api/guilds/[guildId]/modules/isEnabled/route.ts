@@ -33,8 +33,8 @@ export async function GET(
 
     if (response.status === 404) {
       const defaultSettings = {
-        guildId,
-        enabledModules: { test: false },
+        module: targetModule,
+        enabled: false,
       };
       return NextResponse.json(defaultSettings);
     }
