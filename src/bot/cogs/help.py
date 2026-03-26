@@ -10,13 +10,13 @@ class HelpCog(commands.Cog):
         self.bot = bot
 
         help_cmd = Command(
-            name="help", description="Botのコマンド一覧や詳細を表示します。"
+            name="help", description="Botのコマンド一覧や詳細を表示します。", module_name="ヘルプ"
         )
         help_cmd.execute = self.help_command
         self.bot.add_slashcommand(help_cmd)
 
         dashboard_cmd = Command(
-            name="dashboard", description="ダッシュボードの案内を表示します。"
+            name="dashboard", description="ダッシュボードの案内を表示します。", module_name="ヘルプ"
         )
         dashboard_cmd.execute = self.dashboard_command
         self.bot.add_slashcommand(dashboard_cmd)
@@ -47,7 +47,7 @@ class HelpCog(commands.Cog):
         else:
             embed.title = "コマンド一覧"
             cmd_list = []
-            for cmd in self.bot.slashcommands.values():
+            for cmd in await self.bot.tree.fetch_commands(guild=interaction.guild):
                 cmd_list.append(f"`/{cmd.name}` - {cmd.description}")
 
             embed.description = (

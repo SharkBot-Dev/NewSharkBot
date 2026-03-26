@@ -11,7 +11,7 @@ class TestCog(commands.Cog):
         self.bot = bot
 
         # コマンドをここに
-        test = Command(name="test", description="テストコマンドです。")
+        test = Command(name="test", description="テストコマンドです。", module_name="テストモジュール")
         test.execute = self.test_command
         self.bot.add_slashcommand(test)
 

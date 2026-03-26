@@ -6,7 +6,7 @@ export default async function Page() {
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-extrabold text-slate-900">SudoBot</h1>
         <p className="text-sm text-slate-500 mt-2">
-          あなたのサーバーを便利にするBot
+          サーバー管理を楽にするBot
         </p>
       </header>
 

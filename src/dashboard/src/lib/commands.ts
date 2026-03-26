@@ -1,1 +1,1 @@
-export const commands = ["test", "help", "dashboard"];
+export const commands = ["test", "help", "dashboard", "imgur"];

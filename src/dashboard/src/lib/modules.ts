@@ -61,5 +61,16 @@ export const modules = new Map<string, ModuleSetting>([
       icon: Hand,
       group: "ユーティリティ",
     },
+  ],
+  [
+    "search",
+    {
+      id: "search",
+      name: "検索",
+      description: "Web上のコンテンツをなんでも検索できます。",
+      enabled: true,
+      icon: Hand,
+      group: "ユーティリティ",
+    },
   ]
 ]);
