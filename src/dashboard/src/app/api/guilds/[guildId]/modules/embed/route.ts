@@ -99,6 +99,9 @@ export async function DELETE(
 
         const body = await request.json(); // { title: "..." }
 
+        if (!body.embed_id) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+        if (/^\d+$/.test(body.embed_id) === false) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+
         // Goサーバーへ削除リクエスト
         const res = await fetch(`${BACKEND_URL}/guilds/embeds/${guildId}/${body.embed_id}`, {
             method: "DELETE",
