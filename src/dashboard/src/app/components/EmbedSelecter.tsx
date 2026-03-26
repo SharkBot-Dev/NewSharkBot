@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default function ChannelSelecter({ guildId, value, onChange }: Props) {
-  const [embeds, setEmbeds] = useState<any[]>([]);
+  const [embeds, setEmbeds] = useState<any>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,9 +27,7 @@ export default function ChannelSelecter({ guildId, value, onChange }: Props) {
 
       const data: any[] = (await res.json()).settings || [];
 
-      if (Array.isArray(data)) {
-        setEmbeds(data);
-      }
+      setEmbeds(data);
     } catch (err) {
       console.error("Failed to fetch embeds:", err);
       setError("埋め込み一覧を読み込めませんでした。");
@@ -60,7 +58,7 @@ export default function ChannelSelecter({ guildId, value, onChange }: Props) {
           {isLoading ? "読み込み中..." : "埋め込みを選択してください"}
         </option>
         
-        {embeds.map((embed) => (
+        {Object.values(embeds).map((embed: any, index: number) => (
           <option key={embed.title} value={embed.title}>
             {embed.title}
           </option>

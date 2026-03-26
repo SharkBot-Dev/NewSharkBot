@@ -1,12 +1,13 @@
 "use client";
 
-import { Terminal } from "lucide-react";
+import { Save, Terminal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import CommandsControl from "@/app/components/commands";
 import ChannelSelecter from "@/app/components/channel-selecter";
 import CollapsibleSection from "@/app/components/CollapsibleSection";
 import EmbedSelecter from "@/app/components/EmbedSelecter";
+import ToggleSwitch from "@/app/components/toggleSwitch";
 
 export default function WelcomeGoodbyeModulePage() {
   const params = useParams();
@@ -14,14 +15,16 @@ export default function WelcomeGoodbyeModulePage() {
   const guildId = params.guildId as string;
 
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // 参加時用
+  const [welcomeEnabled, setWelcomeEnabled] = useState<boolean>(false);
   const [welcomeSelectedChannel, setWelcomeSelectedChannel] = useState<string>("");
   const [welcomeContent, setWelcomeContent] = useState<string>("{ユーザー名}、よろしくお願いします。");
-  // よろしく埋め込みはあとで埋め込みビルダーを作ってから実装する
   const [welcomeEmbed, setWelcomeEmbed] = useState<string>("");
 
   // 退出時用
+  const [goodbyeEnabled, setGoodbyeEnabled] = useState<boolean>(false);
   const [goodbyeSelectedChannel, setGoodbyeSelectedChannel] = useState<string>("");
   const [goodbyeContent, setGoodbyeContent] = useState<string>("{ユーザー名}、さようなら。");
   const [goodbyeEmbed, setGoodbyeEmbed] = useState<string>("");
@@ -38,9 +41,45 @@ export default function WelcomeGoodbyeModulePage() {
             router.push(`/dashboard/${guildId}`);
           }
         });
+
+      const res = await fetch(`/api/guilds/${guildId}/modules/welcome`);
+      const data = await res.json();
+      if (res.ok) {
+        setWelcomeEnabled(data.settings?.welcome?.enabled || false);
+        setWelcomeSelectedChannel(data.settings?.welcome?.channelId || "");
+        setWelcomeContent(data.settings?.welcome?.message || "");
+        setWelcomeEmbed(data.settings?.welcome?.embed || null);
+        setGoodbyeEnabled(data.settings?.goodbye?.enabled || false);
+        setGoodbyeSelectedChannel(data.settings?.goodbye?.channelId || "");
+        setGoodbyeContent(data.settings?.goodbye?.message || "");
+        setGoodbyeEmbed(data.settings?.goodbye?.embed || null);
+      }
     }
     init();
   }, [guildId, router]);
+
+  const handleWelcomeSubmit = async () => {
+    const response = await fetch(`/api/guilds/${guildId}/modules/welcome`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        welcome: {
+          channelId: welcomeSelectedChannel,
+          message: welcomeContent,
+          embed: welcomeEmbed,
+          enabled: welcomeEnabled,
+        },
+        goodbye: {
+          channelId: goodbyeSelectedChannel,
+          message: goodbyeContent,
+          embed: goodbyeEmbed,
+          enabled: goodbyeEnabled,
+        },
+      }),
+    });
+  };
 
   if (loading) {
     return (
@@ -76,6 +115,8 @@ export default function WelcomeGoodbyeModulePage() {
             </div>
 
             <CollapsibleSection title="参加時の設定" defaultOpen>
+                <ToggleSwitch isEnabled={welcomeEnabled} onToggle={() => setWelcomeEnabled(!welcomeEnabled)} />
+
                 <div className="shadow-sm mt-4 text-xs text-slate-900">
                     よろしくメッセージチャンネル
                     <ChannelSelecter guildId={guildId} type_id={0} value={welcomeSelectedChannel} onChange={(id) => setWelcomeSelectedChannel(id)} />
@@ -95,9 +136,20 @@ export default function WelcomeGoodbyeModulePage() {
                     よろしく埋め込み
                     <EmbedSelecter guildId={guildId} value={welcomeEmbed} onChange={(value) => setWelcomeEmbed(value)} />
                 </div>
+
+                <button
+                  onClick={handleWelcomeSubmit}
+                  disabled={saving}
+                  className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 shadow-md"
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? "保存中..." : "保存"}
+                </button>
             </CollapsibleSection>
 
             <CollapsibleSection title="退出時の設定">
+                <ToggleSwitch isEnabled={goodbyeEnabled} onToggle={() => setGoodbyeEnabled(!goodbyeEnabled)} />
+
                 <div className="shadow-sm mt-4 text-xs text-slate-900">
                     さようならメッセージチャンネル
                     <ChannelSelecter guildId={guildId} type_id={0} value={goodbyeSelectedChannel} onChange={(id) => setGoodbyeSelectedChannel(id)} />
@@ -117,6 +169,15 @@ export default function WelcomeGoodbyeModulePage() {
                     さようなら埋め込み
                     <EmbedSelecter guildId={guildId} value={goodbyeEmbed} onChange={(value) => setGoodbyeEmbed(value)} />
                 </div>
+
+                <button
+                  onClick={handleWelcomeSubmit}
+                  disabled={saving}
+                  className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 shadow-md"
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? "保存中..." : "保存"}
+                </button>
             </CollapsibleSection>
 
             <p className="mt-4 text-xs text-slate-900">
