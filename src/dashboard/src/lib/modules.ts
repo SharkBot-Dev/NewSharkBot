@@ -22,6 +22,17 @@ export const modules = new Map<string, ModuleSetting>([
     },
   ],
   [
+    "welcome",
+    {
+      id: "welcome",
+      name: "よろしく＆さようならモジュール",
+      description: "新規参加者に挨拶したり、退出者にさようならを言うモジュールです",
+      enabled: true,
+      icon: Hand,
+      group: "サーバー管理",
+    },
+  ],
+  [
     "help",
     {
       id: "help",
@@ -42,16 +53,5 @@ export const modules = new Map<string, ModuleSetting>([
       icon: Hand,
       group: "ユーティリティ",
     },
-  ],
-  [
-    "welcome",
-    {
-      id: "welcome",
-      name: "よろしく＆さようならモジュール",
-      description: "新規参加者に挨拶したり、退出者にさようならを言うモジュールです",
-      enabled: true,
-      icon: Hand,
-      group: "サーバー管理",
-    },
-  ],
+  ]
 ]);
