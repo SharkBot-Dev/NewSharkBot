@@ -17,6 +17,7 @@ class WelcomeCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
+        return
         guild_id = str(member.guild.id)
 
         data = await self.bot.async_db["SharkBot"]["welcome_setting"].find_one({"guildId": guild_id})
@@ -58,6 +59,7 @@ class WelcomeCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
+        return
         guild_id = str(member.guild.id)
 
         data = await self.bot.async_db["SharkBot"]["welcome_setting"].find_one({"guildId": guild_id})

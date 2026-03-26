@@ -9,6 +9,14 @@ export interface ModuleSetting {
   group?: string;
 }
 
+export interface NoIconModuleSetting {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  group?: string;
+}
+
 export const modules = new Map<string, ModuleSetting>([
   [
     "test",

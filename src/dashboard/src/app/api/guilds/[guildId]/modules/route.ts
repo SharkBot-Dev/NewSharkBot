@@ -73,14 +73,14 @@ export async function POST(
 
   try {
     const response = await fetch(
-      `${RESOURCE_API_BASE_URL}/guilds/${guildId}/modules`,
+      `${RESOURCE_API_BASE_URL}/guilds/${guildId}/module`,
       {
-        method: "POST",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(
-          serializeRequest({ enabledModules: { [moduleId]: enabled } }),
+          serializeRequest({ enabled: enabled, module: moduleId }),
         ),
       },
     );

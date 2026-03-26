@@ -9,3 +9,8 @@ type ListGuildsResponse struct {
 type CreateOrUpdateGuildSettingRequest struct {
 	EnabledModules map[string]bool `json:"enabledModules"`
 }
+
+type UpdateModuleRequest struct {
+	Module  string `json:"module"`
+	Enabled bool   `json:"enabled"`
+}
