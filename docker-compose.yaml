@@ -1,0 +1,36 @@
+name: Sharkbot
+services:
+  api:
+    build: ./src/api
+    ports:
+      - "8080:8080"
+    environment:
+      DB_DSN: "host=postgres port=5432 user=sharkbot password=password dbname=sharkbot sslmode=disable"
+      GIN_MODE: "debug"
+    depends_on:
+      - postgres
+    networks:
+      - sharkbot_network
+  bot:
+    build: ./src/bot
+    depends_on:
+      - api
+    networks:
+      - sharkbot_network
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: sharkbot
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sharkbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - sharkbot_network
+volumes:
+  postgres_data:
+networks:
+  sharkbot_network:
+    driver: bridge

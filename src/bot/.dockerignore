@@ -1,0 +1,11 @@
+.venv
+.ruff_cache
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.DS_Store
+.env
+.env.*
