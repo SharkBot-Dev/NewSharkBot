@@ -143,10 +143,10 @@ const SortableRoleItem: React.FC<{
               value={config.style}
               onChange={(e) => onUpdate(id, { style: Number(e.target.value) })}
             >
-              <option value={ButtonStyle.Primary}>Primary</option>
-              <option value={ButtonStyle.Secondary}>Secondary</option>
-              <option value={ButtonStyle.Success}>Success</option>
-              <option value={ButtonStyle.Danger}>Danger</option>
+              <option value={ButtonStyle.Primary}>青</option>
+              <option value={ButtonStyle.Secondary}>灰</option>
+              <option value={ButtonStyle.Success}>緑</option>
+              <option value={ButtonStyle.Danger}>赤</option>
             </select>
           </div>
 
