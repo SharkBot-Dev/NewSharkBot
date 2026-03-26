@@ -67,7 +67,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { guildId: string } }
+  { params }: { params: Promise<{ guildId: string }> }
 ) {
   try {
     const { guildId } = await params;
@@ -136,7 +136,7 @@ export async function POST(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { guildId: string } }
+  { params }: { params: Promise<{ guildId: string }> }
 ) {
   try {
     const { guildId } = await params;
@@ -196,8 +196,6 @@ export async function DELETE(
         { guildId },
         { $unset: { [`embeds.${body.title}`]: "" } },
       );
-
-    console.log(`Deleting embed for guild ${guildId}:`, body.title);
 
     return NextResponse.json({ success: true, message: "Embed deleted!" });
   } catch (error) {

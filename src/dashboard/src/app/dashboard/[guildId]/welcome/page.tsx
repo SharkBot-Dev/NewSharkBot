@@ -59,26 +59,40 @@ export default function WelcomeGoodbyeModulePage() {
   }, [guildId, router]);
 
   const handleWelcomeSubmit = async () => {
-    const response = await fetch(`/api/guilds/${guildId}/modules/welcome`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        welcome: {
-          channelId: welcomeSelectedChannel,
-          message: welcomeContent,
-          embed: welcomeEmbed,
-          enabled: welcomeEnabled,
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/guilds/${guildId}/modules/welcome`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        goodbye: {
-          channelId: goodbyeSelectedChannel,
-          message: goodbyeContent,
-          embed: goodbyeEmbed,
-          enabled: goodbyeEnabled,
-        },
-      }),
-    });
+        body: JSON.stringify({
+          welcome: {
+            channelId: welcomeSelectedChannel,
+            message: welcomeContent,
+            embed: welcomeEmbed,
+            enabled: welcomeEnabled,
+          },
+          goodbye: {
+            channelId: goodbyeSelectedChannel,
+            message: goodbyeContent,
+            embed: goodbyeEmbed,
+            enabled: goodbyeEnabled,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        alert("設定の保存に失敗しました。");
+      }
+
+      alert("設定を保存しました");
+    } catch (error) {
+      console.error("Saving settings failed:", error);
+      alert("設定の保存に失敗しました。");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {

@@ -45,6 +45,7 @@ export async function getGuildChannels(guildId: string) {
       headers: headers,
       next: { revalidate: 30 },
     });
+    if (!res.ok) throw new Error("取得失敗");
     return res.json();
   } catch {
     return [];

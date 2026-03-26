@@ -4,6 +4,8 @@ import discord
 from main import NewSharkBot
 from lib.command import Command
 
+import copy
+
 
 class WelcomeCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
@@ -44,6 +46,7 @@ class WelcomeCog(commands.Cog):
             await channel.send(content=message)
             return
         
+        embed_data = copy.deepcopy(embed_data)
         embed_data["description"] = self.welcome_parse(embed_data.get("description", ""), member)
         embed_data["title"] = self.welcome_parse(embed_data.get("title", ""), member)
 
@@ -86,6 +89,7 @@ class WelcomeCog(commands.Cog):
             await channel.send(content=message)
             return
 
+        embed_data = copy.deepcopy(embed_data)
         embed_data["description"] = self.welcome_parse(embed_data.get("description", ""), member)
         embed_data["title"] = self.welcome_parse(embed_data.get("title", ""), member)
 
