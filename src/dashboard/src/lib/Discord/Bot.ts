@@ -26,6 +26,22 @@ export async function getAllJoinedGuilds(guildId: string) {
   }
 }
 
+export async function getGuildChannels(guildId: string) {
+  if (!isValidDiscordId(guildId)) {
+    throw new Error("Invalid Guild ID");
+  }
+  const response = await fetch(`${DISCORD_API_BASE_URL}/guilds/${guildId}/channels`, {
+    headers,
+    next: { revalidate: 60 },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(`Failed to fetch channels: ${JSON.stringify(error)}`);
+  }
+
+  return await response.json();
+}
+
 export async function registerSlashCommand(guildId: string, commandData: any) {
   const clientId = process.env.AUTH_DISCORD_ID;
 

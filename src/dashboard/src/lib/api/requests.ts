@@ -1,7 +1,7 @@
 import { RESOURCE_API_BASE_URL } from "@/constants/api/endpoints";
 
 export interface EmbedSetting {
-    id?: number;
+    ID?: number;
     guild_id: string;
     name: string;
     data: Record<string, any>; // DiscordのEmbed Dict
@@ -106,7 +106,10 @@ export async function saveMessageSetting(guildId: string, type: 'welcome' | 'goo
         body: JSON.stringify(data),
     });
 
-    if (!response.ok) throw new Error(`Failed to save ${type} settings`);
+    if (!response.ok) {
+        throw new Error(`Failed to save ${type} settings: ${response.statusText}`);
+        return
+    };
     return response.json();
 }
 

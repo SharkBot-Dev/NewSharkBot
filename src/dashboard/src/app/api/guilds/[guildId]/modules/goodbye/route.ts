@@ -47,19 +47,15 @@ export async function GET(
         const { guildId } = await params;
         await validateAdmin(guildId);
 
-        const welcome = await fetchMessageSetting(guildId, "welcome");
-
-        console.log("Fetched welcome setting:", welcome);
+        const goodbye = await fetchMessageSetting(guildId, "goodbye");
 
         // フロントエンドの既存インターフェースに合わせる
         const fixedSettings = {
-            channel_id: welcome?.channel_id || "",
-            content: welcome?.content || "",
-            embed_id: welcome?.embed_id || null,
-            enabled: !!welcome
+            channel_id: goodbye?.channel_id || "",
+            content: goodbye?.content || "",
+            embed_id: goodbye?.embed_id || null,
+            enabled: !!goodbye
         };
-
-        console.log("Fixed welcome settings:", fixedSettings);
 
         return NextResponse.json({ success: true, settings: fixedSettings });
     } catch (error: any) {
@@ -81,10 +77,8 @@ export async function POST(
         await validateAdmin(guildId);
 
         const body = await request.json();
-
-        console.log("Received POST body:", body);
         
-        await saveMessageSetting(guildId, "welcome", body.welcome);
+        await saveMessageSetting(guildId, "goodbye", body.goodbye);
 
         return NextResponse.json({ success: true, message: "Settings synced successfully" });
     } catch (error: any) {
@@ -102,7 +96,7 @@ export async function DELETE(
         const { guildId } = await params;
         await validateAdmin(guildId);
 
-        await deleteMessageSetting(guildId, "welcome");
+        await deleteMessageSetting(guildId, "goodbye");
 
         return NextResponse.json({ success: true, message: "Settings synced successfully" });
     } catch (error: any) {

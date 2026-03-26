@@ -1,7 +1,9 @@
 import { Suspense } from "react";
-import { fetchEmbedSettings } from "@/lib/api/requests"; // ラッパー関数の場所
+import { fetchEmbedSettings, isModuleEnabled } from "@/lib/api/requests"; // ラッパー関数の場所
 import EmbedEditorClient from "./EmbedEditorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import Alert from "@/components/Alert";
+import { redirect } from "next/navigation";
 
 interface Props {
   params: { guildId: string };
@@ -9,6 +11,15 @@ interface Props {
 
 export default async function WelcomeGoodbyeModulePage({ params }: Props) {
   const { guildId } = await params;
+  try {
+    const data = await isModuleEnabled(guildId, "embed");
+
+    if (!data.enabled) {
+      return <Alert text="埋め込みモジュールが有効になっていません。ダッシュボードでモジュールを有効にしてください。" redirectUrl={`/dashboard/${guildId}`} />;
+    }
+  } catch (error) {
+    redirect(`/dashboard/${guildId}`);
+  }
 
   return (
     <div className="min-h-screen p-6 md:p-12">

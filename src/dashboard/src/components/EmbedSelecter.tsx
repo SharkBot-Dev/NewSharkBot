@@ -1,17 +1,20 @@
+"use client";
+
 import { useCallback, useEffect, useState, ChangeEvent } from "react";
+import { EmbedSetting } from "@/lib/api/requests"; 
 
 interface Props {
   guildId: string;
-  value?: string;
-  onChange?: (channelId: string) => void; 
+  value?: string | number | null; // ID(number) または 未選択(null/empty)
+  onChange?: (val: string) => void; 
 }
 
 export default function EmbedSelecter({ guildId, value, onChange }: Props) {
-  const [embeds, setEmbeds] = useState<any>({});
+  const [embeds, setEmbeds] = useState<EmbedSetting[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchChannels = useCallback(async () => {
+  const fetchEmbeds = useCallback(async () => {
     if (!guildId) return;
 
     setIsLoading(true);
@@ -25,9 +28,8 @@ export default function EmbedSelecter({ guildId, value, onChange }: Props) {
 
       if (!res.ok) throw new Error("データの取得に失敗しました");
 
-      const data: any[] = (await res.json()).settings || [];
-
-      setEmbeds(data);
+      const data = await res.json();
+      setEmbeds(data.settings || []);
     } catch (err) {
       console.error("Failed to fetch embeds:", err);
       setError("埋め込み一覧を読み込めませんでした。");
@@ -37,8 +39,8 @@ export default function EmbedSelecter({ guildId, value, onChange }: Props) {
   }, [guildId]);
 
   useEffect(() => {
-    fetchChannels();
-  }, [fetchChannels]);
+    fetchEmbeds();
+  }, [fetchEmbeds]);
 
   const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
     if (onChange) {
@@ -48,26 +50,56 @@ export default function EmbedSelecter({ guildId, value, onChange }: Props) {
 
   return (
     <div className="w-full">
-      <select
-        value={value || ""}
-        onChange={handleChange}
-        disabled={isLoading || Object.keys(embeds).length === 0}
-        className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm text-slate-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
-      >
-        <option value="" disabled>
-          {isLoading ? "読み込み中..." : "埋め込みを選択してください"}
-        </option>
+      <div className="relative">
+        <select
+          value={value === null ? "" : String(value)}
+          onChange={handleChange}
+          disabled={isLoading || (embeds.length === 0 && !isLoading)}
+          className={`
+            w-full rounded-lg border border-slate-200 bg-white py-2 px-3 shadow-sm 
+            focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 
+            sm:text-sm text-slate-900 disabled:bg-slate-50 disabled:text-slate-400 
+            disabled:cursor-not-allowed transition-all appearance-none
+          `}
+        >
+          {isLoading ? (
+            <option value="">読み込み中...</option>
+          ) : (
+            <>
+              <option value="">
+                {embeds.length === 0 ? "作成済みの埋め込みがありません" : "埋め込みを使用しない"}
+              </option>
+              {embeds.map((embed) => (
+                <option key={embed.ID} value={String(embed.ID)}>
+                  {embed.name}
+                </option>
+              ))}
+            </>
+          )}
+        </select>
         
-        {Object.values(embeds).map((embed: any, index: number) => (
-          <option key={embed.title} value={embed.title}>
-            {embed.title}
-          </option>
-        ))}
-      </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+          <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+          </svg>
+        </div>
+      </div>
       
-      {error && (
-        <p className="mt-1 text-xs text-red-500">{error}</p>
-      )}
+      {error ? (
+        <div className="mt-1 flex items-center justify-between">
+          <p className="text-[10px] text-red-500 font-medium">{error}</p>
+          <button 
+            onClick={() => fetchEmbeds()} 
+            className="text-[10px] text-indigo-600 hover:underline font-bold"
+          >
+            再試行
+          </button>
+        </div>
+      ) : embeds.length === 0 && !isLoading ? (
+        <p className="mt-1 text-[10px] text-slate-400 leading-relaxed">
+          まだ埋め込みが作成されていません。「埋め込み作成」から埋め込みを作成してください。
+        </p>
+      ) : null}
     </div>
   );
 }
