@@ -1,6 +1,8 @@
 package router
 
 import (
+	"log"
+
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/dto"
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
@@ -60,7 +62,8 @@ func getGuildSettingByID(c *gin.Context) {
 		if result.Error == gorm.ErrRecordNotFound {
 			c.JSON(404, gin.H{"error": "Guild not found"})
 		} else {
-			c.JSON(500, gin.H{"error": result.Error.Error()})
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
 		}
 		return
 	}
@@ -94,7 +97,8 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 	result := db.(*gorm.DB).First(&guildSetting, "guild_id = ?", id)
 	if result.Error != nil {
 		if result.Error != gorm.ErrRecordNotFound {
-			c.JSON(500, gin.H{"error": result.Error.Error()})
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
 			return
 		}
 		// Create new guild setting
@@ -104,7 +108,8 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 		}
 		result := db.(*gorm.DB).Create(&guildSetting)
 		if result.Error != nil {
-			c.JSON(500, gin.H{"error": result.Error.Error()})
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
 			return
 		}
 	} else {
@@ -112,7 +117,8 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 		guildSetting.EnabledModules = req.EnabledModules
 		result := db.(*gorm.DB).Save(&guildSetting)
 		if result.Error != nil {
-			c.JSON(500, gin.H{"error": result.Error.Error()})
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
 			return
 		}
 	}
