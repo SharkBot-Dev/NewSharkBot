@@ -12,7 +12,7 @@ swag i -g cmd/main.go
 
 # if --dev flag is provided, set gin to debug mode
 if [ "$1" = "--dev" ]; then
-  export DB_DSN="root:rootpass123@tcp(localhost:3306)/devdb?parseTime=true"
+  export DB_DSN="host=localhost user=postgres password=postgres dbname=devdb port=5432 sslmode=disable"  
   export GIN_MODE=debug
   go run -ldflags "\
   -X github.com/UniPro-tech/UniQUE-API/internal/config.GitCommit=$COMMIT \
