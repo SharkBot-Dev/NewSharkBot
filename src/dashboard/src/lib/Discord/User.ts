@@ -22,25 +22,23 @@ export async function checkAdminPermission(
   guildId: string,
   accessToken: string,
 ) {
-  try {
-    const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      next: { revalidate: 60 },
-    });
+  const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    next: { revalidate: 60 },
+  });
 
-    if (!res.ok) return false;
-
-    const guilds: DiscordGuild[] = await res.json();
-    const guild = guilds.find((g) => g.id === guildId);
-
-    if (!guild) return false;
-
-    return guild.permissions
-      ? (BigInt(guild.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION
-      : false;
-  } catch {
-    return false;
+  if (!res.ok) {
+    throw new Error(`Failed to fetch user's guilds: ${res.status}`);
   }
+
+  const guilds: DiscordGuild[] = await res.json();
+  const guild = guilds.find((g) => g.id === guildId);
+
+  if (!guild) return false;
+
+  return guild.permissions
+    ? (BigInt(guild.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION
+    : false;
 }
 
 export async function getAccessToken() {

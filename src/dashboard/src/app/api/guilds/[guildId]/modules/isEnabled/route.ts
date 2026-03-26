@@ -38,6 +38,13 @@ export async function GET(
       };
       return NextResponse.json(defaultSettings);
     }
+    if (!response.ok) {
+      console.error(`Failed to fetch guild settings: ${response.statusText}`);
+      return NextResponse.json(
+        { error: "Failed to fetch guild settings" },
+        { status: 500 },
+      );
+    }
 
     const settings = parseResponse<GuildSettings>(await response.json());
 
