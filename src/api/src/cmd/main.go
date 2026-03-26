@@ -50,7 +50,10 @@ func main() {
 	}
 
 	// マイグレート
-	db.AutoMigrate(&model.GuildSetting{})
+	err = db.AutoMigrate(&model.GuildSetting{})
+	if err != nil {
+		panic("failed to migrate database")
+	}
 
 	// デフォルトミドルウェア（loggerとrecovery）を含むGinルーターを作成
 	r := gin.Default()
