@@ -126,7 +126,7 @@ export default function WelcomeGoodbyeModulePage() {
             className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 shadow-md"
           >
             <Save className="w-4 h-4" />
-            {saving ? "保存中..." : "現在の内容を保存"}
+            {saving ? "保存中..." : "現在の埋め込みを保存"}
           </button>
         </div>
 
@@ -157,12 +157,6 @@ export default function WelcomeGoodbyeModulePage() {
                       <p className="text-xs text-slate-500 truncate">{embed.description || "説明なし"}</p>
                     </div>
                     <div className="flex gap-4 ml-4">
-                      <button 
-                        onClick={() => handleEditClick(embed)}
-                        className="text-sm font-semibold text-indigo-600 hover:text-indigo-800"
-                      >
-                        編集
-                      </button>
                       <button 
                         onClick={() => handleEmbedDelete(embed.title)}
                         className="text-sm font-semibold text-red-500 hover:text-red-700"

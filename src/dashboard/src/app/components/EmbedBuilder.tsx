@@ -68,10 +68,11 @@ const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
 
 interface DiscordEmbedBuilderProps {
   initialData?: Embed;
+  value?: Embed;
   onChange?: (data: Embed) => void;
 }
 
-export default function DiscordEmbedBuilder({ initialData, onChange }: DiscordEmbedBuilderProps) {
+export default function DiscordEmbedBuilder({ initialData, value, onChange }: DiscordEmbedBuilderProps) {
   const defaultEmbed: Embed = {
     title: "こんにちは、Discord!",
     description: "これは埋め込みビルダーのプレビューです。",
@@ -83,7 +84,7 @@ export default function DiscordEmbedBuilder({ initialData, onChange }: DiscordEm
     timestamp: new Date().toISOString(),
   };
 
-  const [embed, setEmbed] = useState<Embed>(initialData || defaultEmbed);
+  const [embed, setEmbed] = useState<Embed>(value || initialData || defaultEmbed);
 
   useEffect(() => {
     if (onChange) {

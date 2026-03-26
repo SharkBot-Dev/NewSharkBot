@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import CommandsControl from "@/app/components/commands";
 import ChannelSelecter from "@/app/components/channel-selecter";
 import CollapsibleSection from "@/app/components/CollapsibleSection";
+import EmbedSelecter from "@/app/components/EmbedSelecter";
 
 export default function WelcomeGoodbyeModulePage() {
   const params = useParams();
@@ -92,12 +93,7 @@ export default function WelcomeGoodbyeModulePage() {
 
                 <div className="shadow-sm mt-4 text-xs text-slate-900">
                     よろしく埋め込み
-                    <input
-                        defaultValue={welcomeEmbed}
-                        onChange={(e) => setWelcomeEmbed(e.target.value)}
-                        type="text"
-                        className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm text-slate-900"
-                    />
+                    <EmbedSelecter guildId={guildId} value={welcomeEmbed} onChange={(value) => setWelcomeEmbed(value)} />
                 </div>
             </CollapsibleSection>
 
@@ -119,12 +115,7 @@ export default function WelcomeGoodbyeModulePage() {
 
                 <div className="shadow-sm mt-4 text-xs text-slate-900">
                     さようなら埋め込み
-                    <input
-                        defaultValue={goodbyeEmbed}
-                        onChange={(e) => setGoodbyeEmbed(e.target.value)}
-                        type="text"
-                        className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm text-slate-900"
-                    />
+                    <EmbedSelecter guildId={guildId} value={goodbyeEmbed} onChange={(value) => setGoodbyeEmbed(value)} />
                 </div>
             </CollapsibleSection>
 
