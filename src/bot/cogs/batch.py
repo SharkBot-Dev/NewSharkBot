@@ -8,14 +8,12 @@ class BatchCog(commands.Cog):
         self.bot = bot
         print("init -> BatchCog")
 
-    async def cog_load(self):
+    @commands.Cog.listener()
+    async def on_ready(self):
         if not self.batch_change_activity.is_running():
             self.batch_change_activity.start()
 
-    async def cog_unload(self):
-        self.batch_change_activity.cancel()
-
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=30)
     async def batch_change_activity(self):
         activity = discord.CustomActivity(name="ダッシュボードから設定できます。")
         await self.bot.change_presence(activity=activity)
