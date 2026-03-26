@@ -3,7 +3,7 @@
 import { Terminal } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import CommandsControl from "@/app/components/commands";
+import CommandsControl from "@/components/commands";
 
 const commands = [
   {
@@ -81,10 +81,7 @@ export default function HelpModuleSetting() {
             </div>
 
             <div className="shadow-sm">
-              <CommandsControl
-                guildId={guildId}
-                targetCommands={commands}
-              />
+              <CommandsControl guildId={guildId} targetCommands={commands} />
             </div>
 
             <p className="mt-4 text-xs text-slate-900">

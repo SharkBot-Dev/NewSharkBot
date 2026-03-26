@@ -1,6 +1,5 @@
 import { DISCORD_API_BASE_URL } from "@/constants/Discord/endpoints";
-
-const ADMIN_PERMISSION = BigInt(0x8);
+import type { DiscordGuild } from "@/types/Discord";
 
 const isValidDiscordId = (id: string) => /^\d{17,20}$/.test(id);
 
@@ -9,7 +8,7 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-export async function getGuildRequest(guildId: string) {
+export async function getAllJoinedGuilds(guildId: string) {
   try {
     const response = await fetch(`${DISCORD_API_BASE_URL}/guilds/${guildId}`, {
       next: { revalidate: 60 },
@@ -20,63 +19,14 @@ export async function getGuildRequest(guildId: string) {
       return null;
     }
 
-    const guild = await response.json();
+    const guild = (await response.json()) as DiscordGuild;
     return guild;
   } catch {
     return null;
   }
 }
 
-export async function getGuilds(accessToken: string) {
-  const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("取得失敗");
-
-  return res.json();
-}
-
-export async function getGuildChannels(guildId: string) {
-  try {
-    const res = await fetch(`${DISCORD_API_BASE_URL}/guilds/${guildId}/channels`, {
-      headers: headers,
-      next: { revalidate: 30 },
-    });
-    if (!res.ok) throw new Error("取得失敗");
-    return res.json();
-  } catch {
-    return [];
-  }
-
-}
-
-export async function checkAdminPermission(
-  guildId: string,
-  accessToken: string,
-) {
-  try {
-    const res = await fetch(`${DISCORD_API_BASE_URL}/users/@me/guilds`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      next: { revalidate: 60 },
-    });
-
-    if (!res.ok) return false;
-
-    const guilds: any[] = await res.json();
-    const guild = guilds.find((g) => g.id === guildId);
-
-    if (!guild) return false;
-
-    return (BigInt(guild.permissions) & ADMIN_PERMISSION) === ADMIN_PERMISSION;
-  } catch {
-    return false;
-  }
-}
-
-export async function addSlashCommand(guildId: string, commandData: any) {
+export async function registerSlashCommand(guildId: string, commandData: any) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
   if (!clientId || !isValidDiscordId(clientId) || !isValidDiscordId(guildId)) {
@@ -99,7 +49,7 @@ export async function addSlashCommand(guildId: string, commandData: any) {
   return await response.json();
 }
 
-export async function getSlashCommands(guildId: string) {
+export async function getAllSlashCommands(guildId: string) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
   if (!clientId || !isValidDiscordId(clientId) || !isValidDiscordId(guildId)) {

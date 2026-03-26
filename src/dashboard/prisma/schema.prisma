@@ -10,6 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["auth", "dashboard"]
 }
 
 model User {
@@ -25,6 +26,7 @@ model User {
 
   @@unique([email])
   @@map("user")
+  @@schema("auth")
 }
 
 model Session {
@@ -41,6 +43,7 @@ model Session {
   @@unique([token])
   @@index([userId])
   @@map("session")
+  @@schema("auth")
 }
 
 model Account {
@@ -61,6 +64,7 @@ model Account {
 
   @@index([userId])
   @@map("account")
+  @@schema("auth")
 }
 
 model Verification {
@@ -73,4 +77,5 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+  @@schema("auth")
 }

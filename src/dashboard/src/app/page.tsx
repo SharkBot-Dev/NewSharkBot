@@ -1,4 +1,4 @@
-import { SignIn } from "@/app/components/login-button";
+import { SignIn } from "@/components/login-button";
 
 export default async function Page() {
   return (

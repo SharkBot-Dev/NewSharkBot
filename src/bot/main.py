@@ -4,9 +4,6 @@ import dotenv
 from discord.ext import commands
 import discord
 
-from motor.motor_asyncio import AsyncIOMotorClient
-
-from lib.embed import Embed as customEmbed
 from lib import tree
 from lib.command import Command
 
@@ -22,7 +19,6 @@ class NewSharkBot(commands.AutoShardedBot):
             tree_cls=tree.CustomTree,
         )
         print("InitDone")
-        self.async_db = AsyncIOMotorClient("mongodb://localhost:27017")
 
         self.slashcommands: Dict[str, Command] = {}
         self.embed = customEmbed(self)

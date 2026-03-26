@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { DISCORD_API_BASE_URL } from "@/constants/Discord/endpoints";
 import { auth } from "@/lib/auth";
 import type { DiscordGuild } from "@/types/Discord";
-import { NextResponse } from "next/server";
 
 const ADMIN_PERMISSION = BigInt(0x8);
 
