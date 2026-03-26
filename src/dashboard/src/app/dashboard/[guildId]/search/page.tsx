@@ -22,7 +22,7 @@ const commands = [
   },
 ];
 
-export default async function TestModuleSetting({ params }: { params: { guildId: string } }) {
+export default async function SearchModuleSetting({ params }: { params: { guildId: string } }) {
   const { guildId } = await params;
   try {
     const data = await isModuleEnabled(guildId, "search");

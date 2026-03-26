@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -37,6 +37,17 @@ export const modules = new Map<string, ModuleSetting>([
       description: "新規参加者に挨拶したり、退出者にさようならを言うモジュールです",
       enabled: true,
       icon: Hand,
+      group: "サーバー管理",
+    },
+  ],
+  [
+    "reaction_role",
+    {
+      id: "reaction_role",
+      name: "リアクションロール",
+      description: "メンバーがリアクションするとロールが付与されるモジュールです",
+      enabled: true,
+      icon: SmilePlus,
       group: "サーバー管理",
     },
   ],

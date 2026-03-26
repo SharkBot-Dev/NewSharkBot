@@ -42,6 +42,68 @@ export async function getGuildChannels(guildId: string) {
   return await response.json();
 }
 
+export async function ThisChannelIsServerInChecker(guildId: string, channelId: string) {
+  if (!isValidDiscordId(guildId)) {
+    throw new Error("Invalid Guild ID");
+  }
+  if (!isValidDiscordId(channelId)) {
+    throw new Error("Invalid Channel ID");
+  }
+  const channels = await getGuildChannels(guildId);
+  const channel = channels.find((channel: any) => channel.id === channelId);
+  if (!channel) {
+    throw new Error("Channel not found");
+  }
+
+  return channel;
+}
+
+export async function sendMessage(
+  channelId: string, 
+  message: string, 
+  embed?: any, 
+  components?: any[]
+) {
+  if (!isValidDiscordId(channelId)) {
+    throw new Error("Invalid Channel ID");
+  }
+
+  const response = await fetch(`${DISCORD_API_BASE_URL}/channels/${channelId}/messages`, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify({
+      content: message,
+      embeds: embed ? [embed] : [],
+      components: Array.isArray(components) ? components : (components ? [components] : undefined),
+    }),
+    next: { revalidate: 10 },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("Discord API Error:", errorData);
+    throw new Error(`Failed to send message: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function getGuildRoles(guildId: string) {
+  if (!isValidDiscordId(guildId)) {
+    throw new Error("Invalid Guild ID");
+  }
+  const response = await fetch(`${DISCORD_API_BASE_URL}/guilds/${guildId}/roles`, {
+    headers,
+    next: { revalidate: 60 },
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(`Failed to fetch roles: ${JSON.stringify(error)}`);
+  }
+
+  return await response.json();
+}
+
 export async function registerSlashCommand(guildId: string, commandData: any) {
   const clientId = process.env.AUTH_DISCORD_ID;
 
