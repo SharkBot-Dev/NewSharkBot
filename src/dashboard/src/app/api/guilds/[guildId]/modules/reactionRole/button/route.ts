@@ -1,6 +1,6 @@
 import { deleteMessageSetting, fetchEmbedSettings, fetchMessageSetting, saveMessageSetting } from "@/lib/api/requests";
 import { auth } from "@/lib/auth";
-import { sendMessage } from "@/lib/Discord/Bot";
+import { getValidatedChannelInServer, sendMessage } from "@/lib/Discord/Bot";
 import { buildActionRowsFromMap } from "@/lib/Discord/RolePanel";
 import { checkAdminPermission } from "@/lib/Discord/User";
 import { headers } from "next/headers";
@@ -49,6 +49,11 @@ export async function POST(
 
         if (!channelId || !roles) {
             return NextResponse.json({ error: "Missing channelId or roles" }, { status: 400 });
+        }
+
+        const validatedChannel = await getValidatedChannelInServer(guildId, channelId);
+        if (!validatedChannel) {
+            return NextResponse.json({ error: "Invalid channelId" }, { status: 400 });
         }
 
         const components = buildActionRowsFromMap(roles);

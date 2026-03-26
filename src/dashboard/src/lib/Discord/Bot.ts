@@ -42,20 +42,24 @@ export async function getGuildChannels(guildId: string) {
   return await response.json();
 }
 
-export async function ThisChannelIsServerInChecker(guildId: string, channelId: string) {
-  if (!isValidDiscordId(guildId)) {
-    throw new Error("Invalid Guild ID");
-  }
-  if (!isValidDiscordId(channelId)) {
-    throw new Error("Invalid Channel ID");
-  }
-  const channels = await getGuildChannels(guildId);
-  const channel = channels.find((channel: any) => channel.id === channelId);
-  if (!channel) {
-    throw new Error("Channel not found");
+export async function getValidatedChannelInServer(guildId: string, channelId: string): Promise<any> {
+  if (!isValidDiscordId(guildId) || !isValidDiscordId(channelId)) {
+    throw new Error("Invalid Guild or Channel ID format");
   }
 
-  return channel;
+  const channels: any[] = await getGuildChannels(guildId);
+
+  try {
+    const channel = channels.find((c) => c.id === channelId);
+
+    if (!channel) {
+      throw new Error(`Channel with ID ${channelId} not found in guild ${guildId}`);
+    }
+
+    return channel;
+  } catch {
+    return null;
+  }
 }
 
 export async function sendMessage(

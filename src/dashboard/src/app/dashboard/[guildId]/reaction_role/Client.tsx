@@ -26,6 +26,16 @@ export default function ReactionRoleClient({ guildId, roles }: Props) {
     const [content, setContent] = useState<string>("");
 
     const sendButtonRolePanel = async () => {
+        if (!channel) {
+          alert("チャンネルを選択してください。");
+          return;
+        }
+
+        if (Object.keys(ButtonRoleMap).length === 0) {
+          alert("ロールを最低でも一つ選択してください。");
+          return;
+        }
+
         setSaving(true);
         try {
             const body = {
@@ -43,10 +53,10 @@ export default function ReactionRoleClient({ guildId, roles }: Props) {
             });
 
             if (!response.ok) throw new Error();
-            alert("保存しました！");
+            alert("送信しました！");
 
         } catch (e) {
-            alert("保存に失敗しました。");
+            alert("送信に失敗しました。");
         } finally {
             setSaving(false);
         }
