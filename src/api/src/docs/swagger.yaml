@@ -27,7 +27,7 @@ definitions:
         additionalProperties:
           type: boolean
         type: object
-      guildID:
+      guild_id:
         type: string
       updatedAt:
         type: string

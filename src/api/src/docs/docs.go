@@ -176,7 +176,7 @@ const docTemplate = `{
                         "type": "boolean"
                     }
                 },
-                "guildID": {
+                "guild_id": {
                     "type": "string"
                 },
                 "updatedAt": {
