@@ -46,8 +46,6 @@ export default async function WelcomeGoodbyeModulePage({ params }: Props) {
  * データを取得してエディターをレンダリングするサーバーコンポーネント
  */
 async function WelcomeGoodbyeDataLoader({ guildId }: { guildId: string }) {
-  const embeds = await fetchEmbedSettings(guildId);
-
   const [welcomeRaw, goodbyeRaw] = await Promise.all([
     fetchMessageSetting(guildId, "welcome").catch(() => null),
     fetchMessageSetting(guildId, "goodbye").catch(() => null)
@@ -58,15 +56,15 @@ async function WelcomeGoodbyeDataLoader({ guildId }: { guildId: string }) {
       enabled: !!welcomeRaw,
       channelId: welcomeRaw?.channel_id || "",
       content: welcomeRaw?.content || "",
-      embed_id: welcomeRaw?.embed || null,
+      embed_id: welcomeRaw?.embed_id || null,
     },
     goodbye: {
       enabled: !!goodbyeRaw,
       channelId: goodbyeRaw?.channel_id || "",
       content: goodbyeRaw?.content || "",
-      embed_id: goodbyeRaw?.embed || null,
+      embed_id: goodbyeRaw?.embed_id || null,
     },
   };
 
-  return <WelcomeGoodbyeEditor guildId={guildId} initialData={data} embeds={embeds} />;
+  return <WelcomeGoodbyeEditor guildId={guildId} initialData={data} />;
 }

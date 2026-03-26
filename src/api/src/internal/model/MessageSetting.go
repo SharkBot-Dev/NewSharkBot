@@ -10,7 +10,7 @@ type MessageSetting struct {
 	Content   string `json:"content"`
 
 	EmbedID *uint        `json:"embed_id"`
-	Embed   EmbedSetting `gorm:"foreignKey:EmbedID"`
+	Embed   EmbedSetting `gorm:"foreignKey:EmbedID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

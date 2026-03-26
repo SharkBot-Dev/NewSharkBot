@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState, ChangeEvent } from "react";
+import { useCallback, useEffect, useState, ChangeEvent, use } from "react";
 import { EmbedSetting } from "@/lib/api/requests"; 
 
 interface Props {
   guildId: string;
-  value?: string | number | null; // ID(number) または 未選択(null/empty)
+  value?: string | null; // ID(number) または 未選択(null/empty)
   onChange?: (val: string) => void; 
 }
 

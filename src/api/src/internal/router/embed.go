@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
@@ -11,10 +12,10 @@ import (
 func RegisterEmbed(router *gin.RouterGroup) {
 	guilds := router.Group("/guilds/embeds")
 	{
-		guilds.GET("/:id", getEmbedSettingList)         // 一覧取得
-		guilds.GET("/:id/:name", getEmbedSetting)       // 個別取得
-		guilds.POST("/:id", createOrUpdateEmbedSetting) // 作成・更新
-		guilds.DELETE("/:id/:name", deleteEmbedSetting) // 削除
+		guilds.GET("/:id", getEmbedSettingList)             // 一覧取得
+		guilds.GET("/:id/:name", getEmbedSetting)           // 個別取得
+		guilds.POST("/:id", createOrUpdateEmbedSetting)     // 作成・更新
+		guilds.DELETE("/:id/:embed_id", deleteEmbedSetting) // 削除
 	}
 }
 
@@ -92,17 +93,25 @@ func createOrUpdateEmbedSetting(c *gin.Context) {
 
 // 削除
 func deleteEmbedSetting(c *gin.Context) {
-	id := c.Param("id")
-	name := c.Param("name")
+	guildID := c.Param("id")
+	embedID := c.Param("embed_id")
 	db := c.MustGet("db").(*gorm.DB)
 
-	result := db.Where("guild_id = ? AND name = ?", id, name).Delete(&model.EmbedSetting{})
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
+	embedIdInt, err := strconv.Atoi(embedID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid embed_id format"})
 		return
 	}
+
+	result := db.Where("guild_id = ? AND id = ?", guildID, embedIdInt).Delete(&model.EmbedSetting{})
+
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
 		return
 	}
 

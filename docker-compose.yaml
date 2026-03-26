@@ -20,6 +20,8 @@ services:
       - ./src/bot/.env
     networks:
       - sharkbot_network
+    environment:
+      RESOURCE_API_BASE_URL: "http://api:8080"
   postgres:
     image: postgres:18
     environment:

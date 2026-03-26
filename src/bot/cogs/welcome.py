@@ -1,3 +1,5 @@
+import logging
+
 from discord.ext import commands
 import discord
 
@@ -37,7 +39,7 @@ class WelcomeCog(commands.Cog):
                 return
 
             embed = None
-            embed_setting = setting.get("embed")
+            embed_setting = setting.get("Embed")
             
             if embed_setting:
                 embed_data = copy.deepcopy(embed_setting.get("data", {}))
@@ -55,7 +57,7 @@ class WelcomeCog(commands.Cog):
             await channel.send(content=content or None, embed=embed)
 
         except Exception as e:
-            print(f"Error in {event_type} event: {e}")
+            logging.error(f"Error in {event_type} event: {e}")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):

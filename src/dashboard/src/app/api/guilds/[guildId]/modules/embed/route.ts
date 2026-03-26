@@ -100,7 +100,7 @@ export async function DELETE(
         const body = await request.json(); // { title: "..." }
 
         // Goサーバーへ削除リクエスト
-        const res = await fetch(`${BACKEND_URL}/guilds/embeds/${guildId}/${body.title}`, {
+        const res = await fetch(`${BACKEND_URL}/guilds/embeds/${guildId}/${body.embed_id}`, {
             method: "DELETE",
         });
 

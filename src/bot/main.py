@@ -52,13 +52,15 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
 async def setup_hook() -> None:
     await load_cogs(bot)
 
+    bot.session = aiohttp.ClientSession()
+
+    base_url = os.environ.get("RESOURCE_API_BASE_URL", "http://localhost:8080")
+    bot.api = ResourceAPIClient(bot.session, base_url)    
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")
-
-    async with aiohttp.ClientSession() as session:
-        bot.api = ResourceAPIClient(session, os.environ.get("RESOURCE_API_BASE_URL", "http://localhost:8000"))
 
 if __name__ == "__main__":
     bot.run(os.environ.get("DISCORD_TOKEN"))

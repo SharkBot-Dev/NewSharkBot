@@ -58,18 +58,18 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
   };
 
   // 削除処理
-  const handleDelete = async (name: string) => {
+  const handleDelete = async (name: string, id: string) => {
     if (!confirm(`埋め込み「${name}」を削除してもよろしいですか？`)) return;
 
     try {
       const response = await fetch(`/api/guilds/${guildId}/modules/embed`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: name }),
+        body: JSON.stringify({ embed_id: Number(id) }),
       });
 
       if (response.ok) {
-        setSavedEmbeds((prev) => prev.filter((e) => e.name !== name));
+        setSavedEmbeds((prev) => prev.filter((e) => String(e.ID) !== id));
       } else {
         alert("削除に失敗しました。");
       }
@@ -120,7 +120,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
                 </div>
                 <div className="flex gap-4 ml-4">
                   <button 
-                    onClick={() => handleDelete(embed.name)}
+                    onClick={() => handleDelete(embed.name, String(embed.ID))}
                     className="text-sm font-semibold text-red-500 hover:text-red-700"
                   >
                     削除

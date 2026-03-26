@@ -17,10 +17,9 @@ interface Setting {
 interface Props {
   guildId: string;
   initialData: { welcome: Setting; goodbye: Setting };
-  embeds: any[];
 }
 
-export default function WelcomeGoodbyeEditor({ guildId, initialData, embeds }: Props) {
+export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
   const [saving, setSaving] = useState(false);
   const [welcome, setWelcome] = useState<Setting>({
     ...initialData.welcome,
@@ -58,8 +57,6 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData, embeds }: P
         }
       };
 
-      console.log("Saving welcome settings with body:", body);
-
       const response = await fetch(`/api/guilds/${guildId}/modules/welcome`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,7 +91,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData, embeds }: P
         goodbye: {
           channel_id: welcome.channelId,
           content: goodbye.content,
-          embed_id: welcome.embed_id ? Number(welcome.embed_id) : null,
+          embed_id: goodbye.embed_id ? Number(goodbye.embed_id) : null,
         }
       };
 
@@ -140,7 +137,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData, embeds }: P
                 <label className="text-xs font-bold text-slate-500 uppercase">使用する埋め込み</label>
                 <EmbedSelecter 
                   guildId={guildId} 
-                  value={welcome.embed_id || ""} 
+                  value={welcome.embed_id} 
                   onChange={(val) => setWelcome({ ...welcome, embed_id: val })} 
                 />
               </div>
@@ -194,7 +191,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData, embeds }: P
                 <label className="text-xs font-bold text-slate-500 uppercase">使用する埋め込み</label>
                 <EmbedSelecter 
                   guildId={guildId} 
-                  value={goodbye.embed_id || ""} 
+                  value={goodbye.embed_id} 
                   onChange={(val) => setGoodbye({ ...goodbye, embed_id: val })} 
                 />
               </div>
