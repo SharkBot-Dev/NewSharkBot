@@ -4,7 +4,7 @@ import "time"
 
 type GuildSetting struct {
 	GuildID        string          `gorm:"primaryKey"`
-	EnabledModules map[string]bool `gorm:"type:jsonb"`
+	EnabledModules map[string]bool `gorm:"type:jsonb;serializer:json"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
