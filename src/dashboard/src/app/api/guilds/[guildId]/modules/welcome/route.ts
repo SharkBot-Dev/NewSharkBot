@@ -49,17 +49,12 @@ export async function GET(
 
         const welcome = await fetchMessageSetting(guildId, "welcome");
 
-        console.log("Fetched welcome setting:", welcome);
-
-        // フロントエンドの既存インターフェースに合わせる
         const fixedSettings = {
             channel_id: welcome?.channel_id || "",
             content: welcome?.content || "",
             embed_id: welcome?.embed_id || null,
             enabled: !!welcome
         };
-
-        console.log("Fixed welcome settings:", fixedSettings);
 
         return NextResponse.json({ success: true, settings: fixedSettings });
     } catch (error: any) {
@@ -82,8 +77,6 @@ export async function POST(
 
         const body = await request.json();
 
-        console.log("Received POST body:", body);
-        
         await saveMessageSetting(guildId, "welcome", body.welcome);
 
         return NextResponse.json({ success: true, message: "Settings synced successfully" });

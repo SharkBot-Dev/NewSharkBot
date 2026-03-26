@@ -194,8 +194,6 @@ func updateGuildModuleSetting(c *gin.Context) {
 	var guildSetting model.GuildSetting
 	result := db.First(&guildSetting, "guild_id = ?", id)
 
-	log.Printf("Name: %s", req.Module)
-
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			guildSetting = model.GuildSetting{
