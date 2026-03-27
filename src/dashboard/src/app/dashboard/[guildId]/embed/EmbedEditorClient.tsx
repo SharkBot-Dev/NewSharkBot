@@ -5,6 +5,8 @@ import { useState } from "react";
 import DiscordEmbedBuilder from "@/components/EmbedBuilder";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import { EmbedSetting } from "@/lib/api/requests"; // 型定義
+import Modal from "@/components/Modal";
+import ChannelSelecter from "@/components/channel-selecter";
 
 interface Props {
   guildId: string;
@@ -15,6 +17,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
   const [savedEmbeds, setSavedEmbeds] = useState<EmbedSetting[]>(initialEmbeds);
   const [currentEmbedData, setCurrentEmbedData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+
+  const [sending, setSending] = useState(false);
+  const [sendingId, setSendingId] = useState<string>("");
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [channelSelecterValue, setChannelSelecterValue] = useState("");
 
   // 保存処理 (Next.jsのAPI Route /api/guilds/[id]/modules/embed を叩く)
   const handleSave = async () => {
@@ -78,6 +85,29 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
     }
   };
 
+  const handleSend = async () => {
+    setSending(true);
+
+    try {
+      const response = await fetch(`/api/guilds/${guildId}/modules/embed/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ embedId: Number(sendingId), channelId: channelSelecterValue }),
+      });
+
+      await response.json();
+      setIsSendModalOpen(false);
+      setSendingId("");
+      setChannelSelecterValue("");
+
+      alert("送信しました！")
+    } catch (error) {
+      console.error("Send error:", error);
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-end">
@@ -120,6 +150,15 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
                 </div>
                 <div className="flex gap-4 ml-4">
                   <button 
+                    onClick={() => {
+                      setIsSendModalOpen(true);
+                      setSendingId(String(embed.ID));
+                    }}
+                    className="text-sm font-semibold text-blue-500 hover:text-blue-700"
+                  >
+                    送信
+                  </button>
+                  <button 
                     onClick={() => handleDelete(embed.name, String(embed.ID))}
                     className="text-sm font-semibold text-red-500 hover:text-red-700"
                   >
@@ -131,6 +170,20 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
           )}
         </div>
       </CollapsibleSection>
+
+      <Modal isOpen={isSendModalOpen} onClose={() => setIsSendModalOpen(false)}>
+        <h2 className="text-xl font-bold mb-2 text-black">埋め込みを送信する</h2>
+        <ChannelSelecter guildId={guildId} type_id={0} value={channelSelecterValue} onChange={(val) => setChannelSelecterValue(val)}></ChannelSelecter><br/>
+
+        <button
+          onClick={handleSend}
+          disabled={sending}
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 shadow-md"
+        >
+          <Save className="w-4 h-4" />
+          {saving ? "送信中..." : "送信する"}
+        </button>
+      </Modal>
     </div>
   );
 }

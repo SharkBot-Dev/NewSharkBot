@@ -29,7 +29,6 @@ export default async function EmbedModulePage({ params }: Props) {
           <p className="mt-2 text-slate-600">特定のタイトルで埋め込みを保存・管理できます。</p>
         </div>
 
-        {/* データの取得とエディター部分を分離 */}
         <Suspense fallback={<LoadingSkeleton />}>
           <EmbedContent guildId={guildId} />
         </Suspense>
