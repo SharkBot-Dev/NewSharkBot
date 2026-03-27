@@ -1,9 +1,11 @@
-"use client";
-
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Terminal } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import CommandsControl from "@/components/commands";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
+
+import { isModuleEnabled } from "@/lib/api/requests";
+import Alert from "@/components/Alert";
 
 const commands = [
   {
@@ -24,50 +26,27 @@ const commands = [
   },
 ];
 
-export default function HelpModuleSetting() {
-  const params = useParams();
-  const router = useRouter();
-  const guildId = params.guildId as string;
+export default async function HelpModuleSetting({ params }: { params: { guildId: string } }) {
+  const { guildId } = await params;
+  try {
+    const data = await isModuleEnabled(guildId, "help");
 
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function init() {
-      (await fetch(`/api/guilds/${guildId}/modules/isEnabled?module=help`))
-        .json()
-        .then((data) => {
-          if (data.enabled) {
-            setLoading(false);
-          } else {
-            alert("このサーバーではモジュールが有効になっていません。");
-            router.push(`/dashboard/${guildId}`);
-          }
-        });
+    if (!data.enabled) {
+      return <Alert text="ヘルプモジュールが有効になっていません。ダッシュボードでモジュールを有効にしてください。" redirectUrl={`/dashboard/${guildId}`} />;
     }
-    init();
-  }, [guildId, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin h-8 w-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div>
-      </div>
-    );
+  } catch (error) {
+    redirect(`/dashboard/${guildId}`);
   }
 
   return (
     <div className="min-h-screen p-6 md:p-12">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-slate-900">
-              ヘルプモジュール
-            </h1>
-            <p className="mt-2 text-slate-600">
-              サーバーで使用するスラッシュコマンドの有効・無効を切り替えます。
-            </p>
-          </div>
-        </div>
+        <header className="mb-10">
+          <h1 className="text-3xl font-extrabold text-slate-900">ヘルプモジュール</h1>
+          <p className="mt-2 text-slate-600">
+            サーバーで使用するスラッシュコマンドの有効・無効を切り替えます。
+          </p>
+        </header>
 
         <hr className="border-slate-200 dark:border-slate-800 mb-10" />
 
@@ -80,13 +59,14 @@ export default function HelpModuleSetting() {
               </h2>
             </div>
 
-            <div className="shadow-sm">
-              <CommandsControl guildId={guildId} targetCommands={commands} />
-            </div>
+            <Suspense fallback={<LoadingSkeleton />}>
+              <div className="shadow-sm">
+                <CommandsControl guildId={guildId} targetCommands={commands} />
+              </div>
+            </Suspense>
 
             <p className="mt-4 text-xs text-slate-900">
-              ※
-              反映まで数分かかる場合があります。同期が完了しない場合はページを更新してください。
+              ※ 反映まで数分かかる場合があります。同期が完了しない場合はページを更新してください。
             </p>
           </section>
         </div>

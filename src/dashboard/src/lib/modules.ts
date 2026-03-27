@@ -1,4 +1,4 @@
-import { HelpCircle, Hand } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -9,12 +9,20 @@ export interface ModuleSetting {
   group?: string;
 }
 
+export interface NoIconModuleSetting {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+  group?: string;
+}
+
 export const modules = new Map<string, ModuleSetting>([
   [
     "test",
     {
       id: "test",
-      name: "テストモジュール",
+      name: "テスト",
       description: "テストモジュールです",
       enabled: false,
       icon: null,
@@ -25,7 +33,7 @@ export const modules = new Map<string, ModuleSetting>([
     "welcome",
     {
       id: "welcome",
-      name: "よろしく＆さようならモジュール",
+      name: "よろしく＆さようなら",
       description: "新規参加者に挨拶したり、退出者にさようならを言うモジュールです",
       enabled: true,
       icon: Hand,
@@ -33,10 +41,21 @@ export const modules = new Map<string, ModuleSetting>([
     },
   ],
   [
+    "reaction_role",
+    {
+      id: "reaction_role",
+      name: "リアクションロール",
+      description: "メンバーがリアクションするとロールが付与されるモジュールです",
+      enabled: true,
+      icon: SmilePlus,
+      group: "サーバー管理",
+    },
+  ],
+  [
     "help",
     {
       id: "help",
-      name: "ヘルプモジュール",
+      name: "ヘルプ",
       description: "コマンドの説明を表示するモジュールです",
       enabled: true,
       icon: HelpCircle,
@@ -47,10 +66,21 @@ export const modules = new Map<string, ModuleSetting>([
     "embed",
     {
       id: "embed",
-      name: "埋め込み作成モジュール",
+      name: "埋め込み作成",
       description: "サーバー内の埋め込みを作成＆管理できます",
       enabled: true,
       icon: Hand,
+      group: "ユーティリティ",
+    },
+  ],
+  [
+    "search",
+    {
+      id: "search",
+      name: "検索",
+      description: "Web上のコンテンツをなんでも検索できます。",
+      enabled: true,
+      icon: SearchIcon,
       group: "ユーティリティ",
     },
   ]
