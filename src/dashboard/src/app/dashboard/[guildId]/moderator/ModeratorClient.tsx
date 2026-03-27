@@ -115,6 +115,18 @@ const commands = [
         required: false,
       },
     ]
+  },
+  {
+    name: "user-info",
+    description: "ユーザーの情報を表示します。",
+    options: [
+      {
+        name: "user",
+        description: "ユーザーを入力してください。",
+        type: 6,
+        required: false,
+      }
+    ]
   }
 ];
 

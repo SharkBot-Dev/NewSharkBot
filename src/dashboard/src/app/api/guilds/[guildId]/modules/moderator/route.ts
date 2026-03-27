@@ -92,17 +92,15 @@ export async function POST(
         if (target === "basic") {
             endpoint = `${BACKEND_URL}/guilds/moderator/${guildId}`;
         } else if (typeof target === "string" && isAutomodType(target)) {
+            const type = payload.type;
+            if (!type || !isAutomodType(type) || type !== target) {
+                return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+            }
             endpoint = `${BACKEND_URL}/guilds/automod/${guildId}/${target}`;
         } else {
             return NextResponse.json({ error: "Invalid target" }, { status: 400 });
         }
         
-        const type = payload.type;
-
-        if (!type || !isAutomodType(type)) {
-            return NextResponse.json({ error: "Invalid type" }, { status: 400 });
-        }
-
         const res = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

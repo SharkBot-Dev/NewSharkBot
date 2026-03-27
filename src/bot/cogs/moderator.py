@@ -7,6 +7,12 @@ import re
 
 from lib.command import Command
 
+STATUS_EMOJIS = {
+    discord.Status.online: "<:online:1407922300535181423>",
+    discord.Status.idle: "<:idle:1407922295711727729>",
+    discord.Status.dnd: "<:dnd:1407922294130741348>",
+    discord.Status.offline: "<:offline:1407922298563854496>",
+}
 
 class ModeratorCog(commands.Cog):
     def __init__(self, bot):
@@ -32,10 +38,14 @@ class ModeratorCog(commands.Cog):
         remove_timeout.execute = self.remove_timeout_command
         self.bot.add_slashcommand(remove_timeout)
 
+        user_info = Command(name="user-info", description="ユーザーの情報を取得します。", module_name="モデレーター")
+        user_info.execute = self.user_info_command
+        self.bot.add_slashcommand(user_info)
+
         print("init -> ModeratorCog")
 
     def parse_duration(self, duration_str: str):
-        regex = r"(\d+)\s*([hms])"
+        regex = r"(\d+)\s*([dhms])"
         matches = re.findall(regex, duration_str.lower())
         
         if not matches:
@@ -43,6 +53,7 @@ class ModeratorCog(commands.Cog):
 
         total_seconds = 0
         unit_seconds = {
+            'd': 86400,
             'h': 3600,
             'm': 60,
             's': 1
@@ -190,6 +201,50 @@ class ModeratorCog(commands.Cog):
             return
 
         await self.send_moderator_log(guild, interaction.user, user, "タイムアウト解除", reason)
+
+    async def user_info_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        guild = interaction.guild
+        user_id = kwargs.get("user")
+
+        try:
+            user = await interaction.client.fetch_user(int(user_id))
+            if not user:
+                return await interaction.followup.send(content="ユーザーが見つかりませんでした。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+            
+        embed = discord.Embed(title=f"{user.name}の情報", color=discord.Color.blue())
+        embed.set_thumbnail(url=user.display_avatar.url)
+        embed.add_field(name="ユーザー名", value=user.name, inline=True)
+        embed.add_field(name="ユーザーID", value=user.id, inline=True)
+        embed.add_field(name="アカウント作成日", value=user.created_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+
+        member = interaction.guild.get_member(int(user_id))
+        if member:
+            embed.add_field(name="サーバー参加日", value=member.joined_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
+            embed.add_field(name="ロール", value=", ".join([role.name for role in member.roles]), inline=True)
+
+            status = member.client_status
+            emoji = STATUS_EMOJIS.get(status, "❔")
+            embed.add_field(name="ステータス", value=f"{emoji} {status}", inline=True)
+            
+            mobile_status_text = "Web"
+            if member.client_status.mobile_status:
+                mobile_status_text = "スマホ"
+            
+            if member.client_status.desktop_status:
+                mobile_status_text = "デスクトップ"
+
+            embed.add_field(name="機種", value=mobile_status_text, inline=True)
+
+            activity = member.activity
+            if activity:
+                embed.add_field(name="アクティビティ", value=activity.name, inline=True)
+
+        await interaction.followup.send(embed=embed)
+
 
     async def send_moderator_log(self, guild: discord.Guild, moderator: discord.User, user: discord.User, action: str, reason: str):
         basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))

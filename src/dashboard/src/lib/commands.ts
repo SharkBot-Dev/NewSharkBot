@@ -18,5 +18,6 @@ export const commands = [
     "ban",
     "unban",
     "timeout",
-    "remove-timeout"
+    "remove-timeout",
+    "user-info"
 ];
