@@ -143,7 +143,7 @@ export async function getAllSlashCommands(guildId: string) {
   const response = await fetch(url, {
     method: "GET",
     headers,
-    next: { revalidate: 5 },
+    next: { revalidate: 3 },
   });
 
   if (!response.ok) {

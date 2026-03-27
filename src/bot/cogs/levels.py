@@ -24,6 +24,14 @@ class LevelsCog(commands.Cog):
         levels.execute = self.levels_command
         self.bot.add_slashcommand(levels)
 
+        give_xp = Command(name="give-xp", description="ユーザーにXPを追加します。", module_name="レベル")
+        give_xp.execute = self.give_xp_command
+        self.bot.add_slashcommand(give_xp)
+
+        remove_xp = Command(name="remove-xp", description="ユーザーからXPを剥奪します。", module_name="レベル")
+        remove_xp.execute = self.remove_xp_command
+        self.bot.add_slashcommand(remove_xp)
+
         print("init -> LevelsCog")
 
     async def rank_command(self, interaction: discord.Interaction, **kwargs):
@@ -77,6 +85,40 @@ class LevelsCog(commands.Cog):
             
         embed = discord.Embed(color=discord.Color.blue(), title=f"{interaction.guild.name}のレベルランキング", description=description)
         await interaction.followup.send(embed=embed)
+
+    async def give_xp_command(self, interaction: discord.Interaction, **kwargs):
+        if not self.bot.api: return
+        await interaction.response.defer(ephemeral=True)
+
+        user_id = kwargs.get("user")
+        amount = kwargs.get("amount")
+        guild_id = str(interaction.guild.id)
+
+        data = await self.bot.api.get_user_level(guild_id, str(user_id))
+        current_lv = data['level'] if data else 1
+        current_xp = data['xp'] if data else 0
+        
+        new_xp = current_xp + int(amount)
+        
+        await self.bot.api.save_user_level(guild_id, str(user_id), current_lv, new_xp)
+        await interaction.followup.send(f"<@{user_id}> に {amount} XPを付与しました。", allowed_mentions=discord.AllowedMentions.none())
+
+    async def remove_xp_command(self, interaction: discord.Interaction, **kwargs):
+        if not self.bot.api: return
+        await interaction.response.defer(ephemeral=True)
+
+        user_id = kwargs.get("user")
+        amount = kwargs.get("amount")
+        guild_id = str(interaction.guild.id)
+
+        data = await self.bot.api.get_user_level(guild_id, str(user_id))
+        current_lv = data['level'] if data else 1
+        current_xp = data['xp'] if data else 0
+        
+        new_xp = max(0, current_xp - int(amount))
+        
+        await self.bot.api.save_user_level(guild_id, str(user_id), current_lv, new_xp)
+        await interaction.followup.send(f"<@{user_id}> から {amount} XPを削除しました。", allowed_mentions=discord.AllowedMentions.none())
 
     def level_parse(self, template: str, member: discord.Member, nowlevel: int, oldlevel: int) -> str:
         return template.replace("{ユーザー名}", member.display_name).replace("{ユーザーID}", str(member.id)).replace("{メンション}", member.mention).replace("{サーバー名}", member.guild.name).replace("{現在レベル}", str(nowlevel)).replace("{前のレベル}", str(oldlevel))
@@ -143,25 +185,22 @@ class LevelsCog(commands.Cog):
 
         channel = None
         if settings.get("channel_id"):
-            target_channel = self.bot.get_channel(int(settings["channel_id"]))
-            if target_channel:
-                channel = target_channel
-
+            channel = message.guild.get_channel(int(settings["channel_id"]))
+        
         if not channel:
             return
 
         content = settings.get("content")
-        if not content:
-            return
-        else:
+        if content:
             content = self.level_parse(content, message.author, new_level, new_level - 1)
+        else:
+            content = None
 
         embed = None
         embed_setting = settings.get("embed")
-            
         if embed_setting:
             embed_data = copy.deepcopy(embed_setting.get("data", {}))
-                
+            
             if "description" in embed_data:
                 embed_data["description"] = self.level_parse(embed_data["description"], message.author, new_level, new_level - 1)
             if "title" in embed_data:
@@ -169,12 +208,8 @@ class LevelsCog(commands.Cog):
             
             embed = discord.Embed.from_dict(embed_data)
 
-            await channel.send(embed=embed, content=content)
-            return
-        
-        await channel.send(content)
-
-
+        if content or embed:
+            await channel.send(content=content, embed=embed)
 
 async def setup(bot):
     await bot.add_cog(LevelsCog(bot))

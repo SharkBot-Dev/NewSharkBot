@@ -4,5 +4,7 @@ export const commands = [
     "dashboard",
     "imgur",
     "rank",
-    "levels"
+    "levels",
+    "give-xp",
+    "remove-xp"
 ];

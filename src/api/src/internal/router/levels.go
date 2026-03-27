@@ -24,6 +24,8 @@ func RegisterLevelsSettings(router *gin.RouterGroup) {
 		guilds.GET("/:id/users/:user", GetUserLevel)
 		guilds.POST("/:id/users/:user", SaveUserLevel)
 
+		guilds.POST("/:id/users/reset", ResetAllUserLevels)
+
 		guilds.GET("/:id/leaderboard", GetLevelLeaderboard)
 	}
 }
@@ -226,4 +228,26 @@ func SaveUserLevel(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, setting)
+}
+
+func ResetAllUserLevels(c *gin.Context) {
+	guildID := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	result := db.Model(&model.LevelUserSetting{}).
+		Where("guild_id = ?", guildID).
+		Updates(map[string]interface{}{
+			"level": 0,
+			"xp":    0,
+		})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "成功しました。",
+		"affectedRows": result.RowsAffected,
+	})
 }
