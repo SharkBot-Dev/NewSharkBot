@@ -1,12 +1,14 @@
 package router
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/dto"
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func RegisterGuildsRoutes(router *gin.RouterGroup) {
@@ -177,55 +179,37 @@ func isGuildModuleEnabled(c *gin.Context) {
 
 func updateGuildModuleSetting(c *gin.Context) {
 	id := c.Param("id")
-
 	var req dto.UpdateModuleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	dbRaw, exists := c.Get("db")
-	if !exists {
-		c.JSON(500, gin.H{"error": "Database connection not found"})
-		return
-	}
+	dbRaw, _ := c.Get("db")
 	db := dbRaw.(*gorm.DB)
 
+	path := fmt.Sprintf("{%s}", req.Module)
+	value := fmt.Sprintf("%t", req.Enabled)
+
 	var guildSetting model.GuildSetting
-	result := db.First(&guildSetting, "guild_id = ?", id)
 
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			guildSetting = model.GuildSetting{
-				GuildID: id,
-				EnabledModules: map[string]bool{
-					req.Module: req.Enabled,
-				},
-			}
+	err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "guild_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"enabled_modules": gorm.Expr("jsonb_set(COALESCE(enabled_modules, '{}'), ?, ?::jsonb)", path, value),
+			"updated_at":      gorm.Expr("NOW()"),
+		}),
+	}).Create(&model.GuildSetting{
+		GuildID:        id,
+		EnabledModules: map[string]bool{req.Module: req.Enabled},
+	}).Error
 
-			if err := db.Create(&guildSetting).Error; err != nil {
-				log.Printf("Error: %s", err.Error())
-				c.JSON(500, gin.H{"error": "Internal server error"})
-				return
-			}
-		} else if result.Error != nil {
-			log.Printf("Error: %s", result.Error.Error())
-			c.JSON(500, gin.H{"error": "Internal server error"})
-			return
-		}
-	} else {
-		if guildSetting.EnabledModules == nil {
-			guildSetting.EnabledModules = make(map[string]bool)
-		}
-
-		guildSetting.EnabledModules[req.Module] = req.Enabled
-
-		if err := db.Save(&guildSetting).Error; err != nil {
-			log.Printf("Error: %s", err.Error())
-			c.JSON(500, gin.H{"error": "Internal server error"})
-			return
-		}
+	if err != nil {
+		log.Printf("Update Error: %v", err)
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
 	}
 
+	db.First(&guildSetting, "guild_id = ?", id)
 	c.JSON(200, guildSetting)
 }

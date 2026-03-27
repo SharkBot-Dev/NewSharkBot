@@ -70,6 +70,8 @@ class LevelsCog(commands.Cog):
 
         levels = await self.bot.api.get_level_leaderboard(interaction.guild.id)
 
+        levels.sort(key=lambda x: (x['level'], x['xp']), reverse=True)
+
         description = ""
 
         for i, user_data in enumerate(levels, 1):

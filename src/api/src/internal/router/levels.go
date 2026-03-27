@@ -21,10 +21,10 @@ func RegisterLevelsSettings(router *gin.RouterGroup) {
 		guilds.POST("/:id/rewards", saveRewardsSetting)    // 一括保存/更新
 		guilds.DELETE("/:id/rewards/:level", deleteReward) // 特定レベルの報酬削除
 
+		guilds.POST("/:id/users/reset", ResetAllUserLevels)
+
 		guilds.GET("/:id/users/:user", GetUserLevel)
 		guilds.POST("/:id/users/:user", SaveUserLevel)
-
-		guilds.POST("/:id/users/reset", ResetAllUserLevels)
 
 		guilds.GET("/:id/leaderboard", GetLevelLeaderboard)
 	}

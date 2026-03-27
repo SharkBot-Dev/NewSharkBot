@@ -32,9 +32,9 @@ class NewSharkBot(commands.AutoShardedBot):
     def add_slashcommand(self, command: Command):
         self.slashcommands[command.name] = command
 
-    def close(self):
-        super().close()
-        self.session.close()
+    async def close(self):
+        await self.session.close()
+        await super().close()
 
 bot = NewSharkBot()
 

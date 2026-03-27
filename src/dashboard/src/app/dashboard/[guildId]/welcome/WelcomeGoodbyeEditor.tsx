@@ -89,7 +89,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
 
       const body = {
         goodbye: {
-          channel_id: welcome.channelId,
+          channel_id: goodbye.channelId,
           content: goodbye.content,
           embed_id: goodbye.embed_id ? Number(goodbye.embed_id) : null,
         }
