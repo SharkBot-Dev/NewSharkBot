@@ -1,3 +1,5 @@
+import typing
+
 import aiohttp
 import re
 from typing import Optional, List, Dict, Any, Union, Literal
@@ -234,3 +236,83 @@ class ResourceAPIClient:
             
             response.raise_for_status()
             return await response.json()
+
+    async def get_economy_settings(self, guild_id: str) -> Dict[str, Any]:
+        async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}") as response:
+            if response.status != 200:
+                return {
+                    "guild_id": guild_id
+                }
+            return await response.json()
+        
+    async def create_economy_item(
+        self, 
+        guild_id: str, 
+        name: str, 
+        price: int, 
+        item_type: str, 
+        role_id: Optional[str] = None, 
+        auto_use: bool = False, 
+        can_buy: bool = True, 
+        can_buy_multiple: bool = True
+    ) -> Dict[str, Any]:
+        payload = {
+            "name": name,
+            "price": price,
+            "type": item_type,
+            "role_id": role_id,
+            "auto_use": auto_use,
+            "can_buy": can_buy,
+            "can_buy_multiple": can_buy_multiple
+        }
+
+        async with self.session.post(f"{self.base_url}/guilds/economy/{guild_id}/items", json=payload) as response:
+            response.raise_for_status()
+            return await response.json()
+        
+    async def delete_economy_item(self, guild_id: str, item_id: str) -> Dict[str, Any]:
+        async with self.session.delete(f"{self.base_url}/guilds/economy/{guild_id}/items/{item_id}") as response:
+            response.raise_for_status()
+            return await response.json()
+        
+    async def get_economy_items(self, guild_id: str) -> List[Dict[str, Any]]:
+        async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}/items") as response:
+            response.raise_for_status()
+            return await response.json()
+        
+    async def get_economy_user(self, guild_id: str, user_id: str) -> Dict[str, Any]:
+        async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}") as response:
+            response.raise_for_status()
+            return await response.json()
+        
+    async def save_user_setting(
+        self, 
+        guild_id: str, 
+        user_id: str, 
+        money: Optional[int] = None, 
+        item_ids: Optional[List[int]] = None
+    ) -> Dict[str, Any]:
+        payload = {}
+        if money is not None:
+            payload["money"] = money
+        if item_ids is not None:
+            payload["item_ids"] = item_ids
+            
+        url = f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}"
+        
+        async with self.session.post(url, json=payload) as response:
+            response.raise_for_status() 
+            return await response.json()
+
+    async def get_cooldown(self, guild_id: str, user_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}/cooldown"
+        async with self.session.get(url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def update_cooldown(self, guild_id: str, user_id: str, cooldown_type: str):
+        url = f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}/cooldown"
+        payload = {"type": cooldown_type}
+        async with self.session.post(url, json=payload) as resp:
+            resp.raise_for_status()
+            return await resp.json()

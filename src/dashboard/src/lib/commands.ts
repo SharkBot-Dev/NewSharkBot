@@ -6,5 +6,12 @@ export const commands = [
     "rank",
     "levels",
     "give-xp",
-    "remove-xp"
+    "remove-xp",
+    "daily",
+    "work",
+    "balance",
+    "shop",
+    "buy",
+    "inventory",
+    "use"
 ];
