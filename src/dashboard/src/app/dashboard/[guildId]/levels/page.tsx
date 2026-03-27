@@ -10,13 +10,13 @@ interface Props {
   params: { guildId: string };
 }
 
-export default async function WelcomeGoodbyeModulePage({ params }: Props) {
+export default async function LevelsModulePage({ params }: Props) {
   const { guildId } = await params;
   try {
-    const data = await isModuleEnabled(guildId, "embed");
+    const data = await isModuleEnabled(guildId, "levels");
 
     if (!data.enabled) {
-      return <Alert text="埋め込みモジュールが有効になっていません。ダッシュボードでモジュールを有効にしてください。" redirectUrl={`/dashboard/${guildId}`} />;
+      return <Alert text="レベルモジュールが有効になっていません。ダッシュボードでモジュールを有効にしてください。" redirectUrl={`/dashboard/${guildId}`} />;
     }
   } catch (error) {
     redirect(`/dashboard/${guildId}`);

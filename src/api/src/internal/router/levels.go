@@ -7,6 +7,7 @@ import (
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func RegisterLevelsSettings(router *gin.RouterGroup) {
@@ -58,16 +59,20 @@ func saveLevelSetting(c *gin.Context) {
 		return
 	}
 
+	// log.Printf("%+v", input)
+
 	setting := model.LevelSetting{GuildID: id}
-	err := db.Transaction(func(tx *gorm.DB) error {
-		return tx.Where(model.LevelSetting{GuildID: id}).
-			Assign(model.LevelSetting{
-				ChannelID: input.ChannelID,
-				Content:   input.Content,
-				EmbedID:   input.EmbedID,
-			}).
-			FirstOrCreate(&setting).Error
-	})
+
+	err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "guild_id"},
+		},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"channel_id": input.ChannelID,
+			"content":    input.Content,
+			"embed_id":   input.EmbedID,
+		}),
+	}).Create(&setting).Error
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save setting"})

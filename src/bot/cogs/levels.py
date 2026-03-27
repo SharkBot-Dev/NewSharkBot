@@ -62,12 +62,20 @@ class LevelsCog(commands.Cog):
 
         levels = await self.bot.api.get_level_leaderboard(interaction.guild.id)
 
-        levels_list = []
-        for level in levels:
-            uid = level.get('user_id')
-            levels_list.append(f"<@{uid}> - {level.get('level')}レベル")
+        description = ""
 
-        embed = discord.Embed(color=discord.Color.blue(), title=f"{interaction.guild.name}のレベルランキング", description='\n'.join(levels_list))
+        for i, user_data in enumerate(levels, 1):
+            user_id = user_data['user_id']
+            level = user_data['level']
+            xp = user_data['xp']
+            
+            member = interaction.guild.get_member(int(user_id))
+            name = member.mention if member else f"Unknown({user_id})"
+            
+            medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"#{i}"
+            description += f"{medal} | {name} - **Lv.{level}** (XP: {xp})\n"
+            
+        embed = discord.Embed(color=discord.Color.blue(), title=f"{interaction.guild.name}のレベルランキング", description=description)
         await interaction.followup.send(embed=embed)
 
     def level_parse(self, template: str, member: discord.Member, nowlevel: int, oldlevel: int) -> str:
@@ -86,6 +94,9 @@ class LevelsCog(commands.Cog):
         is_enabled = await self.bot.api.is_module_enabled(guild_id, "levels")
         if not is_enabled:
             return
+        
+        if not is_enabled.get('enabled'):
+            return
 
         user_id = str(message.author.id)
         current_time = time.time()
@@ -101,6 +112,8 @@ class LevelsCog(commands.Cog):
         new_xp = current_xp + xp_to_add
 
         next_lv_xp = 5 * (current_lv ** 2) + 50 * current_lv + 100
+
+        logging.error(f"{next_lv_xp}")
         
         leveled_up = False
         if new_xp >= next_lv_xp:
@@ -144,7 +157,7 @@ class LevelsCog(commands.Cog):
             content = self.level_parse(content, message.author, new_level, new_level - 1)
 
         embed = None
-        embed_setting = settings.get("Embed")
+        embed_setting = settings.get("embed")
             
         if embed_setting:
             embed_data = copy.deepcopy(embed_setting.get("data", {}))

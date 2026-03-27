@@ -9,7 +9,7 @@ interface Props {
   params: { guildId: string };
 }
 
-export default async function WelcomeGoodbyeModulePage({ params }: Props) {
+export default async function EmbedModulePage({ params }: Props) {
   const { guildId } = await params;
   try {
     const data = await isModuleEnabled(guildId, "embed");
