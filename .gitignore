@@ -141,3 +141,5 @@ vite.config.ts.timestamp-*
 src/bot/.venv
 
 __pycache__
+
+src/api/build.sh

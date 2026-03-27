@@ -50,7 +50,7 @@ func main() {
 	}
 
 	// マイグレート
-	err = db.AutoMigrate(&model.GuildSetting{})
+	err = db.AutoMigrate(&model.GuildSetting{}, &model.EmbedSetting{}, &model.MessageSetting{})
 	if err != nil {
 		panic("failed to migrate database")
 	}
@@ -73,6 +73,8 @@ func main() {
 
 	// ルートグループを登録
 	router.RegisterGuildsRoutes(r.Group("/"))
+	router.RegisterEmbed(r.Group("/"))
+	router.RegisterMessageSettings(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)

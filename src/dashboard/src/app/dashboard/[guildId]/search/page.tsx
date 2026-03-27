@@ -9,30 +9,26 @@ import Alert from "@/components/Alert";
 
 const commands = [
   {
-    name: "help",
-    description: "Botのコマンド一覧や詳細を表示します。",
+    name: "imgur",
+    description: "Imgurで画像を検索します。",
     options: [
       {
-        name: "command",
-        description: "詳細を表示したいコマンド名を入力してください。",
+        name: "search",
+        description: "検索ワードを入力してください。",
         type: 3,
-        required: false,
+        required: true,
       },
     ],
   },
-  {
-    name: "dashboard",
-    description: "ダッシュボードの案内を表示します。",
-  },
 ];
 
-export default async function HelpModuleSetting({ params }: { params: { guildId: string } }) {
+export default async function SearchModuleSetting({ params }: { params: { guildId: string } }) {
   const { guildId } = await params;
   try {
-    const data = await isModuleEnabled(guildId, "help");
+    const data = await isModuleEnabled(guildId, "search");
 
     if (!data.enabled) {
-      return <Alert text="ヘルプモジュールが有効になっていません。ダッシュボードでモジュールを有効にしてください。" redirectUrl={`/dashboard/${guildId}`} />;
+      return <Alert text="なんでも検索が有効になっていません。ダッシュボードでモジュールを有効にしてください。" redirectUrl={`/dashboard/${guildId}`} />;
     }
   } catch (error) {
     redirect(`/dashboard/${guildId}`);
@@ -42,7 +38,7 @@ export default async function HelpModuleSetting({ params }: { params: { guildId:
     <div className="min-h-screen p-6 md:p-12">
       <div className="max-w-3xl mx-auto">
         <header className="mb-10">
-          <h1 className="text-3xl font-extrabold text-slate-900">ヘルプモジュール</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900">なんでも検索</h1>
           <p className="mt-2 text-slate-600">
             サーバーで使用するスラッシュコマンドの有効・無効を切り替えます。
           </p>

@@ -26,7 +26,7 @@ export async function POST(
 
   const { action, command, commandId } = await req.json();
 
-  if (!action || (["add", "delete"].includes(action) && !command)) {
+  if (!action || action == "add" && !command) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 },

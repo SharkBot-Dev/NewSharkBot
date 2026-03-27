@@ -15,6 +15,8 @@ func RegisterGuildsRoutes(router *gin.RouterGroup) {
 		guilds.GET("/", listGuilds)
 		guilds.GET("/:id", getGuildSettingByID)
 		guilds.PUT("/:id", createOrUpdateGuildSetting)
+		guilds.GET("/:id/module", isGuildModuleEnabled)
+		guilds.PATCH("/:id/module", updateGuildModuleSetting)
 	}
 }
 
@@ -122,5 +124,108 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 			return
 		}
 	}
+	c.JSON(200, guildSetting)
+}
+
+// isGuildModuleEnabled godoc
+// @Summary Check if a specific module is enabled
+// @Tags Guilds
+// @Param id path string true "Guild ID"
+// @Param module query string true "Module Name"
+// @Success 200 {object} map[string]bool
+// @Router /guilds/{id}/module/check [get]
+func isGuildModuleEnabled(c *gin.Context) {
+	id := c.Param("id")
+	moduleName := c.Query("module")
+
+	if moduleName == "" {
+		c.JSON(400, gin.H{"error": "Module parameter is required"})
+		return
+	}
+
+	dbRaw, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
+	db := dbRaw.(*gorm.DB)
+
+	var guildSetting model.GuildSetting
+	result := db.First(&guildSetting, "guild_id = ?", id)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(200, gin.H{"module": moduleName, "enabled": false})
+		} else {
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
+		}
+		return
+	}
+
+	enabled := false
+	if guildSetting.EnabledModules != nil {
+		enabled = guildSetting.EnabledModules[moduleName]
+	}
+
+	c.JSON(200, gin.H{
+		"guild_id": id,
+		"module":   moduleName,
+		"enabled":  enabled,
+	})
+}
+
+func updateGuildModuleSetting(c *gin.Context) {
+	id := c.Param("id")
+
+	var req dto.UpdateModuleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	dbRaw, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
+	db := dbRaw.(*gorm.DB)
+
+	var guildSetting model.GuildSetting
+	result := db.First(&guildSetting, "guild_id = ?", id)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			guildSetting = model.GuildSetting{
+				GuildID: id,
+				EnabledModules: map[string]bool{
+					req.Module: req.Enabled,
+				},
+			}
+
+			if err := db.Create(&guildSetting).Error; err != nil {
+				log.Printf("Error: %s", err.Error())
+				c.JSON(500, gin.H{"error": "Internal server error"})
+				return
+			}
+		} else if result.Error != nil {
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
+			return
+		}
+	} else {
+		if guildSetting.EnabledModules == nil {
+			guildSetting.EnabledModules = make(map[string]bool)
+		}
+
+		guildSetting.EnabledModules[req.Module] = req.Enabled
+
+		if err := db.Save(&guildSetting).Error; err != nil {
+			log.Printf("Error: %s", err.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
+			return
+		}
+	}
+
 	c.JSON(200, guildSetting)
 }

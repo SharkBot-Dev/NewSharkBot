@@ -8,15 +8,20 @@ services:
       DB_DSN: "host=postgres port=5432 user=sharkbot password=password dbname=sharkbot sslmode=disable"
       GIN_MODE: "debug"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - sharkbot_network
   bot:
     build: ./src/bot
     depends_on:
       - api
+    env_file:
+      - ./src/bot/.env
     networks:
       - sharkbot_network
+    environment:
+      RESOURCE_API_BASE_URL: "http://api:8080"
   postgres:
     image: postgres:18
     environment:
@@ -29,6 +34,11 @@ services:
       - postgres_data:/var/lib/postgresql
     networks:
       - sharkbot_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sharkbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 volumes:
   postgres_data:
 networks:

@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { checkAdminPermission } from "@/lib/Discord/User";
-import { getGuildChannels } from "@/lib/Discord/Bot";
+import { getGuildChannels, getGuildRoles } from "@/lib/Discord/Bot";
 
 export async function GET(
   _request: Request,
@@ -54,7 +54,7 @@ export async function GET(
   }
 
   try {
-    const channels = await getGuildChannels(guildId);
+    const channels = await getGuildRoles(guildId);
 
     return NextResponse.json(channels);
   } catch {
