@@ -6,11 +6,117 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 import Modal from "@/components/Modal";
 import ChannelSelecter from "@/components/channel-selecter";
 
+import Permissions from "@/constants/Discord/Permissions";
+
 interface Props {
   guildId: string;
-  automod: Record<string, any>; // Go側の map[string]EnabledAutoModeratorSetting
-  setting: any; // ModeratorSetting (基本設定)
+  automod: Record<string, any>;
+  setting: any;
 }
+
+const commands = [
+  {
+    name: "kick", 
+    description: "メンバーをキックします。",
+    default_member_permissions: Permissions.KickMembers.toString(), 
+    options: [
+      {
+        name: "member",
+        description: "メンバーを選択してください。",
+        type: 6,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "キックする理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
+  {
+    name: "ban",
+    description: "ユーザーをBanします。",
+    default_member_permissions: Permissions.BanMembers.toString(),
+    options: [
+      {
+        name: "user",
+        description: "ユーザーを入力してください。",
+        type: 6,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "Banする理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
+  {
+    name: "unban",
+    description: "ユーザーのBanを解除します。",
+    default_member_permissions: Permissions.BanMembers.toString(),
+    options: [
+      {
+        name: "user",
+        description: "ユーザーを入力してください。",
+        type: 6,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "Banを解除する理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
+  {
+    name: "timeout",
+    description: "ユーザーをタイムアウトします。",
+    default_member_permissions: Permissions.ModerateMembers.toString(),
+    options: [
+      {
+        name: "member",
+        description: "メンバーを選択してください。",
+        type: 6,
+        required: true,
+      },
+      {
+        name: "duration",
+        description: "タイムアウトする時間を入力してください。",
+        type: 3,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "タイムアウトする理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
+  {
+    name: "remove-timeout",
+    description: "ユーザーのタイムアウトを解除します。",
+    default_member_permissions: Permissions.ModerateMembers.toString(),
+    options: [
+      {
+        name: "member",
+        description: "メンバーを選択してください。",
+        type: 6,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "タイムアウトする理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  }
+];
 
 const automod_map: Record<string, string> = {
   "basic": "基本設定",
@@ -59,6 +165,10 @@ export default function ModeratorClient({ guildId, automod, setting }: Props) {
 
   return (
     <div className="space-y-6 p-4">
+      <CollapsibleSection title="コマンド設定">
+        <CommandsControl guildId={guildId} targetCommands={commands} />
+      </CollapsibleSection>
+
       {/* 1. 基本設定セクション */}
       <CollapsibleSection title="基本設定">
         <div className="space-y-4 p-4 bg-secondary/20 rounded-lg text-black">
@@ -135,6 +245,7 @@ export default function ModeratorClient({ guildId, automod, setting }: Props) {
 // モーダル内蔵の編集フォームコンポーネント
 import { X, Plus } from "lucide-react";
 import RoleSelector from "@/components/role-selector";
+import CommandsControl from "@/components/commands";
 
 function AutoModEditor({ guildId, type, initialData, onSave }: any) {
   const [actions, setActions] = useState<string[]>(initialData.actions || []);

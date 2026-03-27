@@ -13,5 +13,10 @@ export const commands = [
     "shop",
     "buy",
     "inventory",
-    "use"
+    "use",
+    "kick",
+    "ban",
+    "unban",
+    "timeout",
+    "remove-timeout"
 ];

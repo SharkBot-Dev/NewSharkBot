@@ -5,11 +5,194 @@ from discord.ext import commands
 from typing import Dict, Any, List
 import re
 
+from lib.command import Command
+
+
 class ModeratorCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.settings_cache: Dict[str, Dict[str, Any]] = {}
-        self.automod_cache: Dict[str, Dict[str, Any]] = {}
+
+        kick = Command(name="kick", description="メンバーをキックします。", module_name="モデレーター")
+        kick.execute = self.kick_command
+        self.bot.add_slashcommand(kick)
+
+        ban = Command(name="ban", description="ユーザーをBanします。", module_name="モデレーター")
+        ban.execute = self.ban_command
+        self.bot.add_slashcommand(ban)
+
+        unban = Command(name="unban", description="ユーザーのBanを解除します。", module_name="モデレーター")
+        unban.execute = self.unban_command
+        self.bot.add_slashcommand(unban)
+
+        timeout = Command(name="timeout", description="ユーザーをタイムアウトします。", module_name="モデレーター")
+        timeout.execute = self.timeout_command
+        self.bot.add_slashcommand(timeout)
+
+        remove_timeout = Command(name="remove-timeout", description="ユーザーのタイムアウトを解除します。", module_name="モデレーター")
+        remove_timeout.execute = self.remove_timeout_command
+        self.bot.add_slashcommand(remove_timeout)
+
+        print("init -> ModeratorCog")
+
+    def parse_duration(self, duration_str: str):
+        regex = r"(\d+)\s*([hms])"
+        matches = re.findall(regex, duration_str.lower())
+        
+        if not matches:
+            return None
+
+        total_seconds = 0
+        unit_seconds = {
+            'h': 3600,
+            'm': 60,
+            's': 1
+        }
+
+        for value, unit in matches:
+            total_seconds += int(value) * unit_seconds[unit]
+
+        return total_seconds
+
+    def reason_parse(self, reason: str, moderator: discord.User, action: str):
+        return f"{reason} | {moderator.name}により{action}。"
+
+    async def kick_command(self, interaction: discord.Interaction, **kwargs):   
+        await interaction.response.defer()
+        
+        guild = interaction.guild
+        user_id = kwargs.get("member")
+        reason = kwargs.get("reason", "なし")
+
+        if not user_id:
+            return await interaction.followup.send(content="ユーザーIDが指定されていません。")
+
+        user = guild.get_member(int(user_id))
+        if not user:
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+
+        try:
+            await user.kick(reason=self.reason_parse(reason, interaction.user, "キック"))
+            await interaction.followup.send(content=f"🦶 {user.mention} をサーバーからキックしました。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            await interaction.followup.send(content="キックに失敗しました。", allowed_mentions=discord.AllowedMentions.none())
+            return
+        
+        await self.send_moderator_log(guild, user, interaction.user, "Kick", reason)
+        
+    async def ban_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+        
+        guild = interaction.guild
+        user_id = kwargs.get("user")
+        reason = kwargs.get("reason", "なし")
+
+        if not user_id:
+            return await interaction.followup.send(content="ユーザーIDが指定されていません。")
+
+        user = await interaction.client.fetch_user(int(user_id))
+        if not user:
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+
+        try:
+            await interaction.guild.ban(user, reason=self.reason_parse(reason, interaction.user, "Ban"))
+            await interaction.followup.send(content=f"🔨 {user.mention} をサーバーからBanしました。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            await interaction.followup.send(content="Banに失敗しました。", allowed_mentions=discord.AllowedMentions.none())
+            return
+        
+        await self.send_moderator_log(guild, user, interaction.user, "Ban", reason)
+        
+    async def unban_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        guild = interaction.guild
+        user_id = kwargs.get("user")
+        reason = kwargs.get("reason", "なし")
+
+        if not user_id:
+            return await interaction.followup.send(content="ユーザーIDが指定されていません。")
+
+        user = await interaction.client.fetch_user(int(user_id))
+        if not user:
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+
+        try:
+            await interaction.guild.unban(user, reason=self.reason_parse(reason, interaction.user, "Ban解除"))
+            await interaction.followup.send(content=f"😎 {user.mention} をBan解除しました。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            await interaction.followup.send(content="Ban解除に失敗しました。", allowed_mentions=discord.AllowedMentions.none())
+            return
+        
+        await self.send_moderator_log(guild, user, interaction.user, "Ban解除", reason)
+        
+    async def timeout_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        guild = interaction.guild
+        user_id = kwargs.get("member")
+        reason = kwargs.get("reason", "なし")
+        duration = kwargs.get('duration')
+
+        if not user_id:
+            return await interaction.followup.send(content="ユーザーIDが指定されていません。")
+
+        user = guild.get_member(int(user_id))
+        if not user:
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+
+        parse = self.parse_duration(duration)
+        if not parse:
+            return await interaction.followup.send(content="無効な時間を指定しています。\n\n例: `10d2m5s`", allowed_mentions=discord.AllowedMentions.none())
+
+        try:
+            await user.timeout(discord.utils.utcnow() + datetime.timedelta(seconds=parse), reason=self.reason_parse(reason, interaction.user, "Ban解除"))
+            await interaction.followup.send(content=f"⌚ {user.mention} をタイムアウトしました。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            await interaction.followup.send(content="タイムアウトに失敗しました。", allowed_mentions=discord.AllowedMentions.none())
+            return
+        
+        await self.send_moderator_log(guild, user, interaction.user, "タイムアウト", reason)
+
+    async def remove_timeout_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        guild = interaction.guild
+        user_id = kwargs.get("member")
+        reason = kwargs.get("reason", "なし")
+
+        if not user_id:
+            return await interaction.followup.send(content="ユーザーIDが指定されていません。")
+
+        user = guild.get_member(int(user_id))
+        if not user:
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+
+        try:
+            await user.timeout(None, reason=self.reason_parse(reason, interaction.user, "タイムアウト解除"))
+            await interaction.followup.send(content=f"⏳ {user.mention} のタイムアウトを解除しました。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            await interaction.followup.send(content="タイムアウト解除に失敗しました。", allowed_mentions=discord.AllowedMentions.none())
+            return
+
+        await self.send_moderator_log(guild, user, interaction.user, "タイムアウト解除", reason)
+
+    async def send_moderator_log(self, guild: discord.Guild, moderator: discord.User, user: discord.User, action: str, reason: str):
+        basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
+        if not basic_setting or not basic_setting.get("log_channel_id"):
+            return
+
+        log_channel = guild.get_channel(int(basic_setting["log_channel_id"]))
+        if not log_channel:
+            return
+
+        embed = discord.Embed(title="モデレーターログ", color=discord.Color.orange())
+        embed.add_field(name="対象ユーザー", value=f"{user.mention} ({user.id})", inline=False)
+        embed.add_field(name="実行ユーザー", value=f"{moderator.mention} ({moderator.id})", inline=False)
+        embed.add_field(name="実行アクション", value=action, inline=True)
+        embed.add_field(name="理由", value=reason, inline=True)
+        embed.set_footer(text=f"Guild ID: {guild.id}")
+        
+        await log_channel.send(embed=embed)
 
     async def send_mod_log(self, guild: discord.Guild, user: discord.User, action: str, reason: str, message_content: str = ""):
         basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
@@ -24,8 +207,7 @@ class ModeratorCog(commands.Cog):
         embed.add_field(name="対象ユーザー", value=f"{user.mention} ({user.id})", inline=False)
         embed.add_field(name="実行アクション", value=action, inline=True)
         embed.add_field(name="理由", value=reason, inline=True)
-        if message_content:
-            embed.set_footer(text=f"Guild ID: {guild.id}")
+        embed.set_footer(text=f"Guild ID: {guild.id}")
         
         await log_channel.send(embed=embed)
 
