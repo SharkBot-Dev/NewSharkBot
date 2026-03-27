@@ -45,6 +45,11 @@ async function LevelContent({ guildId }: { guildId: string }) {
   const setting = await getLevelSetting(guildId);
   const reward_roles = await getLevelRewards(guildId);
 
+  const fixed_reward_roles = Array.from(reward_roles).map((value: any) => ({
+    roleId: value.role_id,
+    level: value.level
+  }))
+
   return (
     <LevelsEditorClient 
       guildId={guildId} 
@@ -52,7 +57,7 @@ async function LevelContent({ guildId }: { guildId: string }) {
       levelup_channel={setting.channel_id} 
       levelup_message={setting.content} 
       levelup_embed={setting.embed_id}
-      reward_roles={reward_roles}
+      reward_roles={fixed_reward_roles}
     />
   );
 }

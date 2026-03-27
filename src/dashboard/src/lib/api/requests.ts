@@ -164,7 +164,11 @@ export async function deleteEmbedSetting(guildId: string, name: string) {
 
 export async function getLevelSetting(guildId: string) {
     const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/levels/${guildId}`);
-    if (!response.ok) return null;
+    if (!response.ok) return {
+        channel_id: null,
+        content: null,
+        embed_id: null
+    };
     return response.json();
 }
 

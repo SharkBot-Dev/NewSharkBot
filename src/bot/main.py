@@ -31,6 +31,9 @@ class NewSharkBot(commands.AutoShardedBot):
     def add_slashcommand(self, command: Command):
         self.slashcommands[command.name] = command
 
+    def close(self):
+        super().close()
+        self.session.close()
 
 bot = NewSharkBot()
 

@@ -14,7 +14,7 @@ interface Props {
   levelup_channel: string;
   levelup_message: string;
   levelup_embed: string;
-  reward_roles: LevelRewardRoleSetting;
+  reward_roles: LevelRewardRole[];
 }
 
 export default function LevelsEditorClient({ 
@@ -27,7 +27,7 @@ export default function LevelsEditorClient({
   const [embed, setEmbed] = useState<string>(levelup_embed);
   const [message, setLevelupMessage] = useState<string>(levelup_message || "");
   const [channel, setChannel] = useState<string>(levelup_channel);
-  const [rewardRoles, setRewardRoles] = useState<LevelRewardRole[]>(reward_roles.roles || []);
+  const [rewardRoles, setRewardRoles] = useState<LevelRewardRole[]>(reward_roles || []);
   const [isSaving, setIsSaving] = useState(false);
 
   const addRewardRole = () => {
@@ -47,7 +47,7 @@ export default function LevelsEditorClient({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch(`/api/guilds/${guildId}/levels`, {
+      const response = await fetch(`/api/guilds/${guildId}/modules/levels`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -113,6 +113,19 @@ export default function LevelsEditorClient({
               利用可能な変数: {"{ユーザー名}"}, {"{メンション}"}, {"{現在レベル}"}, {"{前のレベル}"}
             </p>
           </div>
+
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200"
+          >
+            {isSaving ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Save size={20} />
+            )}
+            {isSaving ? "保存中..." : "設定を保存"}
+          </button>
         </div>
       </CollapsibleSection>
 
@@ -131,7 +144,7 @@ export default function LevelsEditorClient({
                     <input 
                       type="number"
                       min="1"
-                      className="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                      className="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-black"
                       value={reward.level}
                       onChange={(e) => updateRewardRole(index, "level", parseInt(e.target.value))}
                     />
@@ -163,15 +176,6 @@ export default function LevelsEditorClient({
               新しい報酬を追加
             </button>
           </div>
-        </div>
-      </CollapsibleSection>
-
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
-        <div className="bg-white/80 backdrop-blur-md border border-slate-200 p-4 rounded-2xl shadow-2xl flex items-center justify-between">
-          <div>
-            <h4 className="text-sm font-bold text-slate-700">未保存の変更があります</h4>
-            <p className="text-xs text-slate-500">変更を適用するには保存ボタンを押してください。</p>
-          </div>
           <button 
             onClick={handleSave}
             disabled={isSaving}
@@ -185,7 +189,7 @@ export default function LevelsEditorClient({
             {isSaving ? "保存中..." : "設定を保存"}
           </button>
         </div>
-      </div>
+      </CollapsibleSection>
     </div>
   );
 }

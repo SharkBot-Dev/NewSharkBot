@@ -26,3 +26,15 @@ type LevelRewardSetting struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+type LevelUserSetting struct {
+	ID      uint   `gorm:"primaryKey" json:"id"`
+	GuildID string `gorm:"index:idx_guild_user;size:255" json:"guild_id"`
+	UserID  string `gorm:"index:idx_guild_user;size:255" json:"user_id"`
+
+	Level int `gorm:"not null;default:1" json:"level"`
+	XP    int `gorm:"not null;default:0" json:"xp"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}

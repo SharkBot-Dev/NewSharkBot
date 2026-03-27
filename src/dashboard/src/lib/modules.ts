@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -83,5 +83,16 @@ export const modules = new Map<string, ModuleSetting>([
       icon: SearchIcon,
       group: "ユーティリティ",
     },
-  ]
+  ],
+  [
+    "levels",
+    {
+      id: "levels",
+      name: "レベル",
+      description: "サーバーに魅力的なレベルシステムを追加します。",
+      enabled: true,
+      icon: Rocket,
+      group: "遊び",
+    },
+  ],
 ]);

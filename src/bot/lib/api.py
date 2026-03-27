@@ -149,3 +149,79 @@ class ResourceAPIClient:
             if not resp.ok:
                 raise Exception("Failed to delete embed setting")
             return await resp.json()
+        
+    async def get_level_setting(self, guild_id: str) -> Dict[str, Any]:
+        async with self.session.get(f"{self.base_url}/guilds/levels/{guild_id}") as response:
+            if response.status != 200:
+                return {
+                    "channel_id": None,
+                    "content": None,
+                    "embed_id": None
+                }
+            return await response.json()
+
+    async def save_level_setting(self, guild_id: str, channel_id: str, content: str, embed_id: Optional[int]) -> Dict[str, Any]:
+        payload = {
+            "content": content,
+            "embed_id": embed_id,
+            "channel_id": channel_id
+        }
+        async with self.session.post(f"{self.base_url}/guilds/levels/{guild_id}", json=payload) as response:
+            if response.status != 200:
+                raise Exception("Failed to save embed setting")
+            return await response.json()
+
+    async def delete_level_setting(self, guild_id: str) -> Dict[str, Any]:
+        async with self.session.delete(f"{self.base_url}/guilds/levels/{guild_id}") as response:
+            if response.status != 200:
+                raise Exception("Failed to delete embed setting")
+            return await response.json()
+
+    async def get_level_rewards(self, guild_id: str) -> List[Dict[str, Any]]:
+        async with self.session.get(f"{self.base_url}/guilds/levels/{guild_id}/rewards") as response:
+            if response.status != 200:
+                return []
+            return await response.json()
+
+    async def save_level_rewards(self, guild_id: str, rewards: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        async with self.session.post(f"{self.base_url}/guilds/levels/{guild_id}/rewards", json=rewards) as response:
+            if response.status != 200:
+                raise Exception("Failed to save level rewards")
+            return await response.json()
+
+    async def delete_level_reward(self, guild_id: str, level: int) -> Dict[str, Any]:
+        async with self.session.delete(f"{self.base_url}/guilds/levels/{guild_id}/rewards/{level}") as response:
+            if response.status != 200:
+                raise Exception("Failed to delete level reward")
+            return await response.json()
+
+    async def get_user_level(self, guild_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+        url = f"{self.base_url}/guilds/{guild_id}/users/{user_id}"
+        
+        async with self.session.get(url) as response:
+            if response.status == 404:
+                return None
+            
+            response.raise_for_status()
+            return await response.json()
+
+    async def save_user_level(self, guild_id: str, user_id: str, level: int, xp: int) -> Dict[str, Any]:
+        url = f"{self.base_url}/guilds/{guild_id}/users/{user_id}"
+        payload = {
+            "level": level,
+            "xp": xp
+        }
+        
+        async with self.session.post(url, json=payload) as response:
+            response.raise_for_status()
+            return await response.json()
+
+    async def add_xp(self, guild_id: str, user_id: str, xp_to_add: int):
+        current = await self.get_user_level(guild_id, user_id)
+        
+        current_level = current.get("level", 1) if current else 1
+        current_xp = current.get("xp", 0) if current else 0
+        
+        new_xp = current_xp + xp_to_add
+        
+        return await self.save_user_level(guild_id, user_id, current_level, new_xp)

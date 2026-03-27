@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
@@ -18,6 +19,9 @@ func RegisterLevelsSettings(router *gin.RouterGroup) {
 		guilds.GET("/:id/rewards", getRewardsSetting)      // 全取得
 		guilds.POST("/:id/rewards", saveRewardsSetting)    // 一括保存/更新
 		guilds.DELETE("/:id/rewards/:level", deleteReward) // 特定レベルの報酬削除
+
+		guilds.GET("/:id/users/:user", GetUserLevel)
+		guilds.POST("/:id/users/:user", SaveUserLevel)
 	}
 }
 
@@ -143,4 +147,57 @@ func deleteReward(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Reward deleted"})
+}
+
+func GetUserLevel(c *gin.Context) {
+	guildID := c.Param("id")
+	userID := c.Param("user")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var setting model.LevelUserSetting
+
+	if err := db.Where("guild_id = ? AND user_id = ?", guildID, userID).First(&setting).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "ユーザー設定が見つかりません"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "サーバーエラーが発生しました"})
+		}
+		return
+	}
+	c.JSON(http.StatusOK, setting)
+}
+
+func SaveUserLevel(c *gin.Context) {
+	guildID := c.Param("id")
+	userID := c.Param("user")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var input struct {
+		Level int `json:"level"`
+		XP    int `json:"xp"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "error."})
+		return
+	}
+
+	var setting model.LevelUserSetting
+
+	result := db.Where(model.LevelUserSetting{GuildID: guildID, UserID: userID}).
+		FirstOrCreate(&setting)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベース操作に失敗しました"})
+		return
+	}
+
+	setting.Level = input.Level
+	setting.XP = input.XP
+
+	if err := db.Save(&setting).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "保存に失敗しました"})
+		return
+	}
+
+	c.JSON(http.StatusOK, setting)
 }
