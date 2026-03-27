@@ -65,6 +65,11 @@ func saveLevelSetting(c *gin.Context) {
 		var embed model.EmbedSetting
 		if err := db.Where("id = ? AND guild_id = ?", *input.EmbedID, id).First(&embed).Error; err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid embed_id"})
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid embed_id"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate embed_id"})
+			}
 			return
 		}
 	}
@@ -255,7 +260,7 @@ func ResetAllUserLevels(c *gin.Context) {
 	result := db.Model(&model.LevelUserSetting{}).
 		Where("guild_id = ?", guildID).
 		Updates(map[string]interface{}{
-			"level": 0,
+			"level": 1,
 			"xp":    0,
 		})
 

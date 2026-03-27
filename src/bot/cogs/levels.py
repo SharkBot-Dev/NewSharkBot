@@ -108,6 +108,32 @@ class LevelsCog(commands.Cog):
         embed = discord.Embed(color=discord.Color.blue(), title=f"{interaction.guild.name}のレベルランキング", description=description)
         await interaction.followup.send(embed=embed)
 
+    async def sync_member_rewards(self, guild: discord.Guild, user_id: int, current_lv: int):
+        member = guild.get_member(int(user_id))
+        if not member: return
+
+        rewards = await self.bot.api.get_level_rewards(guild.id)
+        if not rewards: return
+
+        roles_to_add = []
+        roles_to_remove = []
+
+        for lv_threshold, role_id in rewards.items():
+            role = guild.get_role(int(role_id))
+            if not role: continue
+
+            if current_lv >= lv_threshold:
+                if role not in member.roles:
+                    roles_to_add.append(role)
+            else:
+                if role in member.roles:
+                    roles_to_remove.append(role)
+
+        if roles_to_add:
+            await member.add_roles(*roles_to_add, reason="Level rewards sync")
+        if roles_to_remove:
+            await member.remove_roles(*roles_to_remove, reason="Level rewards sync")
+
     async def give_xp_command(self, interaction: discord.Interaction, **kwargs):
         if not self.bot.api: return
         await interaction.response.defer(ephemeral=True)

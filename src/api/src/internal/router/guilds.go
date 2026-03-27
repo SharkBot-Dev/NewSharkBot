@@ -189,9 +189,9 @@ func updateGuildModuleSetting(c *gin.Context) {
 	}
 	db := dbRaw.(*gorm.DB)
 
-	jsonbSetExpr := "jsonb_set(COALESCE(enabled_modules, '{}'), ARRAY[?], ?::jsonb)"
-
 	var guildSetting model.GuildSetting
+
+	jsonbSetExpr := "jsonb_set(COALESCE(guild_settings.enabled_modules, '{}'), ARRAY[?], ?::jsonb)"
 
 	err := db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "guild_id"}},
@@ -210,6 +210,10 @@ func updateGuildModuleSetting(c *gin.Context) {
 		return
 	}
 
-	db.First(&guildSetting, "guild_id = ?", id)
+	if err := db.First(&guildSetting, "guild_id = ?", id).Error; err != nil {
+		log.Printf("Error fetching updated setting: %v", err)
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
 	c.JSON(200, guildSetting)
 }
