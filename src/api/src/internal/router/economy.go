@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -197,7 +198,10 @@ func saveEconomyUserSetting(c *gin.Context) {
 	if err := db.Where("guild_id = ? AND user_id = ?", guildID, userID).First(&userSetting).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			userSetting = model.EconomyUserSetting{GuildID: guildID, UserID: userID}
-			db.Create(&userSetting)
+			if err := db.Create(&userSetting).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user setting"})
+				return
+			}
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 			return
@@ -213,6 +217,13 @@ func saveEconomyUserSetting(c *gin.Context) {
 			var items []model.EconomyItemSetting
 			if len(input.ItemIDs) > 0 {
 				if err := tx.Where("id IN ?", input.ItemIDs).Find(&items).Error; err != nil {
+					if err := tx.Where("id IN ? AND guild_id = ?", input.ItemIDs, guildID).Find(&items).Error; err != nil {
+						return err
+					}
+					if len(items) != len(input.ItemIDs) {
+						return fmt.Errorf("invalid item IDs provided")
+					}
+				} else {
 					return err
 				}
 			}
@@ -299,10 +310,13 @@ func saveEconomyCooldown(c *gin.Context) {
 	}
 
 	var cooldown model.EconomyCooldown
-	db.Where("guild_id = ? AND user_id = ?", guildID, userID).FirstOrCreate(&cooldown, model.EconomyCooldown{
+	if err := db.Where("guild_id = ? AND user_id = ?", guildID, userID).FirstOrCreate(&cooldown, model.EconomyCooldown{
 		GuildID: guildID,
 		UserID:  userID,
-	})
+	}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
 
 	now := time.Now()
 	if input.Type == "work" {

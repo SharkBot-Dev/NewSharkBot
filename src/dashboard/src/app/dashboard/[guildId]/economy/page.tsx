@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { getEconomyItems, getEconomySetting, isModuleEnabled } from "@/lib/api/requests"; // ラッパー関数の場所
+import { getEconomyItems, getEconomySetting, isModuleEnabled } from "@/lib/api/requests";
 import EconomyEditorClient from "./EconomyEditorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
 import { redirect } from "next/navigation";
 
 interface Props {
-  params: { guildId: string };
+  params: Promise<{ guildId: string }>;
 }
 
 export default async function EconomyPafe({ params }: Props) {
@@ -42,8 +42,14 @@ export default async function EconomyPafe({ params }: Props) {
 }
 
 async function EconomyContent({ guildId }: { guildId: string }) {
-  const settings = await getEconomySetting(guildId);
-  const items = await getEconomyItems(guildId);
+  let items = [];
+
+  try {
+    items = await getEconomyItems(guildId);
+  } catch {
+    items = []
+  }
+  
 
   return (
     <EconomyEditorClient 

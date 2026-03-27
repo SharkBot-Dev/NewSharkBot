@@ -136,16 +136,16 @@ class EconomyCog(commands.Cog):
             if not target_item:
                 return await interaction.followup.send(f"そのアイテムは見つかりませんでした。")
 
-            if target_item.get("can_buy") == False:
+            if not target_item.get("can_buy"):
                 return await interaction.followup.send("このアイテムは現在購入できません。")
 
             user_data = await self.bot.api.get_economy_user(guild_id, user_id)
             current_money = user_data.get("money", 0)
             current_inventory = user_data.get("items", [])
 
-            is_auto_use = target_item.get("auto_use") == True
+            is_auto_use = target_item.get("auto_use")
 
-            if not is_auto_use and target_item.get("can_buy_multiple") == False:
+            if not is_auto_use and not target_item.get("can_buy_multiple"):
                 already_has = any(i["id"] == target_item["id"] for i in current_inventory)
                 if already_has:
                     return await interaction.followup.send("このアイテムは既に所持しています。")

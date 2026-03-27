@@ -114,9 +114,15 @@ export default function EconomyEditorClient({ guildId, init_items }: Props) {
       if (!res.ok) throw new Error();
 
       const data = await res.json();
-      setItems([...items, data.item]);
+      setItems((prev) => {
+        const index = prev.findIndex(
+          (item) => item.id === data.item.id || item.name === data.item.name,
+        );
+        if (index === -1) return [...prev, data.item];
+        return prev.map((item, i) => (i === index ? data.item : item));
+      });
       setIsModalOpen(false);
-      setNewItem({ name: "", price: 0, type: "item", auto_use: false, can_buy: true, can_buy_multiple: true });
+      setItems((prev) => prev.filter((item) => item.id !== item.id));
       alert("アイテムを追加しました。");
     } catch (err) {
       alert("保存に失敗しました。");
@@ -169,8 +175,10 @@ export default function EconomyEditorClient({ guildId, init_items }: Props) {
                 <Package className="text-zinc-400" size={24} />
               </div>
               <button
+                type="button"
                 onClick={() => handleDeleteItem(item.id)}
-                className="text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                aria-label={`${item.name} を削除`}
+                className="text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               >
                 <Trash2 size={18} />
               </button>

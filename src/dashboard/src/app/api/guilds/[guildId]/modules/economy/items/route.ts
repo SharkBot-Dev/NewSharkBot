@@ -44,7 +44,16 @@ export async function POST(
         await validateAdmin(guildId);
 
         const body = await request.json();
-        
+                
+        if (!body.name || typeof body.name !== 'string' || body.name.trim() === "") {
+            return new Response(JSON.stringify({ error: "商品名は必須です。" }), { status: 400 });
+        }
+
+        const price = Number(body.price);
+        if (!Number.isInteger(price) || price < 0) {
+            return new Response(JSON.stringify({ error: "価格は0以上の整数で入力してください。" }), { status: 400 });
+        }
+
         const res = await fetch(`${BACKEND_URL}/guilds/economy/${guildId}/items`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -60,7 +69,7 @@ export async function POST(
         });
 
         if (!res.ok) {
-            const errorData = await res.json();
+            const errorData = await res.json().catch(() => ({}));
             return NextResponse.json({ error: errorData.error || "Failed to save item" }, { status: res.status });
         }
 

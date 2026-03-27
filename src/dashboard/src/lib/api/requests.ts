@@ -221,7 +221,9 @@ export async function deleteLevelReward(guildId: string, level: number) {
 export async function getEconomySetting(guildId: string) {
     const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/economy/${guildId}`);
 
-    if (!response.ok) return {}
+    if (!response.ok) {
+        throw new Error("Failed to fetch economy settings");
+    }
 
     return response.json();
 }
@@ -229,7 +231,9 @@ export async function getEconomySetting(guildId: string) {
 export async function getEconomyItems(guildId: string) {
     const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/economy/${guildId}/items`);
 
-    if (!response.ok) return []
+    if (!response.ok) {
+        throw new Error("Failed to fetch economy items");
+    }
 
     return response.json();
 }
