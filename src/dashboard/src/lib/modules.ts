@@ -95,4 +95,15 @@ export const modules = new Map<string, ModuleSetting>([
       group: "遊び",
     },
   ],
+  [
+    "economy",
+    {
+      id: "economy",
+      name: "経済",
+      description: "経済を使ってコミュニティを活性化します。",
+      enabled: true,
+      icon: Rocket,
+      group: "遊び",
+    },
+  ],
 ]);

@@ -57,6 +57,10 @@ func main() {
 		&model.LevelSetting{},
 		&model.LevelRewardSetting{},
 		&model.LevelUserSetting{},
+		&model.EconomySetting{},
+		&model.EconomyUserSetting{},
+		&model.EconomyItemSetting{},
+		&model.EconomyCooldown{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
@@ -83,6 +87,7 @@ func main() {
 	router.RegisterEmbed(r.Group("/"))
 	router.RegisterMessageSettings(r.Group("/"))
 	router.RegisterLevelsSettings(r.Group("/"))
+	router.RegisterEconomy(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)
