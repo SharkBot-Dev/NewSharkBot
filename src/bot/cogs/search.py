@@ -10,7 +10,7 @@ from lib.command import Command
 from typing import Dict
 
 
-class HelpCog(commands.Cog):
+class SearchCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
         self.bot = bot
 
@@ -46,4 +46,4 @@ class HelpCog(commands.Cog):
             return await interaction.followup.send(f"検索に失敗しました。")
 
 async def setup(bot):
-    await bot.add_cog(HelpCog(bot))
+    await bot.add_cog(SearchCog(bot))

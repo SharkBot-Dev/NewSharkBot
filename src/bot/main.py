@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Dict
 import aiohttp
@@ -48,7 +49,7 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
                 try:
                     await bot.load_extension(module)
                 except Exception as e:
-                    print(f"Failed to load {module}: {e}")
+                    logging.error(f"Failed to load {module}: {e}")
 
 
 @bot.event

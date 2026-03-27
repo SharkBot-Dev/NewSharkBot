@@ -22,6 +22,8 @@ func RegisterLevelsSettings(router *gin.RouterGroup) {
 
 		guilds.GET("/:id/users/:user", GetUserLevel)
 		guilds.POST("/:id/users/:user", SaveUserLevel)
+
+		guilds.GET("/:id/leaderboard", GetLevelLeaderboard)
 	}
 }
 
@@ -147,6 +149,25 @@ func deleteReward(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Reward deleted"})
+}
+
+func GetLevelLeaderboard(c *gin.Context) {
+	guildID := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var settings []model.LevelUserSetting
+
+	err := db.Where("guild_id = ?", guildID).
+		Order("xp DESC, id ASC").
+		Limit(10).
+		Find(&settings).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ランキングの取得に失敗しました"})
+		return
+	}
+
+	c.JSON(http.StatusOK, settings)
 }
 
 func GetUserLevel(c *gin.Context) {

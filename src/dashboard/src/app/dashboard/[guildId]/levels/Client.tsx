@@ -7,6 +7,26 @@ import ChannelSelecter from "@/components/channel-selecter";
 import EmbedSelecter from "@/components/EmbedSelecter";
 import RoleSelector from "@/components/role-selector";
 import { LevelRewardRole, LevelRewardRoleSetting } from "@/constants/levels/levels_reward_rolemap";
+import CommandsControl from "@/components/commands";
+
+const commands = [
+  {
+    name: "rank",
+    description: "ユーザーのランクを表示します。",
+    options: [
+      {
+        name: "user",
+        description: "ユーザーを入力してください。",
+        type: 6,
+        required: false,
+      },
+    ],
+  },
+  {
+    name: "levels",
+    description: "レベルのランキングを表示します。"
+  },
+];
 
 interface Props {
   guildId: string;
@@ -189,6 +209,10 @@ export default function LevelsEditorClient({
             {isSaving ? "保存中..." : "設定を保存"}
           </button>
         </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="必要なコマンド設定">
+        <CommandsControl guildId={guildId} targetCommands={commands} />
       </CollapsibleSection>
     </div>
   );

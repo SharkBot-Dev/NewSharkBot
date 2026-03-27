@@ -196,17 +196,16 @@ class ResourceAPIClient:
             return await response.json()
 
     async def get_user_level(self, guild_id: str, user_id: str) -> Optional[Dict[str, Any]]:
-        url = f"{self.base_url}/guilds/{guild_id}/users/{user_id}"
+        url = f"{self.base_url}/guilds/levels/{guild_id}/users/{user_id}"
         
         async with self.session.get(url) as response:
             if response.status == 404:
                 return None
             
-            response.raise_for_status()
             return await response.json()
 
     async def save_user_level(self, guild_id: str, user_id: str, level: int, xp: int) -> Dict[str, Any]:
-        url = f"{self.base_url}/guilds/{guild_id}/users/{user_id}"
+        url = f"{self.base_url}/guilds/levels/{guild_id}/users/{user_id}"
         payload = {
             "level": level,
             "xp": xp
@@ -225,3 +224,13 @@ class ResourceAPIClient:
         new_xp = current_xp + xp_to_add
         
         return await self.save_user_level(guild_id, user_id, current_level, new_xp)
+    
+    async def get_level_leaderboard(self, guild_id: str):
+        url = f"{self.base_url}/guilds/levels/{guild_id}/leaderboard"
+        
+        async with self.session.get(url) as response:
+            if response.status == 404:
+                return None
+            
+            response.raise_for_status()
+            return await response.json()
