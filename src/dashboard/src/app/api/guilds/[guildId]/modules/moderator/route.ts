@@ -5,6 +5,10 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8080";
 
+const AUTOMOD_TYPES = ["invite", "badword", "badlink", "spoiler"] as const;
+const isAutomodType = (value: string): value is (typeof AUTOMOD_TYPES)[number] =>
+    AUTOMOD_TYPES.includes(value as (typeof AUTOMOD_TYPES)[number]);
+
 async function validateAdmin(guildId: string) {
     const allLinkedAccounts = await auth.api.listUserAccounts({
         headers: await headers(),
@@ -43,25 +47,28 @@ export async function GET(
         const { guildId } = await params;
         await validateAdmin(guildId);
 
-        const settingRes = await fetch(`${BACKEND_URL}/guilds/moderator/${guildId}`, {
-            cache: 'no-store'
-        });
-        
-        const automodRes = await fetch(`${BACKEND_URL}/guilds/automod/${guildId}/all`, {
-            cache: 'no-store'
-        });
-        
-        const settings = settingRes.ok ? await settingRes.json() : {};
-        const automod = automodRes.ok ? await automodRes.json() : {};
+        const [settingRes, automodRes] = await Promise.all([
+            fetch(`${BACKEND_URL}/guilds/moderator/${guildId}`, { cache: "no-store" }),
+            fetch(`${BACKEND_URL}/guilds/automod/${guildId}/all`, { cache: "no-store" }),
+        ]);
 
-        return NextResponse.json({ 
-            success: true, 
-            settings: settings,
-            automod: automod 
-        });
+        if (![settingRes, automodRes].every((res) => res.ok || res.status === 404)) {
+            return NextResponse.json(
+                { error: "Failed to load moderator settings" },
+                { status: 502 },
+            );
+        }
+
+        const settings = settingRes.status === 404 ? {} : await settingRes.json();
+        const automod = automodRes.status === 404 ? {} : await automodRes.json();
+
+        return NextResponse.json({ settings, automod });
     } catch (error: any) {
-        const status = error.message === "Forbidden" ? 403 : 401;
-        return NextResponse.json({ error: error.message }, { status });
+        const status = error.status || 500; 
+        return NextResponse.json(
+            { error: error.message || "Internal Server Error" },
+            { status }
+        );
     }
 }
 
@@ -84,8 +91,16 @@ export async function POST(
         
         if (target === "basic") {
             endpoint = `${BACKEND_URL}/guilds/moderator/${guildId}`;
-        } else {
+        } else if (typeof target === "string" && isAutomodType(target)) {
             endpoint = `${BACKEND_URL}/guilds/automod/${guildId}/${target}`;
+        } else {
+            return NextResponse.json({ error: "Invalid target" }, { status: 400 });
+        }
+        
+        const type = payload.type;
+
+        if (!type || !isAutomodType(type)) {
+            return NextResponse.json({ error: "Invalid type" }, { status: 400 });
         }
 
         const res = await fetch(endpoint, {

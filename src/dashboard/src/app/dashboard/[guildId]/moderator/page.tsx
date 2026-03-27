@@ -1,12 +1,12 @@
 import { Suspense } from "react";
-import { fetchAutomodSettings, fetchEmbedSettings, fetchModeratorSettings, isModuleEnabled } from "@/lib/api/requests"; // ラッパー関数の場所
+import { fetchAutomodSettings, fetchModeratorSettings, isModuleEnabled } from "@/lib/api/requests"; 
 import ModeratorClient from "./ModeratorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
 import { redirect } from "next/navigation";
 
 interface Props {
-  params: { guildId: string };
+  params: Promise<{ guildId: string }>;
 }
 
 export default async function ModeratorPage({ params }: Props) {

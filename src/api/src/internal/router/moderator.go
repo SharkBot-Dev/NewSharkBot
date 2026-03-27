@@ -63,7 +63,7 @@ func deleteModeratorSetting(c *gin.Context) {
 	id := c.Param("id")
 	db := c.MustGet("db").(*gorm.DB)
 	if err := db.Where("guild_id = ?", id).Delete(&model.ModeratorSetting{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete moderator setting"})
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -122,6 +122,7 @@ func saveAutoModSetting(c *gin.Context) {
 			"whitelist_role_ids",
 			"badwords",
 			"allowed_links",
+			"allow_only_verified",
 			"updated_at",
 		}),
 	}).Create(&setting).Error; err != nil {
@@ -138,7 +139,7 @@ func deleteAutoModSetting(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	if err := db.Where("guild_id = ? AND type = ?", id, modType).Delete(&model.EnabledAutoModeratorSetting{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete automod setting"})
 		return
 	}
 	c.Status(http.StatusNoContent)

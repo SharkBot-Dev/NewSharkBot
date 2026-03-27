@@ -73,11 +73,14 @@ class ModeratorCog(commands.Cog):
         try:
             await user.kick(reason=self.reason_parse(reason, interaction.user, "キック"))
             await interaction.followup.send(content=f"🦶 {user.mention} をサーバーからキックしました。", allowed_mentions=discord.AllowedMentions.none())
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。", allowed_mentions=discord.AllowedMentions.none())
+            return
         except:
             await interaction.followup.send(content="キックに失敗しました。", allowed_mentions=discord.AllowedMentions.none())
             return
         
-        await self.send_moderator_log(guild, user, interaction.user, "Kick", reason)
+        await self.send_moderator_log(guild, interaction.user, user, "Kick", reason)
         
     async def ban_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
@@ -96,11 +99,14 @@ class ModeratorCog(commands.Cog):
         try:
             await interaction.guild.ban(user, reason=self.reason_parse(reason, interaction.user, "Ban"))
             await interaction.followup.send(content=f"🔨 {user.mention} をサーバーからBanしました。", allowed_mentions=discord.AllowedMentions.none())
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。", allowed_mentions=discord.AllowedMentions.none())
+            return
         except:
             await interaction.followup.send(content="Banに失敗しました。", allowed_mentions=discord.AllowedMentions.none())
             return
         
-        await self.send_moderator_log(guild, user, interaction.user, "Ban", reason)
+        await self.send_moderator_log(guild, interaction.user, user, "Ban", reason)
         
     async def unban_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
@@ -119,11 +125,14 @@ class ModeratorCog(commands.Cog):
         try:
             await interaction.guild.unban(user, reason=self.reason_parse(reason, interaction.user, "Ban解除"))
             await interaction.followup.send(content=f"😎 {user.mention} をBan解除しました。", allowed_mentions=discord.AllowedMentions.none())
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。", allowed_mentions=discord.AllowedMentions.none())
+            return
         except:
             await interaction.followup.send(content="Ban解除に失敗しました。", allowed_mentions=discord.AllowedMentions.none())
             return
         
-        await self.send_moderator_log(guild, user, interaction.user, "Ban解除", reason)
+        await self.send_moderator_log(guild, interaction.user, user, "Ban解除", reason)
         
     async def timeout_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
@@ -147,11 +156,14 @@ class ModeratorCog(commands.Cog):
         try:
             await user.timeout(discord.utils.utcnow() + datetime.timedelta(seconds=parse), reason=self.reason_parse(reason, interaction.user, "Ban解除"))
             await interaction.followup.send(content=f"⌚ {user.mention} をタイムアウトしました。", allowed_mentions=discord.AllowedMentions.none())
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。", allowed_mentions=discord.AllowedMentions.none())
+            return
         except:
             await interaction.followup.send(content="タイムアウトに失敗しました。", allowed_mentions=discord.AllowedMentions.none())
             return
         
-        await self.send_moderator_log(guild, user, interaction.user, "タイムアウト", reason)
+        await self.send_moderator_log(guild, interaction.user, user, "タイムアウト", reason)
 
     async def remove_timeout_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
@@ -170,11 +182,14 @@ class ModeratorCog(commands.Cog):
         try:
             await user.timeout(None, reason=self.reason_parse(reason, interaction.user, "タイムアウト解除"))
             await interaction.followup.send(content=f"⏳ {user.mention} のタイムアウトを解除しました。", allowed_mentions=discord.AllowedMentions.none())
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。", allowed_mentions=discord.AllowedMentions.none())
+            return
         except:
             await interaction.followup.send(content="タイムアウト解除に失敗しました。", allowed_mentions=discord.AllowedMentions.none())
             return
 
-        await self.send_moderator_log(guild, user, interaction.user, "タイムアウト解除", reason)
+        await self.send_moderator_log(guild, interaction.user, user, "タイムアウト解除", reason)
 
     async def send_moderator_log(self, guild: discord.Guild, moderator: discord.User, user: discord.User, action: str, reason: str):
         basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
