@@ -122,7 +122,6 @@ export default function EconomyEditorClient({ guildId, init_items }: Props) {
         return prev.map((item, i) => (i === index ? data.item : item));
       });
       setIsModalOpen(false);
-      setItems((prev) => prev.filter((item) => item.id !== item.id));
       alert("アイテムを追加しました。");
     } catch (err) {
       alert("保存に失敗しました。");
@@ -229,7 +228,8 @@ export default function EconomyEditorClient({ guildId, init_items }: Props) {
                 type="number"
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 mt-1 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 value={newItem.price}
-                onChange={(e) => setNewItem({ ...newItem, price: parseInt(e.target.value) })}
+                onChange={(e) => setNewItem({ ...newItem, price: parseInt(e.target.value) || 0 })}
+                min={0}
               />
             </div>
           </div>

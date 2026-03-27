@@ -110,12 +110,12 @@ func createEconomyItem(c *gin.Context) {
 		setting.RoleID = nil
 	}
 
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
 	if result.Error == gorm.ErrRecordNotFound {
-		if err := db.Create(&setting).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save item"})
-			return
-		}
-	} else {
 		if err := db.Save(&setting).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save item"})
 			return
@@ -216,15 +216,11 @@ func saveEconomyUserSetting(c *gin.Context) {
 		if input.ItemIDs != nil {
 			var items []model.EconomyItemSetting
 			if len(input.ItemIDs) > 0 {
-				if err := tx.Where("id IN ?", input.ItemIDs).Find(&items).Error; err != nil {
-					if err := tx.Where("id IN ? AND guild_id = ?", input.ItemIDs, guildID).Find(&items).Error; err != nil {
-						return err
-					}
-					if len(items) != len(input.ItemIDs) {
-						return fmt.Errorf("invalid item IDs provided")
-					}
-				} else {
+				if err := tx.Where("id IN ? AND guild_id = ?", input.ItemIDs, guildID).Find(&items).Error; err != nil {
 					return err
+				}
+				if len(items) != len(input.ItemIDs) {
+					return fmt.Errorf("invalid item IDs provided")
 				}
 			}
 			if err := tx.Model(&userSetting).Association("Items").Replace(items); err != nil {

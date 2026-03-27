@@ -76,7 +76,13 @@ export async function POST(
         const savedItem = await res.json();
         return NextResponse.json({ success: true, item: savedItem });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error.message === "Unauthorized") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (error.message === "Forbidden") {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
 
@@ -110,6 +116,12 @@ export async function DELETE(
 
         return NextResponse.json({ success: true, message: "Item deleted successfully" });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        if (error.message === "Unauthorized") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (error.message === "Forbidden") {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
