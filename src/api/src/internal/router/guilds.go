@@ -7,6 +7,7 @@ import (
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func RegisterGuildsRoutes(router *gin.RouterGroup) {
@@ -15,6 +16,8 @@ func RegisterGuildsRoutes(router *gin.RouterGroup) {
 		guilds.GET("/", listGuilds)
 		guilds.GET("/:id", getGuildSettingByID)
 		guilds.PUT("/:id", createOrUpdateGuildSetting)
+		guilds.GET("/:id/module", isGuildModuleEnabled)
+		guilds.PATCH("/:id/module", updateGuildModuleSetting)
 	}
 }
 
@@ -121,6 +124,96 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 			c.JSON(500, gin.H{"error": "Internal server error"})
 			return
 		}
+	}
+	c.JSON(200, guildSetting)
+}
+
+func isGuildModuleEnabled(c *gin.Context) {
+	id := c.Param("id")
+	moduleName := c.Query("module")
+
+	if moduleName == "" {
+		c.JSON(400, gin.H{"error": "Module parameter is required"})
+		return
+	}
+
+	dbRaw, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
+	db := dbRaw.(*gorm.DB)
+
+	var guildSetting model.GuildSetting
+	result := db.First(&guildSetting, "guild_id = ?", id)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			c.JSON(200, gin.H{"module": moduleName, "enabled": false})
+		} else {
+			log.Printf("Error: %s", result.Error.Error())
+			c.JSON(500, gin.H{"error": "Internal server error"})
+		}
+		return
+	}
+
+	enabled := false
+	if guildSetting.EnabledModules != nil {
+		enabled = guildSetting.EnabledModules[moduleName]
+	}
+
+	c.JSON(200, gin.H{
+		"guild_id": id,
+		"module":   moduleName,
+		"enabled":  enabled,
+	})
+}
+
+func updateGuildModuleSetting(c *gin.Context) {
+	id := c.Param("id")
+	var req dto.UpdateModuleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	if req.Module == "" {
+		c.JSON(400, gin.H{"error": "module name is required"})
+		return
+	}
+
+	dbRaw, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
+	db := dbRaw.(*gorm.DB)
+
+	var guildSetting model.GuildSetting
+
+	jsonbSetExpr := "jsonb_set(COALESCE(guild_settings.enabled_modules, '{}'), ARRAY[?], ?::jsonb)"
+
+	err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "guild_id"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"enabled_modules": gorm.Expr(jsonbSetExpr, req.Module, req.Enabled),
+			"updated_at":      gorm.Expr("NOW()"),
+		}),
+	}).Create(&model.GuildSetting{
+		GuildID:        id,
+		EnabledModules: map[string]bool{req.Module: req.Enabled},
+	}).Error
+
+	if err != nil {
+		log.Printf("Update Error: %v", err)
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	if err := db.First(&guildSetting, "guild_id = ?", id).Error; err != nil {
+		log.Printf("Error fetching updated setting: %v", err)
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
 	}
 	c.JSON(200, guildSetting)
 }

@@ -1,5 +1,7 @@
+import logging
 import os
 from typing import Dict
+import aiohttp
 import dotenv
 from discord.ext import commands
 import discord
@@ -7,6 +9,7 @@ import discord
 from lib import tree
 from lib.command import Command
 from lib.embed import Embed as customEmbed
+from lib.api import ResourceAPIClient
 
 dotenv.load_dotenv()
 
@@ -21,12 +24,18 @@ class NewSharkBot(commands.AutoShardedBot):
         )
         print("InitDone")
 
+        self.session = None
+        self.api = None
+
         self.slashcommands: Dict[str, Command] = {}
         self.embed = customEmbed(self)
 
     def add_slashcommand(self, command: Command):
         self.slashcommands[command.name] = command
 
+    async def close(self):
+        if self.session is not None:
+            await self.session.close()
 
 bot = NewSharkBot()
 
@@ -41,13 +50,22 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
                 try:
                     await bot.load_extension(module)
                 except Exception as e:
-                    print(f"Failed to load {module}: {e}")
+                    logging.error(f"Failed to load {module}: {e}")
 
 
 @bot.event
 async def setup_hook() -> None:
     await load_cogs(bot)
 
+    bot.session = aiohttp.ClientSession()
+
+    base_url = os.environ.get("RESOURCE_API_BASE_URL", "http://localhost:8080")
+    bot.api = ResourceAPIClient(bot.session, base_url)    
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    print("------")
 
 if __name__ == "__main__":
     bot.run(os.environ.get("DISCORD_TOKEN"))

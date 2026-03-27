@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { checkAdminPermission, getGuildChannels } from "@/lib/discord";
+import { checkAdminPermission } from "@/lib/Discord/User";
+import { getGuildChannels } from "@/lib/Discord/Bot";
 
 export async function GET(
   _request: Request,

@@ -7,6 +7,7 @@ interface CommandData {
   description: string;
   id?: string;
   options?: any[];
+  default_member_permissions?: string;
 }
 
 interface Props {
@@ -55,6 +56,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
               name: cmd.name,
               description: cmd.description,
               options: cmd.options,
+              default_member_permissions: cmd.default_member_permissions,
             },
           };
 

@@ -1,3 +1,5 @@
+import logging
+
 from discord.ext import commands
 import discord
 
@@ -15,86 +17,55 @@ class WelcomeCog(commands.Cog):
     def welcome_parse(self, template: str, member: discord.Member) -> str:
         return template.replace("{ユーザー名}", member.display_name).replace("{ユーザーID}", str(member.id)).replace("{メンション}", member.mention).replace("{サーバー名}", member.guild.name)
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    async def _handle_member_event(self, member: discord.Member, event_type: str):
+        if not self.bot.api:
+            return
+
         guild_id = str(member.guild.id)
 
-        data = await self.bot.async_db["SharkBot"]["welcome_setting"].find_one({"guildId": guild_id})
-        if not data or "welcome" not in data:
-            return
-        
-        if data["welcome"].get("enabled", False) == False:
-            return
-
-        message = self.welcome_parse(data["welcome"].get("message", "ようこそ、{ユーザー名}！"), member)
-
-        channel = member.guild.get_channel(int(data["welcome"]["channelId"]))
-        if not channel:
-            return
-
-        embed_name = data["welcome"].get('embed', None)
-        if not embed_name:
-            if message == "":
+        try:
+            setting = await self.bot.api.fetch_message_setting(guild_id, event_type)
+            if not setting:
                 return
-            await channel.send(content=message)
-            return
 
-        embed_data = await self.bot.embed.getEmbed(guild_id, embed_name)
-        if not embed_data:
-            if message == "":
+            content = self.welcome_parse(setting.get("content", ""), member)
+            channel_id = setting.get("channel_id")
+            
+            if not channel_id:
                 return
-            await channel.send(content=message)
-            return
-        
-        embed_data = copy.deepcopy(embed_data)
-        embed_data["description"] = self.welcome_parse(embed_data.get("description", ""), member)
-        embed_data["title"] = self.welcome_parse(embed_data.get("title", ""), member)
+            
+            channel = member.guild.get_channel(int(channel_id))
+            if not channel:
+                return
 
-        embed = discord.Embed.from_dict(embed_data)
-        if message == "":
-            await channel.send(embed=embed)
-            return
-        await channel.send(content=message, embed=embed)
+            embed = None
+            embed_setting = setting.get("Embed")
+            
+            if embed_setting:
+                embed_data = copy.deepcopy(embed_setting.get("data", {}))
+                
+                if "description" in embed_data:
+                    embed_data["description"] = self.welcome_parse(embed_data["description"], member)
+                if "title" in embed_data:
+                    embed_data["title"] = self.welcome_parse(embed_data["title"], member)
+                
+                embed = discord.Embed.from_dict(embed_data)
+
+            if not content and not embed:
+                return
+
+            await channel.send(content=content or None, embed=embed)
+
+        except Exception as e:
+            logging.error(f"Error in {event_type} event: {e}")
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        await self._handle_member_event(member, "welcome")
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        guild_id = str(member.guild.id)
-
-        data = await self.bot.async_db["SharkBot"]["welcome_setting"].find_one({"guildId": guild_id})
-        if not data or "goodbye" not in data:
-            return
-
-        if data["goodbye"].get("enabled", False) == False:
-            return
-        
-        message = self.welcome_parse(data["goodbye"].get("message", "{ユーザー名}が退出しました。"), member)
-
-        channel = member.guild.get_channel(int(data["goodbye"]["channelId"]))
-        if not channel:
-            return
-
-        embed_name = data["goodbye"].get('embed', None)
-
-        if not embed_name:
-            if message == "":
-                return
-
-            await channel.send(content=message)
-            return
-
-        embed_data = await self.bot.embed.getEmbed(guild_id, embed_name)
-        if not embed_data:
-            if message == "":
-                return
-            await channel.send(content=message)
-            return
-
-        embed_data = copy.deepcopy(embed_data)
-        embed_data["description"] = self.welcome_parse(embed_data.get("description", ""), member)
-        embed_data["title"] = self.welcome_parse(embed_data.get("title", ""), member)
-
-        embed = discord.Embed.from_dict(embed_data)
-        await channel.send(content=self.welcome_parse(data["goodbye"].get("message", "{ユーザー名}が退出しました。"), member), embed=embed)
+        await self._handle_member_event(member, "goodbye")
 
 async def setup(bot):
     await bot.add_cog(WelcomeCog(bot))

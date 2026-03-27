@@ -1,166 +1,104 @@
+import { deleteMessageSetting, fetchMessageSetting, saveMessageSetting } from "@/lib/api/requests";
+import { auth } from "@/lib/auth";
+import { checkAdminPermission } from "@/lib/Discord/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { checkAdminPermission } from "@/lib/discord";
-import clientPromise from "@/lib/mongodb";
 
-interface WelcomeSetting {
-  guildId: string;
-  welcome: {
-    channelId: string;
-    message: string;
-    embed: any;
-    enabled: boolean;
-  },
-  goodbye: {
-    channelId: string;
-    message: string;
-    embed: any;
-    enabled: boolean;
-  };
-}
-
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ guildId: string }> },
-) {
-  try {
-    const { guildId } = await params;
-    let discordToken: {
-        accessToken: string;
-        accessTokenExpiresAt: Date | undefined;
-        scopes: string[];
-        idToken: string | undefined;
-    };
-    try {
-        const allLinkedAccounts = await auth.api.listUserAccounts({
+async function validateAdmin(guildId: string) {
+    const allLinkedAccounts = await auth.api.listUserAccounts({
         headers: await headers(),
-        });
-        const discordAccountData = allLinkedAccounts.find(
-        (account) => account.providerId === "discord",
-        );
-        if (!discordAccountData) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        discordToken = await auth.api.getAccessToken({
+    });
+    const discordAccountData = allLinkedAccounts.find(
+        (account) => account.providerId === "discord"
+    );
+
+    if (!discordAccountData) throw new Error("Unauthorized");
+
+    const discordToken = await auth.api.getAccessToken({
         headers: await headers(),
         body: {
             providerId: "discord",
             accountId: discordAccountData.accountId,
             userId: discordAccountData.userId,
         },
-        });
-    } catch (e) {
-        console.log("Error fetching access token:", e);
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    });
+
+    if (!discordToken.accessToken || !discordToken.accessTokenExpiresAt || 
+        Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()) {
+        throw new Error("Unauthorized");
     }
 
-    if (
-        !discordToken.accessTokenExpiresAt ||
-        Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
-    ) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const hasPermission = await checkAdminPermission(guildId, discordToken.accessToken);
+    if (!hasPermission) throw new Error("Forbidden");
 
-    const hasPermission = await checkAdminPermission(
-        guildId,
-        discordToken.accessToken,
-    );
-    if (!hasPermission) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const client = await clientPromise;
-    const db = client.db("SharkBot");
-    const settings = await db.collection("welcome_setting").findOne({ guildId });
-
-    const fixedSettings = {
-      welcome: {
-        channelId: settings?.welcome?.channelId || "",
-        message: settings?.welcome?.message || "",
-        embed: settings?.welcome?.embed || null,
-        enabled: settings?.welcome?.enabled || false,
-      },
-      goodbye: {
-        channelId: settings?.goodbye?.channelId || "",
-        message: settings?.goodbye?.message || "",
-        embed: settings?.goodbye?.embed || null,
-        enabled: settings?.goodbye?.enabled || false,
-      },
-    };
-    return NextResponse.json({ success: true, settings: fixedSettings });
-  } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+    return discordToken;
 }
+
+/**
+ * GET: GoサーバーからWelcomeとGoodbyeの設定を取得して整形
+ */
+export async function GET(
+    _request: Request,
+    { params }: { params: Promise<{ guildId: string }> }
+) {
+    try {
+        const { guildId } = await params;
+        await validateAdmin(guildId);
+
+        const welcome = await fetchMessageSetting(guildId, "welcome");
+
+        const fixedSettings = {
+            channel_id: welcome?.channel_id || "",
+            content: welcome?.content || "",
+            embed_id: welcome?.embed_id || null,
+            enabled: !!welcome
+        };
+
+        return NextResponse.json({ success: true, settings: fixedSettings });
+    } catch (error: any) {
+        const status = error.message === "Forbidden" ? 403 : 401;
+        return NextResponse.json({ error: error.message }, { status });
+    }
+}
+
+/**
+ * POST: フロントからのリクエストをGoサーバーへ転送
+ */
 
 export async function POST(
-  request: Request,
-  { params }: { params: { guildId: string } },
+    request: Request,
+    { params }: { params: Promise<{ guildId: string }> }
 ) {
-  try {
-    const { guildId } = await params;
-    let discordToken: {
-        accessToken: string;
-        accessTokenExpiresAt: Date | undefined;
-        scopes: string[];
-        idToken: string | undefined;
-    };
     try {
-        const allLinkedAccounts = await auth.api.listUserAccounts({
-        headers: await headers(),
-        });
-        const discordAccountData = allLinkedAccounts.find(
-        (account) => account.providerId === "discord",
-        );
-        if (!discordAccountData) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        discordToken = await auth.api.getAccessToken({
-        headers: await headers(),
-        body: {
-            providerId: "discord",
-            accountId: discordAccountData.accountId,
-            userId: discordAccountData.userId,
-        },
-        });
-    } catch (e) {
-        console.log("Error fetching access token:", e);
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const { guildId } = await params;
+        await validateAdmin(guildId);
+
+        const body = await request.json();
+
+        await saveMessageSetting(guildId, "welcome", body.welcome);
+
+        return NextResponse.json({ success: true, message: "Settings synced successfully" });
+    } catch (error: any) {
+        console.error("Settings POST Error:", error);
+        const status = error.message === "Forbidden" ? 403 : 401;
+        return NextResponse.json({ error: error.message }, { status: status || 500 });
     }
+}
 
-    if (
-        !discordToken.accessTokenExpiresAt ||
-        Date.now() >= new Date(discordToken.accessTokenExpiresAt).getTime()
-    ) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
+export async function DELETE(
+    request: Request,
+    { params }: { params: Promise<{ guildId: string }> }
+) {
+    try {
+        const { guildId } = await params;
+        await validateAdmin(guildId);
+
+        await deleteMessageSetting(guildId, "welcome");
+
+        return NextResponse.json({ success: true, message: "Settings synced successfully" });
+    } catch (error: any) {
+        console.error("Settings POST Error:", error);
+        const status = error.message === "Forbidden" ? 403 : 401;
+        return NextResponse.json({ error: error.message }, { status: status || 500 });
     }
-
-    const hasPermission = await checkAdminPermission(
-        guildId,
-        discordToken.accessToken,
-    );
-    if (!hasPermission) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const settung: WelcomeSetting = {
-        guildId,
-        ...body
-    };
-
-    const client = await clientPromise;
-    const db = client.db("SharkBot");
-    await db.collection("welcome_setting").updateOne(
-        { guildId },
-        { $set: { ...settung } },
-        { upsert: true },
-    )
-
-    return NextResponse.json({ success: true, message: "Settings saved!" });
-
-  } catch (error) {
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
 }
