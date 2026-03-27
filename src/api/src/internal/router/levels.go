@@ -61,9 +61,22 @@ func saveLevelSetting(c *gin.Context) {
 		return
 	}
 
+	if input.EmbedID != nil {
+		var embed model.EmbedSetting
+		if err := db.Where("id = ? AND guild_id = ?", *input.EmbedID, id).First(&embed).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid embed_id"})
+			return
+		}
+	}
+
 	// log.Printf("%+v", input)
 
-	setting := model.LevelSetting{GuildID: id}
+	setting := model.LevelSetting{
+		GuildID:   id,
+		ChannelID: input.ChannelID,
+		Content:   input.Content,
+		EmbedID:   input.EmbedID,
+	}
 
 	err := db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{
@@ -78,6 +91,11 @@ func saveLevelSetting(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save setting"})
+		return
+	}
+
+	if err := db.Preload("Embed").Where("guild_id = ?", id).First(&setting).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load setting"})
 		return
 	}
 	c.JSON(http.StatusOK, setting)

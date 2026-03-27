@@ -24,6 +24,7 @@ class NewSharkBot(commands.AutoShardedBot):
         )
         print("InitDone")
 
+        self.session = None
         self.api = None
 
         self.slashcommands: Dict[str, Command] = {}
@@ -33,8 +34,8 @@ class NewSharkBot(commands.AutoShardedBot):
         self.slashcommands[command.name] = command
 
     async def close(self):
-        await self.session.close()
-        await super().close()
+        if self.session is not None:
+            await self.session.close()
 
 bot = NewSharkBot()
 

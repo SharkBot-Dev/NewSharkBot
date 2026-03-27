@@ -10,6 +10,26 @@ import discord
 from lib.command import Command
 from main import NewSharkBot
 
+class LevelUtils:
+    @staticmethod
+    def get_total_xp_for_level(level: int) -> int:
+        if level <= 1: return 0
+        total = 0
+        for i in range(1, level):
+            total += 5 * (i ** 2) + 50 * i + 100
+        return total
+
+    @staticmethod
+    def get_level_from_total_xp(total_xp: int) -> int:
+        if total_xp <= 0: return 1
+        
+        lvl = 1
+        while True:
+            required = LevelUtils.get_total_xp_for_level(lvl + 1)
+            if total_xp < required:
+                break
+            lvl += 1
+        return lvl
 
 class LevelsCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
@@ -92,18 +112,26 @@ class LevelsCog(commands.Cog):
         if not self.bot.api: return
         await interaction.response.defer(ephemeral=True)
 
-        user_id = kwargs.get("user")
-        amount = kwargs.get("amount")
+        user_id = str(kwargs.get("user"))
+        amount = int(kwargs.get("amount"))
         guild_id = str(interaction.guild.id)
 
-        data = await self.bot.api.get_user_level(guild_id, str(user_id))
-        current_lv = data['level'] if data else 1
-        current_xp = data['xp'] if data else 0
+        data = await self.bot.api.get_user_level(guild_id, user_id)
+        old_xp = data['xp'] if data else 0
+        old_lv = data['level'] if data else 1
         
-        new_xp = current_xp + int(amount)
+        new_xp = max(0, old_xp + amount)
+        new_lv = LevelUtils.get_level_from_total_xp(new_xp)
         
-        await self.bot.api.save_user_level(guild_id, str(user_id), current_lv, new_xp)
-        await interaction.followup.send(f"<@{user_id}> に {amount} XPを付与しました。", allowed_mentions=discord.AllowedMentions.none())
+        await self.bot.api.save_user_level(guild_id, user_id, new_lv, new_xp)
+        
+        if new_lv != old_lv:
+            await self.sync_member_rewards(interaction.guild, user_id, new_lv)
+
+        await interaction.followup.send(
+            f"<@{user_id}> に {amount} XPを追加しました。",
+            allowed_mentions=discord.AllowedMentions.none()
+        )
 
     async def remove_xp_command(self, interaction: discord.Interaction, **kwargs):
         if not self.bot.api: return
@@ -144,9 +172,11 @@ class LevelsCog(commands.Cog):
 
         user_id = str(message.author.id)
         current_time = time.time()
+        cooldown_key = (guild_id, user_id)
 
-        if self.cooldowns.get(user_id, 0) > current_time - 60:
-            return
+        if self.cooldowns.get(cooldown_key, 0) > current_time - 60:
+             return
+        self.cooldowns[cooldown_key] = current_time
 
         data = await self.bot.api.get_user_level(guild_id, user_id)
         current_lv = data['level'] if data else 1
@@ -166,7 +196,6 @@ class LevelsCog(commands.Cog):
             leveled_up = True
 
         await self.bot.api.save_user_level(guild_id, user_id, current_lv, new_xp)
-        self.cooldowns[user_id] = current_time
 
         if leveled_up:
             await self._handle_level_up(message, guild_id, current_lv)

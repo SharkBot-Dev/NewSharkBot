@@ -35,6 +35,11 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
   });
 
   const handleWelcomeSave = async () => {
+    if (welcome.enabled && !welcome.channelId.trim()) {
+      alert("送信先チャンネルを選択してください。");
+      return;
+    }
+
     setSaving(true);
     try {
       if (!welcome.enabled) {
@@ -73,6 +78,11 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
   };
 
   const handleGoodbyeSave = async () => {
+    if (goodbye.enabled && !goodbye.channelId.trim()) {
+      alert("送信先チャンネルを選択してください。");
+      return;
+    }
+
     setSaving(true);
     try {
       if (!goodbye.enabled) {
@@ -123,7 +133,10 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
             />
           </div>
           
-          <div className={`space-y-4 transition-opacity ${welcome.enabled ? "opacity-100" : "opacity-50 pointer-events-none"}`}>
+          <fieldset
+            disabled={!welcome.enabled}
+            className={`space-y-4 transition-opacity ${welcome.enabled ? "opacity-100" : "opacity-50"}`}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">送信先チャンネル</label>
@@ -151,7 +164,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
                 onChange={(e) => setWelcome({ ...welcome, content: e.target.value })}
               />
             </div>
-          </div>
+          </fieldset>
 
           <div className="flex justify-end">
             <button
@@ -177,7 +190,10 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
             />
           </div>
 
-          <div className={`space-y-4 transition-opacity ${goodbye.enabled ? "opacity-100" : "opacity-50 pointer-events-none"}`}>
+          <fieldset
+            disabled={!goodbye.enabled}
+            className={`space-y-4 transition-opacity ${goodbye.enabled ? "opacity-100" : "opacity-50"}`}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">送信先チャンネル</label>
@@ -205,7 +221,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
                 onChange={(e) => setGoodbye({ ...goodbye, content: e.target.value })}
               />
             </div>
-          </div>
+          </fieldset>
 
           <div className="flex justify-end">
             <button

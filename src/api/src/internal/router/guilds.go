@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/dto"
@@ -129,13 +128,6 @@ func createOrUpdateGuildSetting(c *gin.Context) {
 	c.JSON(200, guildSetting)
 }
 
-// isGuildModuleEnabled godoc
-// @Summary Check if a specific module is enabled
-// @Tags Guilds
-// @Param id path string true "Guild ID"
-// @Param module query string true "Module Name"
-// @Success 200 {object} map[string]bool
-// @Router /guilds/{id}/module/check [get]
 func isGuildModuleEnabled(c *gin.Context) {
 	id := c.Param("id")
 	moduleName := c.Query("module")
@@ -185,18 +177,26 @@ func updateGuildModuleSetting(c *gin.Context) {
 		return
 	}
 
-	dbRaw, _ := c.Get("db")
+	if req.Module == "" {
+		c.JSON(400, gin.H{"error": "module name is required"})
+		return
+	}
+
+	dbRaw, exists := c.Get("db")
+	if !exists {
+		c.JSON(500, gin.H{"error": "Database connection not found"})
+		return
+	}
 	db := dbRaw.(*gorm.DB)
 
-	path := fmt.Sprintf("{%s}", req.Module)
-	value := fmt.Sprintf("%t", req.Enabled)
+	jsonbSetExpr := "jsonb_set(COALESCE(enabled_modules, '{}'), ARRAY[?], ?::jsonb)"
 
 	var guildSetting model.GuildSetting
 
 	err := db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "guild_id"}},
 		DoUpdates: clause.Assignments(map[string]interface{}{
-			"enabled_modules": gorm.Expr("jsonb_set(COALESCE(enabled_modules, '{}'), ?, ?::jsonb)", path, value),
+			"enabled_modules": gorm.Expr(jsonbSetExpr, req.Module, req.Enabled),
 			"updated_at":      gorm.Expr("NOW()"),
 		}),
 	}).Create(&model.GuildSetting{
