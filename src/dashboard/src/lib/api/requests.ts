@@ -237,3 +237,19 @@ export async function getEconomyItems(guildId: string) {
 
     return response.json();
 }
+
+export async function fetchModeratorSettings(guildId: string) {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/moderator/${guildId}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch moderator settings: ${response.statusText}`);
+    };
+    return response.json();
+}
+
+export async function fetchAutomodSettings(guildId: string, type: string) {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/automod/${guildId}/${type}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch automod settings: ${response.statusText}`);
+    };
+    return response.json();
+}

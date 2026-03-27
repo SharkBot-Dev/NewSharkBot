@@ -316,3 +316,68 @@ class ResourceAPIClient:
         async with self.session.post(url, json=payload) as resp:
             resp.raise_for_status()
             return await resp.json()
+
+    async def get_moderator_settings(self, guild_id: str) -> Dict[str, Any]:
+        async with self.session.get(f"{self.base_url}/guilds/moderator/{guild_id}") as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def update_moderator_settings(
+        self, 
+        guild_id: str, 
+        log_channel_id: str
+    ) -> Dict[str, Any]:
+        payload = {"log_channel_id": log_channel_id}
+        async with self.session.post(
+            f"{self.base_url}/guilds/moderator/{guild_id}", 
+            json=payload
+        ) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def get_all_automod_settings(self, guild_id: str) -> Dict[str, Any]:
+        async with self.session.get(f"{self.base_url}/guilds/automod/{guild_id}/all") as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def get_automod_setting(self, guild_id: str, mod_type: str) -> Dict[str, Any]:
+        async with self.session.get(f"{self.base_url}/guilds/automod/{guild_id}/{mod_type}") as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def update_automod_setting(
+        self,
+        guild_id: str,
+        mod_type: str,
+        actions: List[str],
+        whitelist_channel_ids: Optional[List[str]] = None,
+        whitelist_role_ids: Optional[List[str]] = None,
+        badwords: Optional[List[str]] = None,
+        allowed_links: Optional[List[str]] = None,
+        allow_only_verified: Optional[bool] = None
+    ) -> Dict[str, Any]:
+        payload = {
+            "guild_id": guild_id,
+            "type": mod_type,
+            "actions": actions,
+            "whitelist_channel_ids": whitelist_channel_ids or [],
+            "whitelist_role_ids": whitelist_role_ids or [],
+        }
+
+        if badwords is not None:
+            payload["badwords"] = badwords
+        if allowed_links is not None:
+            payload["allowed_links"] = allowed_links
+        if allow_only_verified is not None:
+            payload["allow_only_verified"] = allow_only_verified
+
+        async with self.session.post(
+            f"{self.base_url}/guilds/automod/{guild_id}/{mod_type}",
+            json=payload
+        ) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def delete_automod_setting(self, guild_id: str, mod_type: str) -> bool:
+        async with self.session.delete(f"{self.base_url}/guilds/automod/{guild_id}/{mod_type}") as resp:
+            return resp.status == 204
