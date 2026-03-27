@@ -78,7 +78,7 @@ export async function POST(
             return NextResponse.json({ 
                 success: false, 
                 message: "Embed is not Found."
-            });
+            }, { status: 400 });
         }
 
     } catch (error: any) {
@@ -87,7 +87,7 @@ export async function POST(
         let status = 500;
         if (error.message === "Forbidden") status = 403;
         if (error.message === "Unauthorized") status = 401;
-        if (error.message === "Invalid Channel ID") status = 400;
+        if (error.message?.includes("Invalid") && error.message?.includes("ID")) status = 400;
 
         return NextResponse.json({ error: error.message }, { status });
     }

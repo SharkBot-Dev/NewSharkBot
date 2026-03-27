@@ -95,7 +95,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
         body: JSON.stringify({ embedId: Number(sendingId), channelId: channelSelecterValue }),
       });
 
-      await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "送信に失敗しました");
+      }
+
       setIsSendModalOpen(false);
       setSendingId("");
       setChannelSelecterValue("");
@@ -103,6 +107,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
       alert("送信しました！")
     } catch (error) {
       console.error("Send error:", error);
+      alert("送信中にエラーが発生しました。");
     } finally {
       setSending(false);
     }
@@ -158,6 +163,8 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
                   >
                     送信
                   </button>
+                </div>
+                <div className="flex gap-4 ml-4">
                   <button 
                     onClick={() => handleDelete(embed.name, String(embed.ID))}
                     className="text-sm font-semibold text-red-500 hover:text-red-700"
@@ -181,7 +188,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-all disabled:opacity-50 shadow-md"
         >
           <Save className="w-4 h-4" />
-          {saving ? "送信中..." : "送信する"}
+          {sending ? "送信中..." : "送信する"}
         </button>
       </Modal>
     </div>

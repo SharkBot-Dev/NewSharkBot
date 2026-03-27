@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -69,7 +69,7 @@ export const modules = new Map<string, ModuleSetting>([
       name: "埋め込み作成",
       description: "サーバー内の埋め込みを作成＆管理できます",
       enabled: true,
-      icon: Hand,
+      icon: BookCheck,
       group: "ユーティリティ",
     },
   ],
