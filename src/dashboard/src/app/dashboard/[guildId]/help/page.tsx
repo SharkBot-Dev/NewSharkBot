@@ -6,25 +6,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 import { isModuleEnabled } from "@/lib/api/requests";
 import Alert from "@/components/Alert";
-
-const commands = [
-  {
-    name: "help",
-    description: "Botのコマンド一覧や詳細を表示します。",
-    options: [
-      {
-        name: "command",
-        description: "詳細を表示したいコマンド名を入力してください。",
-        type: 3,
-        required: false,
-      },
-    ],
-  },
-  {
-    name: "dashboard",
-    description: "ダッシュボードの案内を表示します。",
-  },
-];
+import commands from "@/constants/commands/help";
 
 export default async function HelpModuleSetting({ params }: { params: { guildId: string } }) {
   const { guildId } = await params;

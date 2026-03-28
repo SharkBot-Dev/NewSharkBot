@@ -6,13 +6,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 import { isModuleEnabled } from "@/lib/api/requests";
 import Alert from "@/components/Alert";
-
-const commands = [
-  {
-    name: "test",
-    description: "テストと返します。動作確認用に使用してください。",
-  },
-];
+import commands from "@/constants/commands/test";
 
 export default async function TestModuleSetting({ params }: { params: { guildId: string } }) {
   const { guildId } = await params;

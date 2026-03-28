@@ -6,21 +6,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 import { isModuleEnabled } from "@/lib/api/requests";
 import Alert from "@/components/Alert";
-
-const commands = [
-  {
-    name: "imgur",
-    description: "Imgurで画像を検索します。",
-    options: [
-      {
-        name: "search",
-        description: "検索ワードを入力してください。",
-        type: 3,
-        required: true,
-      },
-    ],
-  },
-];
+import commands from "@/constants/commands/search";
 
 export default async function SearchModuleSetting({ params }: { params: { guildId: string } }) {
   const { guildId } = await params;
