@@ -20,6 +20,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
 
   const [sending, setSending] = useState(false);
   const [sendingId, setSendingId] = useState<string>("");
+  const [sendingContent, setSendingContent] = useState<string>("");
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [channelSelecterValue, setChannelSelecterValue] = useState("");
 
@@ -92,7 +93,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
       const response = await fetch(`/api/guilds/${guildId}/modules/embed/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ embedId: Number(sendingId), channelId: channelSelecterValue }),
+        body: JSON.stringify({ embedId: Number(sendingId), channelId: channelSelecterValue, content: sendingContent }),
       });
 
       if (!response.ok) {
@@ -102,6 +103,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
 
       setIsSendModalOpen(false);
       setSendingId("");
+      setSendingContent("");
       setChannelSelecterValue("");
 
       alert("送信しました！")
@@ -181,6 +183,13 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
       <Modal isOpen={isSendModalOpen} onClose={() => setIsSendModalOpen(false)}>
         <h2 className="text-xl font-bold mb-2 text-black">埋め込みを送信する</h2>
         <ChannelSelecter guildId={guildId} type_id={0} value={channelSelecterValue} onChange={(val) => setChannelSelecterValue(val)}></ChannelSelecter><br/>
+
+        <textarea
+          className="w-full mt-1 border border-slate-200 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] text-slate-900"
+          placeholder="埋め込みを見てください。"
+          value={sendingContent}
+          onChange={(e) => setSendingContent(e.target.value as any)}
+        />
 
         <button
           onClick={handleSend}
