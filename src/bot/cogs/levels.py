@@ -213,8 +213,6 @@ class LevelsCog(commands.Cog):
 
         next_lv_xp = 5 * (current_lv ** 2) + 50 * current_lv + 100
 
-        logging.error(f"{next_lv_xp}")
-        
         leveled_up = False
         if new_xp >= next_lv_xp:
             current_lv += 1

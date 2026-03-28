@@ -40,6 +40,30 @@ class LoggingEvent:
             webhook_url=data.get("webhook_url"),
             ignored_channels=data.get("ignored_channels") or []
         )
+    
+@dataclass
+class GlobalChatRoomRestriction:
+    target_id: str
+    type: str  # "ban_user", "ban_server", "mute_user"
+    reason: str
+    expires_at: Optional[str]
+
+@dataclass
+class GlobalChatRoom:
+    name: str
+    description: str
+    slowmode: int
+    min_account_age: int
+    is_active: bool
+    restrictions: List[GlobalChatRoomRestriction]
+
+@dataclass
+class GlobalChatConfig:
+    channel_id: str
+    room_name: str
+    guild_id: str
+    webhook_url: str
+    room: Optional[GlobalChatRoom]
 
 # --- クラス実装 ---
 
@@ -435,3 +459,42 @@ class ResourceAPIClient:
                 data = await resp.json()
                 return LoggingEvent.from_dict(data)
             return None
+        
+    async def globalchat_get_channel_config(self, channel_id: int) -> Optional[Dict[str, Any]]:
+        url = f"{self.base_url}/globalchat/channels/{channel_id}"
+        async with self.session.get(url) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+
+    async def globalchat_get_active_channel_ids(self) -> List[str]:
+        url = f"{self.base_url}/globalchat/active-channels"
+        async with self.session.get(url) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                return data.get("active_channels", [])
+            return []
+
+    async def globalchat_get_active_channel_ids_byname(self, name: str) -> List[str]:
+        url = f"{self.base_url}/globalchat/rooms/{name}"
+        async with self.session.get(url) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                return data
+            return {}
+
+    async def globalchat_connect_channel(self, channel_id: int, guild_id: int, room_name: str, webhook_url: str):
+        url = f"{self.base_url}/globalchat/connect"
+        payload = {
+            "channel_id": str(channel_id),
+            "guild_id": str(guild_id),
+            "room_name": room_name,
+            "webhook_url": webhook_url
+        }
+        async with self.session.post(url, json=payload) as resp:
+            return resp.status == 200
+
+    async def globalchat_disconnect_channel(self, channel_id: int) -> bool:
+        url = f"{self.base_url}/globalchat/connect/{channel_id}"
+        async with self.session.delete(url, headers=self.headers) as resp:
+            return resp.status == 204
