@@ -93,7 +93,7 @@ class LoggingCog(commands.Cog):
             await self.bot.api.delete_logging_event(str(guild.id), event_name)
 
             try:
-                await guild.get_channel(int(event_config.log_channel_id)).send(content="ログを送信できませんでした。\nWebhookが削除された可能性があります。")
+                await guild.get_channel(int(event_config.log_channel_id)).send(content="ログを送信できませんでした。\nダッシュボードにて再設定をお願いします。")
             except:
                 pass
 
