@@ -43,6 +43,11 @@ export async function GET(
         await validateAdmin(guildId);
 
         const data = await fetchLoggingSetting(guildId);
+
+        if (data && data.events) {
+            data.events = data.events.map(({ webhook_url, ...rest }: any) => rest);
+        }
+
         return NextResponse.json(data);
     } catch (error: any) {
         return NextResponse.json(
@@ -60,8 +65,31 @@ export async function POST(
         const { guildId } = await params;
         await validateAdmin(guildId);
 
-        const body = await request.json();
-        const data = await saveLoggingSetting(guildId, body);
+        const newSetting = await request.json();
+
+        const currentData = await fetchLoggingSetting(guildId);
+        
+        if (currentData && currentData.events) {
+            newSetting.events = newSetting.events.map((newEvent: any) => {
+                const oldEvent = currentData.events.find(
+                    (e: any) => e.event_name === newEvent.event_name
+                );
+
+                if (!oldEvent || oldEvent.log_channel_id !== newEvent.log_channel_id) {
+                    return {
+                        ...newEvent,
+                        webhook_url: ""
+                    };
+                }
+
+                return {
+                    ...newEvent,
+                    webhook_url: oldEvent.webhook_url 
+                };
+            });
+        }
+
+        const data = await saveLoggingSetting(guildId, newSetting);
         
         return NextResponse.json(data);
     } catch (error: any) {

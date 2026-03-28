@@ -65,7 +65,7 @@ class LoggingCog(commands.Cog):
             return
 
         if trigger_channel_id:
-            ignored = config.global_ignored_channels or []
+            ignored = config.get('global_ignored_channels') or []
             if trigger_channel_id in ignored:
                 return
 

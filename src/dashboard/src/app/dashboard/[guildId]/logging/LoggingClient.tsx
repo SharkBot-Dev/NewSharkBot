@@ -19,7 +19,6 @@ const EVENT_PRESETS = [
 interface LoggingEvent {
   event_name: string;
   log_channel_id: string;
-  webhook_url: string;
   ignored_channels: string[];
 }
 
@@ -48,10 +47,10 @@ export default function LoggingClient({ guildId, setting: initialSetting, channe
     if (loading) return;
 
     setLoading(true);
-
-    if (setting.events.filter((value) => value.log_channel_id === "")) {
+    
+    if (setting.events.some((event) => event.log_channel_id === "")) {
       alert("ログには必ずチャンネルidを指定してください。");
-      return
+      return;
     }
 
     try {
@@ -85,7 +84,6 @@ export default function LoggingClient({ guildId, setting: initialSetting, channe
     const newEvent: LoggingEvent = {
       event_name: eventName,
       log_channel_id: "",
-      webhook_url: "",
       ignored_channels: []
     };
     setSetting({ ...setting, events: [...setting.events, newEvent] });
@@ -145,7 +143,6 @@ export default function LoggingClient({ guildId, setting: initialSetting, channe
                   const evs = [...setting.events];
                   if (evs[index].log_channel_id !== val) {
                     evs[index].log_channel_id = val;
-                    evs[index].webhook_url = "";
                   }
                   setSetting({...setting, events: evs});
                 }} />
