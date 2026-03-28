@@ -4,6 +4,7 @@ import EconomyEditorClient from "./EconomyEditorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
 import { redirect } from "next/navigation";
+import { getGuildRoles } from "@/lib/Discord/Bot";
 
 interface Props {
   params: Promise<{ guildId: string }>;
@@ -50,11 +51,13 @@ async function EconomyContent({ guildId }: { guildId: string }) {
     items = []
   }
   
+  const roles = await getGuildRoles(guildId);
 
   return (
     <EconomyEditorClient 
       guildId={guildId} 
       init_items={items} 
+      roles={roles}
     />
   );
 }

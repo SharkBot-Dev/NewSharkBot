@@ -11,9 +11,10 @@ import ChannelSelecter from "@/components/channel-selecter";
 interface Props {
   guildId: string;
   initialEmbeds: EmbedSetting[]; // すでにGoバックエンドから取得済みのリスト
+  initChannels: any[];
 }
 
-export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
+export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels }: Props) {
   const [savedEmbeds, setSavedEmbeds] = useState<EmbedSetting[]>(initialEmbeds);
   const [currentEmbedData, setCurrentEmbedData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
@@ -182,7 +183,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds }: Props) {
 
       <Modal isOpen={isSendModalOpen} onClose={() => setIsSendModalOpen(false)}>
         <h2 className="text-xl font-bold mb-2 text-black">埋め込みを送信する</h2>
-        <ChannelSelecter guildId={guildId} type_id={0} value={channelSelecterValue} onChange={(val) => setChannelSelecterValue(val)}></ChannelSelecter><br/>
+        <ChannelSelecter guildId={guildId} type_id={0} value={channelSelecterValue} onChange={(val) => setChannelSelecterValue(val)} initChannels={initChannels}></ChannelSelecter><br/>
 
         <textarea
           className="w-full mt-1 border border-slate-200 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] text-slate-900"

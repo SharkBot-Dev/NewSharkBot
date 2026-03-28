@@ -4,6 +4,7 @@ import EmbedEditorClient from "./EmbedEditorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
 import { redirect } from "next/navigation";
+import { getGuildChannels } from "@/lib/Discord/Bot";
 
 interface Props {
   params: { guildId: string };
@@ -43,11 +44,13 @@ export default async function EmbedModulePage({ params }: Props) {
 
 async function EmbedContent({ guildId }: { guildId: string }) {
   const initialEmbeds = await fetchEmbedSettings(guildId);
+  const initChannels = await getGuildChannels(guildId);
 
   return (
     <EmbedEditorClient 
       guildId={guildId} 
       initialEmbeds={initialEmbeds} 
+      initChannels={initChannels}
     />
   );
 }

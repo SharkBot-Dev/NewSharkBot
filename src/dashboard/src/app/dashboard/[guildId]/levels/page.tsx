@@ -4,7 +4,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
 import { redirect } from "next/navigation";
 import LevelsEditorClient from "./Client";
-import { getGuildRoles } from "@/lib/Discord/Bot";
+import { getGuildChannels, getGuildRoles } from "@/lib/Discord/Bot";
 
 interface Props {
   params: { guildId: string };
@@ -39,8 +39,8 @@ export default async function LevelsModulePage({ params }: Props) {
 }
 
 async function LevelContent({ guildId }: { guildId: string }) {
-  const initialEmbeds = await fetchEmbedSettings(guildId);
   const roles = await getGuildRoles(guildId);
+  const channels = await getGuildChannels(guildId);
 
   const setting = await getLevelSetting(guildId);
   const reward_roles = await getLevelRewards(guildId);
@@ -58,6 +58,8 @@ async function LevelContent({ guildId }: { guildId: string }) {
       levelup_message={setting.content} 
       levelup_embed={setting.embed_id}
       reward_roles={fixed_reward_roles}
+      initroles={roles}
+      initchannels={channels}
     />
   );
 }

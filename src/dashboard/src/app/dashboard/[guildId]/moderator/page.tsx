@@ -4,6 +4,7 @@ import ModeratorClient from "./ModeratorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
 import { redirect } from "next/navigation";
+import { getGuildChannels, getGuildRoles } from "@/lib/Discord/Bot";
 
 interface Props {
   params: Promise<{ guildId: string }>;
@@ -53,11 +54,16 @@ async function ModeratorContent({ guildId }: { guildId: string }) {
     setting = {};
   }
 
+  const channels = await getGuildChannels(guildId);
+  const roles = await getGuildRoles(guildId);
+
   return (
     <ModeratorClient 
       guildId={guildId} 
       setting={setting}
       automod={automod}
+      channels={channels}
+      roles={roles}
     />
   );
 }

@@ -6,10 +6,11 @@ interface Props {
   guildId: string;
   type_id?: number | null;
   value?: string;
-  onChange?: (channelId: string) => void; 
+  onChange?: (channelId: string) => void;
+  initRoles?: any[]; 
 }
 
-export default function RoleSelector({ guildId, type_id, value, onChange }: Props) {
+export default function RoleSelector({ guildId, type_id, value, onChange, initRoles }: Props) {
   const [roles, setRoles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +20,13 @@ export default function RoleSelector({ guildId, type_id, value, onChange }: Prop
 
     setIsLoading(true);
     setError(null);
-    
+
+    if (initRoles) {
+      setRoles(initRoles);
+      setIsLoading(false);
+      return;
+    }
+     
     try {
       const res = await fetch(`/api/guilds/${guildId}/roles`, {
         method: "GET",

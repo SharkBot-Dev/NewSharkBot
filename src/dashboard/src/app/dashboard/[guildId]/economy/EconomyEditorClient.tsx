@@ -21,6 +21,7 @@ interface EconomyItem {
 interface Props {
   guildId: string;
   init_items: EconomyItem[];
+  roles: any[];
 }
 
 const commands = [
@@ -84,7 +85,7 @@ const commands = [
 ];
 
 
-export default function EconomyEditorClient({ guildId, init_items }: Props) {
+export default function EconomyEditorClient({ guildId, init_items, roles }: Props) {
   const [items, setItems] = useState<EconomyItem[]>(init_items);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -262,6 +263,7 @@ export default function EconomyEditorClient({ guildId, init_items }: Props) {
                   guildId={guildId} 
                   value={newItem.role_id} 
                   onChange={(id) => setNewItem({ ...newItem, role_id: id })} 
+                  initRoles={roles}
                 />
               </div>
               <p className="text-[10px] text-zinc-500 mt-1 ml-1">※Botの権限より下のロールのみ付与可能です。</p>
