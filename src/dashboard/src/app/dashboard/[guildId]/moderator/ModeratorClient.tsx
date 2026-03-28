@@ -119,7 +119,7 @@ const commands = [
   {
     name: "clear",
     description: "メッセージを複数個削除します。",
-    default_member_permissions: Permissions.ManageChannels.toString(),
+    default_member_permissions: Permissions.ManageMessages.toString(),
     options: [
       {
         name: "amount",
@@ -271,7 +271,6 @@ export default function ModeratorClient({ guildId, automod, setting }: Props) {
 import { X, Plus } from "lucide-react";
 import RoleSelector from "@/components/role-selector";
 import CommandsControl from "@/components/commands";
-import { deflateRawSync } from "node:zlib";
 
 function AutoModEditor({ guildId, type, initialData, onSave }: any) {
   const [actions, setActions] = useState<string[]>(initialData.actions || []);
@@ -306,6 +305,7 @@ function AutoModEditor({ guildId, type, initialData, onSave }: any) {
                 key={opt}
                 type="button"
                 onClick={() => toggleItem(actions, setActions, opt)}
+                aria-pressed={isSelected}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 ${
                     isSelected 
                     ? 'bg-black text-white border-black' 
@@ -326,7 +326,14 @@ function AutoModEditor({ guildId, type, initialData, onSave }: any) {
           {whitelistChannels.map(id => (
             <span key={id} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded text-xs border border-border">
               ID: {id}
-              <X className="w-3 h-3 cursor-pointer hover:text-red-500" onClick={() => toggleItem(whitelistChannels, setWhitelistChannels, id)} />
+              <button
+                type="button"
+                aria-label={`除外チャンネル ${id} を削除`}
+                onClick={() => toggleItem(whitelistChannels, setWhitelistChannels, id)}
+                className="hover:text-red-500"
+              >
+                <X className="w-3 h-3" />
+              </button>
             </span>
           ))}
         </div>
