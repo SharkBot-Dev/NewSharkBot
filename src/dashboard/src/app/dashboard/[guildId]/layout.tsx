@@ -116,7 +116,7 @@ export default function DashboardLayout({
               <BotIcon className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-slate-900 tracking-tight">
-              SudoBot
+              SharkBot
             </span>
           </div>
 
