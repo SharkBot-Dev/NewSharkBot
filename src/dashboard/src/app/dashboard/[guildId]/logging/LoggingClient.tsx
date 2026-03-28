@@ -129,7 +129,7 @@ export default function LoggingClient({ guildId, setting: initialSetting, channe
         <h2 className="text-xl font-bold border-b pb-2">現在の設定リスト</h2>
         
         {setting.events.map((event, index) => (
-          <div key={index} className="bg-card border rounded-xl shadow-sm overflow-hidden">
+          <div key={event.event_name} className="bg-card border rounded-xl shadow-sm overflow-hidden">
             <div className="p-4 bg-muted/30 border-b flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-500 w-2 h-6 rounded-full" />
@@ -143,7 +143,10 @@ export default function LoggingClient({ guildId, setting: initialSetting, channe
                 <label className="text-xs font-bold uppercase text-muted-foreground">送信先チャンネル</label>
                 <ChannelSelecter guildId={guildId} value={event.log_channel_id} onChange={val => {
                   const evs = [...setting.events];
-                  evs[index].log_channel_id = val;
+                  if (evs[index].log_channel_id !== val) {
+                    evs[index].log_channel_id = val;
+                    evs[index].webhook_url = "";
+                  }
                   setSetting({...setting, events: evs});
                 }} />
               </div>

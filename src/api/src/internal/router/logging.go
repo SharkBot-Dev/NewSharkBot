@@ -95,7 +95,10 @@ func setOneLoggingEvent(c *gin.Context) {
 	input.EventName = eventName
 
 	var setting model.LoggingSetting
-	db.FirstOrCreate(&setting, model.LoggingSetting{GuildID: id})
+	if err := db.FirstOrCreate(&setting, model.LoggingSetting{GuildID: id}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load settings"})
+		return
+	}
 
 	updated := false
 	for i, e := range setting.Events {
@@ -109,7 +112,10 @@ func setOneLoggingEvent(c *gin.Context) {
 		setting.Events = append(setting.Events, input)
 	}
 
-	db.Save(&setting)
+	if err := db.Save(&setting).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save settings"})
+		return
+	}
 	c.JSON(http.StatusOK, setting)
 }
 
@@ -132,7 +138,10 @@ func deleteOneLoggingEvent(c *gin.Context) {
 	}
 	setting.Events = newEvents
 
-	db.Save(&setting)
+	if err := db.Save(&setting).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save settings"})
+		return
+	}
 	c.JSON(http.StatusOK, setting)
 }
 

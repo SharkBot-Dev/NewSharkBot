@@ -11,9 +11,19 @@ type StringSlice []string
 
 func (s StringSlice) Value() (driver.Value, error) { return json.Marshal(s) }
 func (s *StringSlice) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
+	if value == nil {
+		*s = nil
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("failed to scan StringSlice: unsupported type")
 	}
 	return json.Unmarshal(bytes, s)
 }
@@ -30,9 +40,19 @@ type LoggingEvents []LoggingEvent
 
 func (l LoggingEvents) Value() (driver.Value, error) { return json.Marshal(l) }
 func (l *LoggingEvents) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
+	if value == nil {
+		*l = nil
+		return nil
+	}
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("failed to scan LoggingEvents: unsupported type")
 	}
 	return json.Unmarshal(bytes, l)
 }

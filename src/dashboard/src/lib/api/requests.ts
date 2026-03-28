@@ -21,7 +21,7 @@ export interface MessageSetting {
 export interface LoggingEvent {
     event_name: string;
     log_channel_id: string;
-    webhook_url: string;
+    webhook_url?: string | null;
     ignored_channels: string[]; 
 }
 
@@ -291,7 +291,8 @@ export async function saveLoggingSetting(guildId: string, data: Partial<LoggingS
 }
 
 export async function saveOneLoggingEvent(guildId: string, eventName: string, data: LoggingEvent) {
-    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}/event/${eventName}`, {
+    const encodedEventName = encodeURIComponent(eventName);
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}/event/${encodedEventName}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -303,7 +304,8 @@ export async function saveOneLoggingEvent(guildId: string, eventName: string, da
 }
 
 export async function deleteOneLoggingEvent(guildId: string, eventName: string) {
-    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}/event/${eventName}`, {
+    const encodedEventName = encodeURIComponent(eventName);
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}/event/${encodedEventName}`, {
         method: "DELETE",
     });
     if (!response.ok) {

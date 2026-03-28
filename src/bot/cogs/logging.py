@@ -60,6 +60,15 @@ class LoggingCog(commands.Cog):
         if not is_enabled or not is_enabled.get('enabled'):
             return
 
+        config = await self.bot.api.get_logging_setting(str(guild.id))
+        if not config:
+            return
+
+        if trigger_channel_id:
+            ignored = config.global_ignored_channels or []
+            if trigger_channel_id in ignored:
+                return
+
         event_config = await self.bot.api.get_event_config(str(guild.id), event_name)
         if not event_config or not self.bot.api._is_valid_discord_id(event_config.log_channel_id):
             return
