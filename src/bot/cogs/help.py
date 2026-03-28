@@ -36,23 +36,33 @@ class HelpCog(commands.Cog):
             command = self.bot.slashcommands.get(command_name)
             if command:
                 embed.title = f"コマンド: /{command.name}"
-                embed.description = f"説明: {command.description}"
+                embed.description = f"**カテゴリー:** {command.module_name}\n**説明:** {command.description}"
             else:
                 embed.title = "エラー"
-                embed.description = (
-                    f"コマンド `{command_name}` は見つかりませんでした。"
-                )
+                embed.description = f"コマンド `{command_name}` は見つかりませんでした。"
                 embed.color = discord.Color.red()
 
         else:
-            embed.title = "コマンド一覧"
-            cmd_list = []
-            for cmd in await self.bot.tree.fetch_commands(guild=interaction.guild):
-                cmd_list.append(f"`/{cmd.name}` - {cmd.description}")
+            embed.title = "コマンド一覧（カテゴリー別）"
+            
+            modules = {}
+            
+            for cmd in self.bot.slashcommands.values():
+                mod_name = cmd.module_name
+                if mod_name not in modules:
+                    modules[mod_name] = []
+                modules[mod_name].append(f"`/{cmd.name}`")
 
-            embed.description = (
-                "\n".join(cmd_list) if cmd_list else "利用可能なコマンドはありません。"
-            )
+            if modules:
+                for mod_name, cmds in modules.items():
+                    embed.add_field(
+                        name=f"📦 {mod_name}", 
+                        value=", ".join(cmds), 
+                        inline=False
+                    )
+            else:
+                embed.description = "利用可能なコマンドはありません。"
+                
             embed.set_footer(text="/help [コマンド名] で詳細を表示できます")
 
         await interaction.followup.send(embed=embed)
