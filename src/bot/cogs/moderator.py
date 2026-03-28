@@ -38,6 +38,10 @@ class ModeratorCog(commands.Cog):
         remove_timeout.execute = self.remove_timeout_command
         self.bot.add_slashcommand(remove_timeout)
 
+        clear = Command(name="clear", description="メッセージを複数個削除します。", module_name="モデレーター")
+        clear.execute = self.clear_command
+        self.bot.add_slashcommand(clear)
+
         user_info = Command(name="user-info", description="ユーザーの情報を取得します。", module_name="モデレーター")
         user_info.execute = self.user_info_command
         self.bot.add_slashcommand(user_info)
@@ -201,6 +205,27 @@ class ModeratorCog(commands.Cog):
             return
 
         await self.send_moderator_log(guild, interaction.user, user, "タイムアウト解除", reason)
+
+    async def clear_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        guild = interaction.guild
+        amount = kwargs.get("amount")
+
+        amount_int = int(amount)
+
+        if amount_int > 100:
+            await interaction.followup.send(content="DiscordAPIの制限のため、一回で100件までしか削除できません。")
+        
+        seven_days_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
+
+        deleted = await interaction.channel.purge(
+            limit=amount_int, 
+            after=seven_days_ago,
+            oldest_first=False
+        )
+
+        await interaction.channel.send(f'{len(deleted)} 件のメッセージを削除しました。', delete_after=5)
 
     async def user_info_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()

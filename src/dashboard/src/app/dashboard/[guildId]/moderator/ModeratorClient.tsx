@@ -117,6 +117,19 @@ const commands = [
     ]
   },
   {
+    name: "clear",
+    description: "メッセージを複数個削除します。",
+    default_member_permissions: Permissions.ManageChannels.toString(),
+    options: [
+      {
+        name: "amount",
+        description: "削除する個数を選択してください。",
+        type: 4,
+        required: true,
+      },
+    ]
+  },
+  {
     name: "user-info",
     description: "ユーザーの情報を表示します。",
     options: [
@@ -258,6 +271,7 @@ export default function ModeratorClient({ guildId, automod, setting }: Props) {
 import { X, Plus } from "lucide-react";
 import RoleSelector from "@/components/role-selector";
 import CommandsControl from "@/components/commands";
+import { deflateRawSync } from "node:zlib";
 
 function AutoModEditor({ guildId, type, initialData, onSave }: any) {
   const [actions, setActions] = useState<string[]>(initialData.actions || []);
