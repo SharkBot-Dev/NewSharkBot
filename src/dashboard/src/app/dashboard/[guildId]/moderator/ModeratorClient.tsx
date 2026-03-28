@@ -12,6 +12,8 @@ interface Props {
   guildId: string;
   automod: Record<string, any>;
   setting: any;
+  channels: any[];
+  roles: any[];
 }
 
 const commands = [
@@ -151,7 +153,7 @@ const automod_map: Record<string, string> = {
   "spoiler": "大量のネタバレ対策",
 }
 
-export default function ModeratorClient({ guildId, automod, setting }: Props) {
+export default function ModeratorClient({ guildId, automod, setting, channels, roles }: Props) {
   // 基本設定のステート
   const [logChannelId, setLogChannelId] = useState(setting?.log_channel_id || "");
   
@@ -203,6 +205,7 @@ export default function ModeratorClient({ guildId, automod, setting }: Props) {
               guildId={guildId} 
               value={logChannelId} 
               onChange={setLogChannelId} 
+              initChannels={channels}
             />
           </div>
           <button 
@@ -260,6 +263,8 @@ export default function ModeratorClient({ guildId, automod, setting }: Props) {
             type={editingType}
             initialData={automodSettings[editingType] || {}}
             onSave={(data: any) => handleSave(editingType, data)}
+            initChannels={channels}
+            initRoles={roles}
           />
         )}
       </Modal>
@@ -272,7 +277,7 @@ import { X, Plus } from "lucide-react";
 import RoleSelector from "@/components/role-selector";
 import CommandsControl from "@/components/commands";
 
-function AutoModEditor({ guildId, type, initialData, onSave }: any) {
+function AutoModEditor({ guildId, type, initialData, onSave, initChannels, initRoles }: any) {
   const [actions, setActions] = useState<string[]>(initialData.actions || []);
   const [whitelistChannels, setWhitelistChannels] = useState<string[]>(initialData.whitelist_channel_ids || []);
   const [whitelistRoles, setWhitelistRoles] = useState<string[]>(initialData.whitelist_role_ids || []);
@@ -337,7 +342,7 @@ function AutoModEditor({ guildId, type, initialData, onSave }: any) {
             </span>
           ))}
         </div>
-        <ChannelSelecter guildId={guildId} value="" onChange={(v) => toggleItem(whitelistChannels, setWhitelistChannels, v)} />
+        <ChannelSelecter guildId={guildId} value="" onChange={(v) => toggleItem(whitelistChannels, setWhitelistChannels, v)} initChannels={initChannels} />
       </div>
 
       {/* 3. ホワイトリスト (ロール) */}
@@ -352,7 +357,7 @@ function AutoModEditor({ guildId, type, initialData, onSave }: any) {
           ))}
           
         </div>
-        <RoleSelector guildId={guildId} value="" onChange={(v) => toggleItem(whitelistRoles, setWhitelistRoles, v)} />
+        <RoleSelector guildId={guildId} value="" onChange={(v) => toggleItem(whitelistRoles, setWhitelistRoles, v)} initRoles={initRoles} />
       </div>
 
       {/* 4. 各タイプ固有の設定 */}

@@ -74,6 +74,8 @@ interface Props {
   levelup_message: string;
   levelup_embed: string;
   reward_roles: LevelRewardRole[];
+  initchannels: any[];
+  initroles: any[];
 }
 
 export default function LevelsEditorClient({ 
@@ -81,7 +83,9 @@ export default function LevelsEditorClient({
   levelup_channel, 
   levelup_message, 
   levelup_embed, 
-  reward_roles 
+  reward_roles ,
+  initchannels,
+  initroles
 }: Props) {
   const [embed, setEmbed] = useState<string>(levelup_embed);
   const [message, setLevelupMessage] = useState<string>(levelup_message || "");
@@ -144,6 +148,7 @@ export default function LevelsEditorClient({
                 guildId={guildId} 
                 value={channel} 
                 onChange={(id) => setChannel(id)} 
+                initChannels={initchannels}
               />
             </div>
             <div>
@@ -214,6 +219,7 @@ export default function LevelsEditorClient({
                       guildId={guildId} 
                       value={reward.roleId} 
                       onChange={(id) => updateRewardRole(index, "roleId", id)} 
+                      initRoles={initroles}
                     />
                   </div>
                   <button 
