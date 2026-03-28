@@ -44,7 +44,7 @@ export async function POST(
 
         await validateAdmin(guildId);
 
-        const { channelId, embedId } = await request.json();
+        const { channelId, embedId, content } = await request.json();
 
         if (!channelId) {
             return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
@@ -65,7 +65,7 @@ export async function POST(
 
             const result = await sendMessage(
                 channelId,
-                "", 
+                content, 
                 embedData["data"]
             );
 
