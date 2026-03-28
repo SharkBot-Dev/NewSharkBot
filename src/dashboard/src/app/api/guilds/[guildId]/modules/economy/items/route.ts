@@ -3,7 +3,10 @@ import { checkAdminPermission } from "@/lib/Discord/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!BACKEND_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL environment variable is required");
+}
 
 async function validateAdmin(guildId: string) {
     const allLinkedAccounts = await auth.api.listUserAccounts({

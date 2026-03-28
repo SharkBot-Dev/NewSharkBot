@@ -5,6 +5,10 @@ import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
 
+if (!BACKEND_URL) {
+  throw new Error("BACKEND_API_URL or NEXT_PUBLIC_API_URL environment variable is required");
+}
+
 const AUTOMOD_TYPES = ["invite", "badword", "badlink", "spoiler"] as const;
 const isAutomodType = (value: string): value is (typeof AUTOMOD_TYPES)[number] =>
     AUTOMOD_TYPES.includes(value as (typeof AUTOMOD_TYPES)[number]);
