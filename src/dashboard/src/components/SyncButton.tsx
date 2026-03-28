@@ -30,7 +30,7 @@ export default function SyncButton({ guildId }: Props) {
       if (res.status === 429) {
         setMessage({
           type: "error",
-          text: `クールダウン中です。あと約 ${data.remaining_hours || 0} 時間待機してください。`,
+          text: data.remaining,
         });
         return;
       }
