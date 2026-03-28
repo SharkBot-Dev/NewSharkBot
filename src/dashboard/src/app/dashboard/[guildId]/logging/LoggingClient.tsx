@@ -1,11 +1,9 @@
 "use client";
 
-import { Terminal, Save, Trash2, Plus, X, Hash, ListPlus } from "lucide-react";
+import { Trash2, Plus, X, Hash, ListPlus } from "lucide-react";
 import { useState } from "react";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ChannelSelecter from "@/components/channel-selecter";
-import { saveLoggingSetting } from "@/lib/api/requests";
-import { methods } from "better-auth/react";
 
 const EVENT_PRESETS = [
   { name: "message_delete", label: "メッセージ削除" },
@@ -50,6 +48,11 @@ export default function LoggingClient({ guildId, setting: initialSetting, channe
     if (loading) return;
 
     setLoading(true);
+
+    if (setting.events.filter((value) => value.log_channel_id === "")) {
+      alert("ログには必ずチャンネルidを指定してください。");
+      return
+    }
 
     try {
       const response = await fetch(`/api/guilds/${guildId}/modules/logging`, {
