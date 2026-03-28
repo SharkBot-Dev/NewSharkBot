@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -50,6 +50,17 @@ export const modules = new Map<string, ModuleSetting>([
       icon: SmilePlus,
       group: "サーバー管理",
     },
+  ],
+  [
+    "moderator",
+    {
+      id: "moderator",
+      name: "モデレーター",
+      description: "自動モデレートや、モデレートコマンドを使用できるようにします。",
+      enabled: true,
+      icon: Ban,
+      group: "サーバー管理"
+    }
   ],
   [
     "help",
