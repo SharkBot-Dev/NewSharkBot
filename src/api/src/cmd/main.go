@@ -63,6 +63,7 @@ func main() {
 		&model.EconomyCooldown{},
 		&model.ModeratorSetting{},
 		&model.EnabledAutoModeratorSetting{},
+		&model.LoggingSetting{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
@@ -91,6 +92,7 @@ func main() {
 	router.RegisterLevelsSettings(r.Group("/"))
 	router.RegisterEconomy(r.Group("/"))
 	router.RegisterModeratorSetting(r.Group("/"))
+	router.RegisterLoggingSetting(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)

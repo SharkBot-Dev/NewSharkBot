@@ -18,6 +18,21 @@ export interface MessageSetting {
     updated_at?: string;
 }
 
+export interface LoggingEvent {
+    event_name: string;
+    log_channel_id: string;
+    webhook_url: string;
+    ignored_channels: string[]; 
+}
+
+export interface LoggingSetting {
+    guild_id: string;
+    events: LoggingEvent[];
+    global_ignored_channels: string[]; 
+    created_at?: string;
+    updated_at?: string;
+}
+
 const isValidDiscordId = (id: string) => /^\d{17,20}$/.test(id);
 
 export async function createGuildEntry(guildId: string) {
@@ -251,5 +266,58 @@ export async function fetchAutomodSettings(guildId: string, type: string) {
     if (!response.ok) {
         throw new Error(`Failed to fetch automod settings: ${response.statusText}`);
     };
+    return response.json();
+}
+
+export async function fetchLoggingSetting(guildId: string): Promise<LoggingSetting> {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}`);
+    if (!response.ok) {
+        if (response.status === 404) return { guild_id: guildId, events: [], global_ignored_channels: [] };
+        throw new Error(`Failed to fetch logging settings: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function saveLoggingSetting(guildId: string, data: Partial<LoggingSetting>) {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to save logging settings: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function saveOneLoggingEvent(guildId: string, eventName: string, data: LoggingEvent) {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}/event/${eventName}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to save event setting: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function deleteOneLoggingEvent(guildId: string, eventName: string) {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}/event/${eventName}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete event setting: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+export async function deleteLoggingSetting(guildId: string) {
+    const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/logging/${guildId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete logging settings: ${response.statusText}`);
+    }
     return response.json();
 }

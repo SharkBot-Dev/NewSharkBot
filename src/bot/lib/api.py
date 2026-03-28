@@ -25,6 +25,22 @@ class MessageSetting:
     embed: Optional[EmbedSetting] = None
     updated_at: Optional[str] = None
 
+@dataclass
+class LoggingEvent:
+    event_name: str
+    log_channel_id: str
+    webhook_url: Optional[str] = None
+    ignored_channels: List[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "LoggingEvent":
+        return cls(
+            event_name=data.get("event_name", ""),
+            log_channel_id=data.get("log_channel_id", ""),
+            webhook_url=data.get("webhook_url"),
+            ignored_channels=data.get("ignored_channels") or []
+        )
+
 # --- クラス実装 ---
 
 class ResourceAPIClient:
@@ -381,3 +397,41 @@ class ResourceAPIClient:
     async def delete_automod_setting(self, guild_id: str, mod_type: str) -> bool:
         async with self.session.delete(f"{self.base_url}/guilds/automod/{guild_id}/{mod_type}") as resp:
             return resp.status == 204
+        
+    async def get_logging_setting(self, guild_id: str) -> Optional[Dict[str, Any]]:
+        async with self.session.get(f"{self.base_url}/guilds/logging/{guild_id}") as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+
+    async def save_logging_setting(self, guild_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        async with self.session.post(f"{self.base_url}/guilds/logging/{guild_id}", json=data) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+
+    async def delete_logging_setting(self, guild_id: str) -> bool:
+        async with self.session.delete(f"{self.base_url}/guilds/logging/{guild_id}") as resp:
+            return resp.status == 200
+
+    async def set_logging_event(self, guild_id: str, event_name: str, event_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        url = f"{self.base_url}/guilds/logging/{guild_id}/event/{event_name}"
+        async with self.session.post(url, json=event_data) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+
+    async def delete_logging_event(self, guild_id: str, event_name: str) -> Optional[Dict[str, Any]]:
+        url = f"{self.base_url}/guilds/logging/{guild_id}/event/{event_name}"
+        async with self.session.delete(url) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+        
+    async def get_event_config(self, guild_id: str, event_name: str) -> Optional[LoggingEvent]:
+        url = f"{self.base_url}/guilds/logging/{guild_id}/event/{event_name}"
+        async with self.session.get(url) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                return LoggingEvent.from_dict(data)
+            return None
