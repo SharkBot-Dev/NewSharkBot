@@ -14,4 +14,5 @@ export const auth = betterAuth({
       scope: ["identify", "email", "guilds", "openid"],
     },
   },
+  trustedOrigins: ["https://test.sharkbot.xyz", "http://localhost:3000"]
 });

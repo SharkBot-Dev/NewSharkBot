@@ -22,6 +22,20 @@ services:
       - sharkbot_network
     environment:
       RESOURCE_API_BASE_URL: "http://api:8080"
+  dashboard:
+    build:
+      context: ./src/dashboard
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sharkbot_network
+    environment:
+      DATABASE_URL: "postgresql://sharkbot:password@postgres:5432/postgres"
+      NEXT_PUBLIC_API_URL: http://api:8080
+    ports:
+      - "3000:3000"
   postgres:
     image: postgres:18
     environment:

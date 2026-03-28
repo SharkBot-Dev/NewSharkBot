@@ -3,7 +3,11 @@ import { checkAdminPermission } from "@/lib/Discord/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8080";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!BACKEND_URL) {
+  throw new Error("BACKEND_API_URL or NEXT_PUBLIC_API_URL environment variable is required");
+}
 
 const AUTOMOD_TYPES = ["invite", "badword", "badlink", "spoiler"] as const;
 const isAutomodType = (value: string): value is (typeof AUTOMOD_TYPES)[number] =>

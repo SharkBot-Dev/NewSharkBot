@@ -4,8 +4,6 @@ import { checkAdminPermission } from "@/lib/Discord/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8080";
-
 async function validateAdmin(guildId: string) {
     const allLinkedAccounts = await auth.api.listUserAccounts({
         headers: await headers(),
