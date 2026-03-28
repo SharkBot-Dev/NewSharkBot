@@ -32,6 +32,6 @@
     "@biomejs/biome": "^2.4.9",
     "prisma": "^7.5.0",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.0"
   }
 }
