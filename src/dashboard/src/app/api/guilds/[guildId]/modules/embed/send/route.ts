@@ -50,6 +50,10 @@ export async function POST(
             return NextResponse.json({ error: "Missing channelId" }, { status: 400 });
         }
 
+        if (content == undefined) {
+            return NextResponse.json({ error: "Invalid content" }, { status: 400 });
+        }
+
         const validatedChannel = await getValidatedChannelInServer(guildId, channelId);
         if (!validatedChannel) {
             return NextResponse.json({ error: "Invalid channelId" }, { status: 400 });
