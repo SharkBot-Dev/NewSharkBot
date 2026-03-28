@@ -64,7 +64,9 @@ export async function GET(
 
         return NextResponse.json({ settings, automod });
     } catch (error: any) {
-        const status = error.status || 500; 
+        let status = 500;
+        if (error.message === "Unauthorized") status = 401;
+        else if (error.message === "Forbidden") status = 403;
         return NextResponse.json(
             { error: error.message || "Internal Server Error" },
             { status }
@@ -108,8 +110,14 @@ export async function POST(
         });
 
         if (!res.ok) {
-            const errorData = await res.json();
-            return NextResponse.json({ error: errorData.error || "Failed to save settings" }, { status: res.status });
+            let errorMessage = "Failed to save settings";
+            try {
+                const errorData = await res.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch {
+                // JSON parse failed, use default message
+            }
+            return NextResponse.json({ error: errorMessage }, { status: res.status })
         }
 
         const result = await res.json();
@@ -130,7 +138,7 @@ export async function DELETE(
         const { searchParams } = new URL(request.url);
         const type = searchParams.get("type"); 
 
-        if (!type) {
+        if (!type || !isAutomodType(type)) {
             return NextResponse.json({ error: "Type is required" }, { status: 400 });
         }
 

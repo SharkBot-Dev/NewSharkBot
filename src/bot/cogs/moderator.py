@@ -165,7 +165,7 @@ class ModeratorCog(commands.Cog):
             return await interaction.followup.send(content="無効な時間を指定しています。\n\n例: `10d2m5s`", allowed_mentions=discord.AllowedMentions.none())
 
         try:
-            await user.timeout(discord.utils.utcnow() + datetime.timedelta(seconds=parse), reason=self.reason_parse(reason, interaction.user, "Ban解除"))
+            await user.timeout(discord.utils.utcnow() + datetime.timedelta(seconds=parse), reason=self.reason_parse(reason, interaction.user, "タイムアウト"))
             await interaction.followup.send(content=f"⌚ {user.mention} をタイムアウトしました。", allowed_mentions=discord.AllowedMentions.none())
         except discord.Forbidden:
             await interaction.followup.send(content="権限がありません。", allowed_mentions=discord.AllowedMentions.none())
@@ -206,7 +206,7 @@ class ModeratorCog(commands.Cog):
         await interaction.response.defer()
 
         guild = interaction.guild
-        user_id = kwargs.get("user")
+        user_id = kwargs.get("user", str(interaction.user.id))
 
         try:
             user = await interaction.client.fetch_user(int(user_id))
@@ -224,20 +224,21 @@ class ModeratorCog(commands.Cog):
         member = interaction.guild.get_member(int(user_id))
         if member:
             embed.add_field(name="サーバー参加日", value=member.joined_at.strftime("%Y-%m-%d %H:%M:%S"), inline=True)
-            embed.add_field(name="ロール", value=", ".join([role.name for role in member.roles]), inline=True)
+            embed.add_field(name="ロール", value=", ".join([role.mention for role in member.roles]), inline=True)
 
-            status = member.client_status
+            status = member.status
             emoji = STATUS_EMOJIS.get(status, "❔")
-            embed.add_field(name="ステータス", value=f"{emoji} {status}", inline=True)
+            embed.add_field(name="ステータス", value=f"{emoji} {status.name}", inline=True)
             
-            mobile_status_text = "Web"
-            if member.client_status.mobile_status:
-                mobile_status_text = "スマホ"
+            platforms = []
+            if member.desktop_status != discord.Status.offline:
+                platforms.append("デスクトップ")
+            if member.mobile_status != discord.Status.offline:
+                platforms.append("スマホ")
+            if member.web_status != discord.Status.offline:
+                platforms.append("Web")
             
-            if member.client_status.desktop_status:
-                mobile_status_text = "デスクトップ"
-
-            embed.add_field(name="機種", value=mobile_status_text, inline=True)
+            embed.add_field(name="機種", value=", ".join(platforms) if platforms else "不明", inline=True)
 
             activity = member.activity
             if activity:
