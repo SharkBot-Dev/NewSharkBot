@@ -4,8 +4,31 @@ import {
   deleteSlashCommand,
   getAllSlashCommands,
   registerSlashCommand,
+  syncSlashCommands,
 } from "@/lib/Discord/Bot";
 import { checkAdminPermission, getAccessToken } from "@/lib/Discord/User";
+
+import EconomyCommands from "@/constants/commands/economy"
+import HelpCommands from "@/constants/commands/help"
+import LevelCommands from "@/constants/commands/level"
+import ModeratorCommands from "@/constants/commands/moderator"
+import SearchCommands from "@/constants/commands/search"
+import TestCommands from "@/constants/commands/test"
+import { fetchGuildSettings } from "@/lib/api/requests";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!BACKEND_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL environment variable is required");
+}
+
+const modules = {
+  "economy": EconomyCommands,
+  "help": HelpCommands,
+  "levels": LevelCommands,
+  "moderator": ModeratorCommands,
+  "search": SearchCommands,
+  "test": TestCommands
+}
 
 export async function POST(
   req: Request,
@@ -25,6 +48,49 @@ export async function POST(
   }
 
   const { action, command, commandId } = await req.json();
+
+  if (action == "sync") {
+    const settings = await fetchGuildSettings(guildId);
+    if (!settings) {
+      return NextResponse.json({ error: "EnabledModule NotFound" }, { status: 404 });
+    }
+    const enabledModules = settings.EnabledModules;
+
+    if (!enabledModules) {
+      return NextResponse.json({ error: "Missing enabledModules" }, { status: 400 });
+    }
+
+    const res = await fetch(`${BACKEND_URL}/cooldowns/slash_sync/${guildId}?hours=24`, { method: 'POST' });
+    if (res.status === 429) {
+      const data = await res.json();
+      return NextResponse.json(
+        { 
+          error: "クールダウン中です。", 
+          remaining: `${data.remaining_hours}時間後に再度お試しください。` 
+        }, 
+        { status: 429 }
+      );
+    }
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "クールダウンの保存に失敗しました。" }, 
+        { status: 500 }
+      );
+    }
+
+    const commandsToSync = Object.entries(modules)
+      .filter(([key]) => enabledModules[key] === true)
+      .flatMap(([_, commandArray]) => commandArray);
+
+    const result = await syncSlashCommands(guildId, commandsToSync);
+        
+    return NextResponse.json({ 
+      success: true, 
+      syncedCount: commandsToSync.length,
+      data: result 
+    });
+  }
 
   if (!action || action == "add" && !command) {
     return NextResponse.json(

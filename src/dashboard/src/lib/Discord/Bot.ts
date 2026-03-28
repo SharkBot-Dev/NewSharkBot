@@ -108,6 +108,29 @@ export async function getGuildRoles(guildId: string) {
   return await response.json();
 }
 
+export async function syncSlashCommands(guildId: string, commandsData: any[]) {
+  const clientId = process.env.AUTH_DISCORD_ID;
+
+  if (!clientId || !isValidDiscordId(clientId) || !isValidDiscordId(guildId)) {
+    throw new Error("Invalid Client ID or Guild ID");
+  }
+
+  const url = `${DISCORD_API_BASE_URL}/applications/${clientId}/guilds/${guildId}/commands`;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: headers,
+    body: JSON.stringify(commandsData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(`Failed to sync commands: ${JSON.stringify(error)}`);
+  }
+
+  return await response.json();
+}
+
 export async function registerSlashCommand(guildId: string, commandData: any) {
   const clientId = process.env.AUTH_DISCORD_ID;
 

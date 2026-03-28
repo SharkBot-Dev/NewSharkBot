@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { NoIconModuleSetting, type ModuleSetting } from "@/lib/modules";
 import ModuleCard from "@/components/ModuleCard";
 import { modules as modules_list } from "@/lib/modules";
+import CollapsibleSection from "@/components/CollapsibleSection";
+import SyncButton from "@/components/SyncButton";
 
 export default function ModuleList({ 
   guildId, 
@@ -79,6 +81,10 @@ export default function ModuleList({
           </div>
         </section>
       ))}
+
+      <CollapsibleSection title="重要な設定">
+        <SyncButton guildId={guildId}></SyncButton>
+      </CollapsibleSection>
     </>
   );
 }
