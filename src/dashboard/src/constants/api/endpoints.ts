@@ -1,2 +1,1 @@
-export const RESOURCE_API_BASE_URL =
-  process.env.RESOURCE_API_BASE_URL || "http://localhost:8080";
+export const RESOURCE_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
