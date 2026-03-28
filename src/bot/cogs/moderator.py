@@ -212,10 +212,13 @@ class ModeratorCog(commands.Cog):
         guild = interaction.guild
         amount = kwargs.get("amount")
 
-        amount_int = int(amount)
+        try:
+            amount_int = int(kwargs.get("amount"))
+        except (TypeError, ValueError):
+            return await interaction.followup.send(content="削除件数は 1〜100 の整数で指定してください。")
 
-        if amount_int > 100:
-            await interaction.followup.send(content="DiscordAPIの制限のため、一回で100件までしか削除できません。")
+        if not 1 <= amount_int <= 100:
+            return await interaction.followup.send(content="削除件数は 1〜100 の整数で指定してください。")
         
         seven_days_ago = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
 
