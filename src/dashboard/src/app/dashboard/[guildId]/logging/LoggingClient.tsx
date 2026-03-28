@@ -9,7 +9,13 @@ import { methods } from "better-auth/react";
 
 const EVENT_PRESETS = [
   { name: "message_delete", label: "メッセージ削除" },
-  { name: "message_edit", label: "メッセージ編集" }
+  { name: "message_edit", label: "メッセージ編集" },
+  { name: "member_kick", label: "メンバーキック (監査ログ)" },
+  { name: "member_ban", label: "メンバーBAN (監査ログ)" },
+  { name: "channel_create", label: "チャンネル作成" },
+  { name: "channel_delete", label: "チャンネル削除" },
+  { name: "role_create", label: "ロール作成" },
+  { name: "role_delete", label: "ロール削除" },
 ];
 
 interface LoggingEvent {
