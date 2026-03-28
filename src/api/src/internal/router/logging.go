@@ -68,7 +68,11 @@ func getOneLoggingEventConfig(c *gin.Context) {
 
 	var setting model.LoggingSetting
 	if err := db.Where("guild_id = ?", id).First(&setting).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Settings not found"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Settings not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load settings"})
 		return
 	}
 

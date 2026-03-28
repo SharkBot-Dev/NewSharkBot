@@ -82,12 +82,22 @@ class LoggingCog(commands.Cog):
         if not webhook_url:
             return
 
-        webhook = discord.Webhook.from_url(webhook_url, session=self.bot.session)
-        await webhook.send(
-            embed=embed, 
-            username=f"{guild.me.display_name} Logging", 
-            avatar_url=guild.me.display_avatar.url
-        )
+        try:
+            webhook = discord.Webhook.from_url(webhook_url, session=self.bot.session)
+            await webhook.send(
+                embed=embed, 
+                username=f"{guild.me.display_name} Logging", 
+                avatar_url=guild.me.display_avatar.url
+            )
+        except (discord.NotFound, discord.Forbidden):
+            await self.bot.api.delete_logging_event(str(guild.id), event_name)
+
+            try:
+                await guild.get_channel(int(event_config.log_channel_id)).send(content="ログを送信できませんでした。\nWebhookが削除された可能性があります。")
+            except:
+                pass
+
+            return
 
     @commands.Cog.listener("on_message_delete")
     async def on_message_delete(self, message: discord.Message):
