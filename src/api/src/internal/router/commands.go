@@ -37,12 +37,13 @@ func createCommand(c *gin.Context) {
 
 	nameTracker := make(map[string]bool)
 
-	for _, cmd := range input {
-		trimmedName := strings.TrimSpace(cmd.Name)
+	for i := range input {
+		trimmedName := strings.TrimSpace(input[i].Name)
+
 		if trimmedName == "" {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Empty command name",
-				"message": "コマンド名に空文字は使用できません。",
+				"message": "コマンド名を入力してください。",
 			})
 			return
 		}
@@ -56,13 +57,15 @@ func createCommand(c *gin.Context) {
 		}
 		nameTracker[trimmedName] = true
 
-		if len(cmd.Actions) > 15 {
+		if len(input[i].Actions) > 15 {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Too many actions",
 				"message": "アクション数が上限(15個)を超えています。",
 			})
 			return
 		}
+
+		input[i].Name = trimmedName
 	}
 
 	err := db.Transaction(func(tx *gorm.DB) error {
