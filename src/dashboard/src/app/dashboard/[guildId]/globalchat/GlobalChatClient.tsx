@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Trash2, Globe, X, Settings2, InfoIcon } from "lucide-react";
+import { Save, Trash2, Globe, X, Settings2, InfoIcon, ShieldAlert, Ban, UserMinus } from "lucide-react";
 import { useState } from "react";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ChannelSelecter from "@/components/channel-selecter";
@@ -26,6 +26,9 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
 
   const [infoModal, setInfoModal] = useState<boolean>(false);
   const [infoData, setInfoData] = useState<any>(null);
+
+  const [banUserId, setBanUserId] = useState<string>("");
+  const [banReason, setBanReason] = useState<string>("");
 
   const handleConnect = async () => {
     if (!selectedChannel || !roomName) {
@@ -120,6 +123,51 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
       alert("エラーが発生しました。");
     }
   }
+
+  const handleBanUser = async () => {
+    if (!banUserId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/guilds/${guildId}/modules/globalchat/rooms/${encodeURIComponent(editingData.name)}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: banUserId, reason: banReason }),
+      });
+
+      if (!res.ok) throw new Error();
+      
+      alert("ユーザーをBANしました");
+      setBanUserId("");
+      setBanReason("");
+      // データを再取得してリストを更新
+      await checkEditRoom(editingData.name);
+    } catch {
+      alert("BANに失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnbanUser = async (targetId: string) => {
+    if (!confirm("このユーザーのBANを解除しますか？")) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/guilds/${guildId}/modules/globalchat/rooms/${encodeURIComponent(editingData.name)}/members`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: targetId }),
+      });
+
+      if (!res.ok) throw new Error();
+      
+      alert("BANを解除しました");
+      await checkEditRoom(editingData.name);
+    } catch {
+      alert("解除に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -279,9 +327,8 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
       )}
 
       {roomEditModal && editingData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white border border-gray-200 w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl text-gray-800">
-            
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white border border-gray-200 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl text-gray-800 max-h-[90vh] flex flex-col">         
             <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
               <h3 className="font-bold flex items-center gap-2 text-gray-900">
                 <Globe className="w-4 h-4 text-blue-600" />
@@ -332,6 +379,75 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
                   />
                 </div>
               </div>
+
+              <section className="space-y-4">
+                <h4 className="font-bold text-sm text-red-500 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4" /> BANユーザー管理
+                </h4>
+                
+                <div className="flex flex-col md:flex-row gap-2">
+                  <input 
+                    placeholder="ユーザーID"
+                    className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500"
+                    value={banUserId}
+                    onChange={e => setBanUserId(e.target.value)}
+                  />
+                  <input 
+                    placeholder="理由 (任意)"
+                    className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500"
+                    value={banReason}
+                    onChange={e => setBanReason(e.target.value)}
+                  />
+                  <button 
+                    onClick={handleBanUser}
+                    disabled={loading || !banUserId}
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                  >
+                    <Ban className="w-4 h-4" /> BAN
+                  </button>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-100 text-gray-600">
+                      <tr>
+                        <th className="py-2 px-3">ユーザーID</th>
+                        <th className="py-2 px-3">理由</th>
+                        <th className="py-2 px-3 text-right">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {editingData.restrictions?.filter((r: any) => r.type === "ban_user").length === 0 ? (
+                          <tr key="no-bans">
+                            <td colSpan={3} className="py-4 text-center text-gray-400">
+                              BANされているユーザーはいません
+                            </td>
+                          </tr>
+                        ) : (
+                          editingData.restrictions
+                            .filter((r: any) => r.type === "ban_user")
+                            .map((ban: any) => (
+                              <tr key={ban.target_id} className="border-t border-gray-200">
+                                <td className="py-2 px-3 font-mono text-xs">{ban.target_id}</td>
+                                <td className="py-2 px-3 text-gray-500 truncate max-w-[150px]">
+                                  {ban.reason || "なし"}
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  <button
+                                    onClick={() => handleUnbanUser(ban.target_id)}
+                                    className="text-red-500 hover:bg-red-50 rounded p-1 transition"
+                                    title="解除"
+                                  >
+                                    <UserMinus className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                        )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
 
               <div className="pt-4 flex justify-end gap-3">
                 <button 

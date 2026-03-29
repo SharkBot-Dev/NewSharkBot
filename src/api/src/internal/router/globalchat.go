@@ -26,6 +26,9 @@ func GlobalChatRegister(router *gin.RouterGroup) {
 
 		gc.POST("/rooms/:name/members", joinRoom)
 
+		gc.POST("/rooms/:name/ban/members", banMembers)
+		gc.DELETE("/rooms/:name/ban/members/:user_id", unbanMembers)
+
 		gc.GET("/rooms/:name", getActiveRoomDetails)
 		gc.GET("/rooms/:name/:user_id", GetUserRoomRole)
 
@@ -311,4 +314,68 @@ func joinRoom(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Joined successfully"})
+}
+
+// 7. ユーザーをBANする (複数対応)
+func banMembers(c *gin.Context) {
+	roomName := c.Param("name")
+	var input struct {
+		UserIDs []string `json:"user_ids" binding:"required"`
+		Reason  string   `json:"reason"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		for _, userID := range input.UserIDs {
+			restriction := model.GlobalChatRoomRestriction{
+				RoomName: roomName,
+				TargetID: userID,
+				Type:     "ban_user",
+				Reason:   input.Reason,
+			}
+
+			if err := tx.Where(model.GlobalChatRoomRestriction{RoomName: roomName, Type: userID}).
+				Assign(model.GlobalChatRoomRestriction{Type: "ban_user", Reason: input.Reason}).
+				FirstOrCreate(&restriction).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to ban members"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Members banned successfully"})
+}
+
+// 8. ユーザーのBANを解除する
+func unbanMembers(c *gin.Context) {
+	roomName := c.Param("name")
+	userID := c.Param("user_id")
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	result := db.Where("room_name = ? AND target_id = ? AND type = ?", roomName, userID, "ban_user").
+		Delete(&model.GlobalChatRoomRestriction{})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unban member"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Ban record not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Member unbanned successfully"})
 }

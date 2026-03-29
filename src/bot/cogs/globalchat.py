@@ -75,8 +75,10 @@ class GlobalChatCog(commands.Cog):
 
         for res in room.get("restrictions", []):
             if res["target_id"] == str(message.author.id) and res["type"] in ["ban_user", "mute_user"]:
+                await message.add_reaction("❌")
                 return
             if res["target_id"] == str(message.guild.id) and res["type"] == "ban_server":
+                await message.add_reaction("❌")
                 return
             
         min_age_days = room.get("min_account_age", 0)
@@ -233,7 +235,7 @@ class GlobalChatCog(commands.Cog):
         try:
             await webhook.send(
                 content=message.clean_content or " ",
-                username=f"{message.author.name} ({message.guild.name})",
+                username=f"{message.author.name} ({message.author.id}) [{message.guild.name}]",
                 avatar_url=message.author.display_avatar.url,
                 embeds=embeds[:5],
                 allowed_mentions=discord.AllowedMentions.none()
