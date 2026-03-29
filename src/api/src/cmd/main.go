@@ -70,6 +70,9 @@ func main() {
 		&model.GlobalChatRoomRestriction{},
 		&model.GlobalChatRoomFilter{},
 		&model.GlobalChatConnect{},
+		&model.CustomCommandsSetting{},
+		&model.CustomCommandAction{},
+		&model.PrefixSetting{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
@@ -101,6 +104,7 @@ func main() {
 	router.RegisterLoggingSetting(r.Group("/"))
 	router.RegisterCooldowns(r.Group("/"))
 	router.GlobalChatRegister(r.Group("/"))
+	router.RegisterCommands(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)

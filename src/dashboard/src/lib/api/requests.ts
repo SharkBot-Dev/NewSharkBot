@@ -353,3 +353,39 @@ export async function getGlobalChatRole(name: string, userId: string) {
 
     return await res.json();
 }
+
+export async function getCommands(guildId: string) {
+    const url = `${RESOURCE_API_BASE_URL}/commands/${guildId}`;
+
+    const res = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        cache: 'no-store' 
+    });
+
+    if (!res.ok) {
+        throw new Error(`Failed to get commands: ${res.statusText} (Status: ${res.status})`);
+    }
+
+    return await res.json();
+}
+
+export async function getCommandPrefix(guildId: string) {
+    const url = `${RESOURCE_API_BASE_URL}/commands/${guildId}/prefixs`;
+
+    const res = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        cache: 'no-store' 
+    });
+
+    if (!res.ok) {
+        throw new Error(`Failed to get prefixs: ${res.statusText} (Status: ${res.status})`);
+    }
+
+    return await res.json();
+}
