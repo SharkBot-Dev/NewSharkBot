@@ -150,7 +150,10 @@ func deleteCommand(c *gin.Context) {
 		return
 	}
 
-	db.Unscoped().Where("command_id = ?", cmd.ID).Delete(&model.CustomCommandAction{})
+	if err := db.Unscoped().Where("command_id = ?", cmd.ID).Delete(&model.CustomCommandAction{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete command actions"})
+		return
+	}
 	result := db.Delete(&cmd)
 
 	if result.Error != nil {
@@ -221,7 +224,9 @@ func getAutoReplies(c *gin.Context) {
 	guildID := c.Param("guild_id")
 	db := c.MustGet("db").(*gorm.DB)
 	var cmds []model.CustomCommandsSetting
-	err := db.Where("guild_id = ? AND is_auto_reply = ?", guildID, true).Preload("Actions").Find(&cmds)
+	err := db.Where("guild_id = ? AND is_auto_reply = ?", guildID, true).Preload("Actions", func(db *gorm.DB) *gorm.DB {
+		return db.Order("custom_command_actions.action_order ASC")
+	}).Find(&cmds)
 	if err.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
