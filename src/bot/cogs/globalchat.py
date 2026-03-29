@@ -117,8 +117,6 @@ class GlobalChatCog(commands.Cog):
         if config == {}:
             return
 
-        logging.error(config)
-
         destinations = config.get('connections', [])
 
         tasks = []
