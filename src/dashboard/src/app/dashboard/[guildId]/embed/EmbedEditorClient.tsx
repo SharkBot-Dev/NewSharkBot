@@ -247,7 +247,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
                     </button>
 
                     <button 
-                      onClick={() => { setSendingId(String(embed.ID)); setIsPinModalOpen(true); }}
+                      onClick={() => { setIsPinModalOpen(true); setSendingId(String(embed.ID)); }}
                       className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"
                     >
                       <Pin className="w-4 h-4" />
