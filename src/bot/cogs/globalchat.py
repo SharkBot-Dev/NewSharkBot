@@ -52,7 +52,6 @@ class GlobalChatCog(commands.Cog):
         member_ids = [m["user_id"] for m in channels.get("members", [])]
         if str(message.author.id) not in member_ids:
             data = await self.bot.api.globalchat_join_member(room["name"], str(message.author.id))
-            logging.error(data)
 
             rule = room.get("rule")
             description = room.get("description")
