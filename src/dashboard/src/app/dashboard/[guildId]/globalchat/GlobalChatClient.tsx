@@ -5,6 +5,8 @@ import { useState } from "react";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ChannelSelecter from "@/components/channel-selecter";
 import { useRouter } from "next/navigation";
+import CommandsControl from "@/components/commands";
+import commands from "@/constants/commands/globalchat";
 
 interface Props {
   guildId: string;
@@ -350,6 +352,10 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
           </div>
         </div>
       )}
+
+      <CollapsibleSection title="コマンド設定">
+        <CommandsControl guildId={guildId} targetCommands={commands}></CommandsControl>
+      </CollapsibleSection>
     </div>
   );
 }

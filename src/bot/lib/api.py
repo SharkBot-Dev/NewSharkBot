@@ -496,6 +496,17 @@ class ResourceAPIClient:
         async with self.session.post(url, json=payload) as resp:
             return resp.status == 200
 
+    async def globalchat_update_connect_channel(self, channel_id: int, guild_id: int, room_name: str, webhook_url: str):
+        url = f"{self.base_url}/globalchat/channels/{channel_id}/update"
+        payload = {
+            "channel_id": str(channel_id),
+            "guild_id": str(guild_id),
+            "room_name": room_name,
+            "webhook_url": webhook_url
+        }
+        async with self.session.post(url, json=payload) as resp:
+            return resp.status == 200
+
     async def globalchat_disconnect_channel(self, channel_id: int) -> bool:
         url = f"{self.base_url}/globalchat/connect/{channel_id}"
         async with self.session.delete(url) as resp:

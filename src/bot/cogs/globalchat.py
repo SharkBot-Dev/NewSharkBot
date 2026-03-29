@@ -1,14 +1,66 @@
 import logging
+import os
 
 from discord.ext import commands
 import discord
 import asyncio
 from typing import Optional
 
+from lib.command import Command
+
 class GlobalChatCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+        connect = Command(name="connect", description="グローバルチャットに接続します。", module_name="グローバルチャット")
+        connect.execute = self.connect_command
+        self.bot.add_slashcommand(connect)
+
         print("init -> GlobalChatCog")
+
+    async def connect_command(self, interaction: discord.Interaction, **kwargs):
+        BACKEND_URL = os.environ.get("RESOURCE_API_BASE_URL", "http://localhost:8080")
+
+        await interaction.response.defer()
+
+        guild_id = str(interaction.guild_id)
+        channel_id = str(interaction.channel.id)
+        creator_id = str(interaction.user.id)
+
+        config = await self.bot.api.globalchat_get_channel_config(channel_id)
+        if config:
+            if config.get("room"):
+                await self.bot.api.globalchat_disconnect_channel(
+                    channel_id=str(channel_id)
+                )
+                await interaction.followup.send("✅ グローバルチャットから退出しました。")
+                return
+
+        room_name = kwargs.get('name', "main")
+
+        payload = {
+            "channel_id": channel_id,
+            "guild_id": guild_id,
+            "name": room_name,
+            "webhook_url": "",
+            "creator_id": creator_id
+        }
+
+        try:
+            async with self.bot.session.post(f"{BACKEND_URL}/globalchat/connect", 
+                json=payload, 
+                headers={"Content-Type": "application/json"}) as res:
+                if res.status == 200:
+                    await interaction.followup.send(f"✅ <#{channel_id}> をグローバルチャットに接続しました！")
+                else:
+                    error_data = await res.json()
+                    error_msg = error_data.get("error", "不明なエラー")
+                    logging.error(f"(Status: {res.status}): {error_msg}")
+                    await interaction.followup.send(f"❌ 接続に失敗しました")
+
+        except Exception as e:
+            logging.error(f"GlobalChatError: {e}")
+            await interaction.followup.send("⚠️ サーバーとの通信中にエラーが発生しました。")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -48,6 +100,9 @@ class GlobalChatCog(commands.Cog):
                 logging.error(f"Cooldown API Error: {res.get('code')}")
 
         channels = await self.bot.api.globalchat_get_active_channel_ids_byname(room["name"])
+        if not channels:
+            logging.error("Failed to fetch globalchat room state: %s", room["name"])
+            return
             
         member_ids = [m["user_id"] for m in channels.get("members", [])]
         if str(message.author.id) not in member_ids:
@@ -100,15 +155,16 @@ class GlobalChatCog(commands.Cog):
                 if not webhook:
                     webhook = await channel_obj.create_webhook(name="SharkBot-GlobalChat")
 
-                await self.bot.api.globalchat_connect_channel(
+                data = await self.bot.api.globalchat_update_connect_channel(
                     channel_id=str(channel_id),
                     guild_id=str(channel_obj.guild.id),
                     room_name=channel["room_name"],
                     webhook_url=webhook.url
                 )
+                
                 return webhook.url
             except Exception as e:
-                await self.bot.api.globalchat_disconnect_channel(channel_id=str(channel_id))
+                logging.error("Failed to refresh globalchat webhook for channel %s", channel_id)
                 return None
         
         return webhook_url

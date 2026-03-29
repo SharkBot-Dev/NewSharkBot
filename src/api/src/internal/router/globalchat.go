@@ -16,6 +16,7 @@ func GlobalChatRegister(router *gin.RouterGroup) {
 	{
 		// Bot用
 		gc.GET("/channels/:channel_id", getChannelConfig)
+		gc.POST("/channels/:channel_id/update", updateGchatChannel)
 		gc.GET("/active-channels", getActiveChannelIDs)
 		gc.GET("/active-channels/:name", getActiveRoomDetails)
 
@@ -101,6 +102,32 @@ func getGuildConnections(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, connections)
+}
+
+func updateGchatChannel(c *gin.Context) {
+	var input struct {
+		model.GlobalChatConnect
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&input.GlobalChatConnect).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process room"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Room processed successfully"})
 }
 
 // 4. 部屋の作成または更新 (トランザクション処理)

@@ -38,10 +38,6 @@ export default async function GlobalChatModule({ params }: Props) {
         <Suspense fallback={<LoadingSkeleton />}>
           <EmbedContent guildId={guildId} />
         </Suspense>
-
-        <p className="mt-10 text-center text-xs text-slate-400">
-          ※ 同じ名前の埋め込みを保存すると、上書きされます。
-        </p>
       </div>
     </div>
   );
