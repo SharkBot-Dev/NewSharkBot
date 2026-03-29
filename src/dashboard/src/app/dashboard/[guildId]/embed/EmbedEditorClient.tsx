@@ -135,7 +135,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
 
       if (!response.ok) throw new Error("ピン作成失敗");
       
-      const created: PinMessageSetting = await response.json();
+      const { data: created }: { data: PinMessageSetting } = await response.json();
       setPins((prev) => [
         ...prev.filter((pin) => pin.channel_id !== created.channel_id),
         created,

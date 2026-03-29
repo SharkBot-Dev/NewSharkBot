@@ -1,4 +1,4 @@
-import { createPin, deletePin, fetchEmbedSettings } from "@/lib/api/requests"; // deletePinを追加
+import { createPin, deletePin, fetchEmbedSettings } from "@/lib/api/requests";
 import { auth } from "@/lib/auth";
 import { getValidatedChannelInServer, sendMessage } from "@/lib/Discord/Bot";
 import { checkAdminPermission } from "@/lib/Discord/User";
