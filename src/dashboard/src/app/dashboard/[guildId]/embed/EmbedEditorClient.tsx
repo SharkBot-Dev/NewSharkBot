@@ -32,6 +32,20 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
   const [pins, setPins] = useState(initPins);
 
+  const reFetch = async () => {
+    try {
+      const res =await fetch(`/api/guilds/${guildId}/modules/embed`);
+      if (!res.ok) throw new Error(`RefreshError: ${res.statusText}`)
+
+      const json = await res.json();
+
+      setSavedEmbeds(json.settings);
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+  }
+
   // 保存処理 (Next.jsのAPI Route /api/guilds/[id]/modules/embed を叩く)
   const handleSave = async () => {
     // Builder側で入力されたタイトルをNameとして扱う
@@ -70,6 +84,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       alert("保存中にエラーが発生しました。");
     } finally {
       setSaving(false);
+      await reFetch();
     }
   };
 
@@ -91,6 +106,8 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       }
     } catch (error) {
       console.error("Delete error:", error);
+    } finally {
+      await reFetch();
     }
   };
 
@@ -120,6 +137,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       alert("送信中にエラーが発生しました。");
     } finally {
       setSending(false);
+      await reFetch();
     }
   };
 
@@ -156,7 +174,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
     } finally {
       setSending(false);
 
-      router.refresh();
+      await reFetch();
     }
   };
 
@@ -184,6 +202,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       alert(`エラー: ${error.message}`);
     } finally {
       setSending(false);
+      await reFetch();
     }
   };
 
@@ -248,10 +267,15 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
 
                     <button 
                       onClick={() => { 
-                        const id = String(embed.ID); 
-                        setSendingId(id); 
-                        setIsPinModalOpen(true); 
-                       }}
+                        const targetId = String(embed.ID);
+                        if (!targetId || targetId === "undefined") {
+                          console.error("IDが見つかりません:", embed);
+                          return;
+                        }
+                        setSendingId(targetId);
+                        setIsPinModalOpen(true);
+  
+                      }}
                       className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"
                     >
                       <Pin className="w-4 h-4" />
