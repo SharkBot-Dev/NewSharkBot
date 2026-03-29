@@ -33,6 +33,16 @@ export interface LoggingSetting {
     updated_at?: string;
 }
 
+export interface PinMessageSetting {
+    guild_id: string;
+    channel_id: string;
+    last_message_id: string;
+    content: string;
+    embed_id: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
 const isValidDiscordId = (id: string) => /^\d{17,20}$/.test(id);
 
 export async function createGuildEntry(guildId: string) {
@@ -388,4 +398,35 @@ export async function getCommandPrefix(guildId: string) {
     }
 
     return await res.json();
+}
+
+export async function getPinSetting(guildId: string): Promise<PinMessageSetting[]> {
+    const resp = await fetch(`${RESOURCE_API_BASE_URL}/guilds/pin/${guildId}`, {
+        method: "GET",
+    });
+
+    if (!resp.ok) {
+        throw new Error(`Failed to get Pins: ${resp.statusText}`);
+    };
+    return resp.json();
+}
+
+export async function createPin(guildId: string, data: Partial<PinMessageSetting>): Promise<PinMessageSetting> {
+    const resp = await fetch(`${RESOURCE_API_BASE_URL}/guilds/pin/${guildId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+
+    if (!resp.ok) throw new Error(`Failed to get Pins: ${resp.statusText}`);
+    return resp.json();
+}
+
+export async function deletePin(guildId: string, channelId: string): Promise<boolean> {
+    const params = new URLSearchParams({ channel_id: channelId });
+    const resp = await fetch(`${RESOURCE_API_BASE_URL}/guilds/pin/${guildId}?${params}`, {
+        method: "DELETE",
+    });
+    
+    return resp.ok;
 }

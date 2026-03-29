@@ -584,3 +584,20 @@ class ResourceAPIClient:
                 return None
 
             return await resp.json()
+        
+    async def get_pin_setting(self, guild_id: str, channel_id: str) -> Optional[Dict[str, Any]]:
+        async with self.session.get(f"{self.base_url}/guilds/pin/{guild_id}/{channel_id}") as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+
+    async def create_pin(self, guild_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        async with self.session.post(f"{self.base_url}/guilds/pin/{guild_id}", json=data) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+
+    async def delete_pin(self, guild_id: str, channel_id: str) -> bool:
+        params = {"channel_id": channel_id}
+        async with self.session.delete(f"{self.base_url}/guilds/pin/{guild_id}", params=params) as resp:
+            return resp.status == 200

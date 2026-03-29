@@ -10,12 +10,20 @@ import (
 )
 
 func RegisterEmbed(router *gin.RouterGroup) {
-	guilds := router.Group("/guilds/embeds")
+	embeds := router.Group("/guilds/embeds")
 	{
-		guilds.GET("/:id", getEmbedSettingList)             // 一覧取得
-		guilds.GET("/:id/:name", getEmbedSetting)           // 個別取得
-		guilds.POST("/:id", createOrUpdateEmbedSetting)     // 作成・更新
-		guilds.DELETE("/:id/:embed_id", deleteEmbedSetting) // 削除
+		embeds.GET("/:id", getEmbedSettingList)             // 一覧取得
+		embeds.GET("/:id/:name", getEmbedSetting)           // 個別取得
+		embeds.POST("/:id", createOrUpdateEmbedSetting)     // 作成・更新
+		embeds.DELETE("/:id/:embed_id", deleteEmbedSetting) // 削除
+	}
+
+	pins := router.Group("/guilds/pin")
+	{
+		pins.GET("/:id", getPins)
+		pins.POST("/:id", createPins)
+		pins.DELETE("/:id", deletePins)
+		pins.GET("/:id/:channel", getOnePin)
 	}
 }
 
@@ -116,4 +124,99 @@ func deleteEmbedSetting(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Deleted successfully"})
+}
+
+func getPins(c *gin.Context) {
+	guildID := c.Param("id")
+
+	var settings []model.PinMessageSetting
+	db := c.MustGet("db").(*gorm.DB)
+
+	if err := db.Where("guild_id = ?", guildID).Find(&settings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch settings"})
+		return
+	}
+	c.JSON(http.StatusOK, settings)
+}
+
+func getOnePin(c *gin.Context) {
+	guildID := c.Param("id")
+	channelId := c.Param("channel")
+
+	var settings model.PinMessageSetting
+	db := c.MustGet("db").(*gorm.DB)
+
+	if err := db.Where("guild_id = ? AND channel_id = ?", guildID, channelId).First(&settings).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch settings"})
+		return
+	}
+	c.JSON(http.StatusOK, settings)
+}
+
+func createPins(c *gin.Context) {
+	guildID := c.Param("id") // URLパスから取得
+	db := c.MustGet("db").(*gorm.DB)
+
+	var input struct {
+		ChannelId string `json:"channel_id"`
+		MessageId string `json:"last_message_id"`
+		Content   string `json:"content"`
+		EmbedId   string `json:"embed_id"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var setting model.PinMessageSetting
+
+	result := db.Where(model.PinMessageSetting{
+		GuildID:   guildID,
+		ChannelID: input.ChannelId,
+	}).FirstOrInit(&setting)
+
+	setting.LastMessageID = input.MessageId
+	setting.Content = input.Content
+	setting.EmbedID = input.EmbedId
+
+	if result.Error == gorm.ErrRecordNotFound {
+		if err := db.Create(&setting).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create"})
+			return
+		}
+	} else {
+		if err := db.Save(&setting).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, setting)
+}
+
+func deletePins(c *gin.Context) {
+	guildID := c.Param("id")
+	channelID := c.Query("channel_id")
+
+	if channelID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "channel_id は必須です"})
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	result := db.Where("guild_id = ? AND channel_id = ?", guildID, channelID).Delete(&model.PinMessageSetting{})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "削除に失敗しました"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "削除対象が見つかりませんでした"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "正常に削除されました"})
 }

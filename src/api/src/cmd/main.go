@@ -73,6 +73,7 @@ func main() {
 		&model.CustomCommandsSetting{},
 		&model.CustomCommandAction{},
 		&model.PrefixSetting{},
+		&model.PinMessageSetting{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
