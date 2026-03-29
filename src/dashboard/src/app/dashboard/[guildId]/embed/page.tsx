@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { fetchEmbedSettings, isModuleEnabled } from "@/lib/api/requests"; // ラッパー関数の場所
+import { fetchEmbedSettings, getPinSetting, isModuleEnabled } from "@/lib/api/requests"; // ラッパー関数の場所
 import EmbedEditorClient from "./EmbedEditorClient";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
@@ -46,11 +46,17 @@ async function EmbedContent({ guildId }: { guildId: string }) {
   const initialEmbeds = await fetchEmbedSettings(guildId);
   const initChannels = await getGuildChannels(guildId);
 
+  let pins: any[] = [];
+  try {
+    pins = await getPinSetting(guildId);
+  } catch {}
+
   return (
     <EmbedEditorClient 
       guildId={guildId} 
       initialEmbeds={initialEmbeds} 
       initChannels={initChannels}
+      initPins={pins}
     />
   );
 }

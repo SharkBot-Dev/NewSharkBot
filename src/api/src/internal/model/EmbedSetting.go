@@ -32,3 +32,17 @@ type EmbedSetting struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type PinMessageSetting struct {
+	ID        uint   `gorm:"primaryKey"`
+	GuildID   string `gorm:"index;not null;type:varchar(255)" json:"guild_id"`
+	ChannelID string `gorm:"uniqueIndex:idx_pin_message_guild_channel;not null;type:varchar(255)" json:"channel_id"`
+
+	LastMessageID string `json:"last_message_id"`
+
+	Content string `json:"content"`
+	EmbedID string `json:"embed_id"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}

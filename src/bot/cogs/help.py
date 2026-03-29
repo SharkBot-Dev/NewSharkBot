@@ -32,11 +32,21 @@ class HelpCog(commands.Cog):
             icon_url=interaction.guild.me.display_avatar.url,
         )
 
+        server_commands = await self.bot.tree.fetch_commands(guild=interaction.guild)
+        server_cmd_dict = {cmd.name: cmd for cmd in server_commands}
+
         if command_name:
-            command = self.bot.slashcommands.get(command_name)
-            if command:
-                embed.title = f"コマンド: /{command.name}"
-                embed.description = f"**カテゴリー:** {command.module_name}\n**説明:** {command.description}"
+            target_name = command_name.lstrip("/")
+            
+            api_cmd = server_cmd_dict.get(target_name)
+            internal_cmd = self.bot.slashcommands.get(target_name)
+
+            if api_cmd:
+                embed.title = f"コマンド: /{api_cmd.name}"
+                category = getattr(internal_cmd, "module_name", "一般") if internal_cmd else "一般"
+                description = internal_cmd.description if internal_cmd else api_cmd.description
+                
+                embed.description = f"**カテゴリー:** {category}\n**説明:** {description or '説明なし'}"
             else:
                 embed.title = "エラー"
                 embed.description = f"コマンド `{command_name}` は見つかりませんでした。"
@@ -44,20 +54,22 @@ class HelpCog(commands.Cog):
 
         else:
             embed.title = "コマンド一覧（カテゴリー別）"
-            
             modules = {}
-            
-            for cmd in self.bot.slashcommands.values():
-                mod_name = cmd.module_name
+
+            for name, api_cmd in server_cmd_dict.items():
+                internal_cmd = self.bot.slashcommands.get(name)
+                
+                mod_name = getattr(internal_cmd, "module_name", "その他") if internal_cmd else "その他"
+                
                 if mod_name not in modules:
                     modules[mod_name] = []
-                modules[mod_name].append(f"`/{cmd.name}`")
+                modules[mod_name].append(f"`/{name}`")
 
             if modules:
-                for mod_name, cmds in modules.items():
+                for mod_name in sorted(modules.keys()):
                     embed.add_field(
                         name=f"📦 {mod_name}", 
-                        value=", ".join(cmds), 
+                        value=", ".join(modules[mod_name]), 
                         inline=False
                     )
             else:

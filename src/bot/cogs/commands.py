@@ -165,9 +165,6 @@ class CommandsCog(commands.Cog):
             cmd_name = parts[0]
             args = parts[1:]
 
-            logging.error(f"DEBUG: 判定されたプレフィックス: '{used_prefix}'")
-            logging.error(f"DEBUG: 検索するコマンド名: '{cmd_name}'")
-
             data = await self.bot.api.get_command(message.guild.id, cmd_name)
             if data:
                 await self.execute_actions(message, data, args)
