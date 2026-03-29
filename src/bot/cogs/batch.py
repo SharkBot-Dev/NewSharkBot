@@ -15,7 +15,7 @@ class BatchCog(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def batch_change_activity(self):
-        activity = discord.CustomActivity(name="ダッシュボードから設定できます。")
+        activity = discord.CustomActivity(name="sharkbot.xyz")
         await self.bot.change_presence(activity=activity)
 
 async def setup(bot):
