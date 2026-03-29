@@ -20,5 +20,6 @@ export const commands = [
     "timeout",
     "remove-timeout",
     "clear",
-    "user-info"
+    "user-info",
+    "connect"
 ];

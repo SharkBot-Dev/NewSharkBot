@@ -14,6 +14,8 @@ import LevelCommands from "@/constants/commands/level"
 import ModeratorCommands from "@/constants/commands/moderator"
 import SearchCommands from "@/constants/commands/search"
 import TestCommands from "@/constants/commands/test"
+import GlobalChatCommands from "@/constants/commands/globalchat"
+
 import { fetchGuildSettings } from "@/lib/api/requests";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -27,7 +29,8 @@ const modules = {
   "levels": LevelCommands,
   "moderator": ModeratorCommands,
   "search": SearchCommands,
-  "test": TestCommands
+  "test": TestCommands,
+  "globalchat": GlobalChatCommands
 }
 
 export async function POST(

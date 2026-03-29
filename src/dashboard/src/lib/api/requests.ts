@@ -323,3 +323,33 @@ export async function deleteLoggingSetting(guildId: string) {
     }
     return response.json();
 }
+
+export async function getGlobalChatConfig(name: string) {
+    const res = await fetch(`${RESOURCE_API_BASE_URL}/globalchat/rooms/${encodeURI(name)}`)
+    if (!res.ok) {
+        throw new Error(`$Failed to get settings: ${res.statusText}`)
+    }
+    return await res.json();
+}
+
+export async function getGlobalChatRole(name: string, userId: string) {
+    const encodedName = encodeURIComponent(name);
+    
+    const encodedUserId = encodeURIComponent(userId);
+
+    const url = `${RESOURCE_API_BASE_URL}/globalchat/rooms/${encodedName}/role?user_id=${encodedUserId}`;
+
+    const res = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        cache: 'no-store' 
+    });
+
+    if (!res.ok) {
+        throw new Error(`Failed to get role: ${res.statusText} (Status: ${res.status})`);
+    }
+
+    return await res.json();
+}

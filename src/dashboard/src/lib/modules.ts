@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -128,4 +128,15 @@ export const modules = new Map<string, ModuleSetting>([
       group: "遊び",
     },
   ],
+  [
+    "globalchat",
+    {
+      id: "globalchat",
+      name: "グローバルチャット",
+      description: "複数のサーバーでチャンネルを接続することができます。",
+      enabled: true,
+      icon: WholeWordIcon,
+      group: "グローバル",
+    }
+  ]
 ]);

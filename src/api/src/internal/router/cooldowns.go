@@ -25,9 +25,18 @@ func handleCooldown(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 	cooldownType := c.Param("type")
 
+	secondsStr := c.Query("seconds")
 	hoursStr := c.DefaultQuery("hours", "24")
-	hours, _ := strconv.Atoi(hoursStr)
-	limitDuration := time.Duration(hours) * time.Hour
+
+	var limitDuration time.Duration
+
+	if secondsStr != "" {
+		sec, _ := strconv.Atoi(secondsStr)
+		limitDuration = time.Duration(sec) * time.Second
+	} else {
+		hours, _ := strconv.Atoi(hoursStr)
+		limitDuration = time.Duration(hours) * time.Hour
+	}
 
 	var cd model.Cooldowns
 	now := time.Now()
