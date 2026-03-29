@@ -63,6 +63,10 @@ async def setup_hook() -> None:
     bot.api = ResourceAPIClient(bot.session, base_url)    
 
 @bot.event
+async def on_message(message: discord.Message):
+    return
+
+@bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")

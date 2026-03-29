@@ -563,3 +563,17 @@ class ResourceAPIClient:
                 return {"status": "error", "code": resp.status}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+        
+    async def get_prefixs(self, guildId: str):
+        async with self.session.get(f"{self.base_url}/commands/{guildId}/prefixs") as resp:
+            if resp.status != 200:
+                return {"prefixs": ["!"]}
+
+            return await resp.json()
+        
+    async def get_command(self, guildId: str, cmd_name: str):
+        async with self.session.get(f"{self.base_url}/commands/{guildId}/{urllib.parse.quote(cmd_name)}") as resp:
+            if resp.status != 200:
+                return None
+
+            return await resp.json()
