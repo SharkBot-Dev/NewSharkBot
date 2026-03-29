@@ -7,6 +7,7 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 import { EmbedSetting, PinMessageSetting } from "@/lib/api/requests"; // 型定義
 import Modal from "@/components/Modal";
 import ChannelSelecter from "@/components/channel-selecter";
+import { useRouter } from "next/navigation";
 
 interface Props {
   guildId: string;
@@ -16,6 +17,8 @@ interface Props {
 }
 
 export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels, initPins }: Props) {
+  const router = useRouter();
+
   const [savedEmbeds, setSavedEmbeds] = useState<EmbedSetting[]>(initialEmbeds);
   const [currentEmbedData, setCurrentEmbedData] = useState<any>(null);
   const [saving, setSaving] = useState(false);
@@ -152,6 +155,8 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       alert("ピン設定エラー");
     } finally {
       setSending(false);
+
+      router.refresh();
     }
   };
 
