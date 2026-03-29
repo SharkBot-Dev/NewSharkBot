@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
@@ -34,7 +35,27 @@ func createCommand(c *gin.Context) {
 		return
 	}
 
+	nameTracker := make(map[string]bool)
+
 	for _, cmd := range input {
+		trimmedName := strings.TrimSpace(cmd.Name)
+		if trimmedName == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Empty command name",
+				"message": "コマンド名に空文字は使用できません。",
+			})
+			return
+		}
+
+		if _, exists := nameTracker[trimmedName]; exists {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Duplicate command name",
+				"message": "同じ名前のコマンドが複数含まれています: " + trimmedName,
+			})
+			return
+		}
+		nameTracker[trimmedName] = true
+
 		if len(cmd.Actions) > 15 {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error":   "Too many actions",
@@ -87,7 +108,9 @@ func getCommands(c *gin.Context) {
 
 	var commands []model.CustomCommandsSetting
 
-	if err := db.Preload("Actions").Where("guild_id = ?", guildID).Find(&commands).Error; err != nil {
+	if err := db.Preload("Actions", func(db *gorm.DB) *gorm.DB {
+		return db.Order("custom_command_actions.action_order ASC")
+	}).Where("guild_id = ?", guildID).Find(&commands).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}

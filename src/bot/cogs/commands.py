@@ -103,8 +103,8 @@ class CommandsCog(commands.Cog):
                 continue
 
             content = self.parse_variables(payload.get('content', ''), message, args, custom_vars)
-            if payload.get('random_messages'):
-                content = self.parse_variables(random.choice(payload['random_messages']), message, args, custom_vars)
+            if payload.get('messages') and payload.get('is_random'):
+                content = self.parse_variables(random.choice(payload['messages']), message, args, custom_vars)
 
             embed = None
             if payload.get('embed_id'):
@@ -126,13 +126,6 @@ class CommandsCog(commands.Cog):
                             await message.author.add_roles(role)
                         else:
                             await message.author.remove_roles(role)
-
-                elif action_type == "dm":
-                    if not is_send_dm:
-                        is_send_dm = True
-                        view = discord.ui.View()
-                        view.add_item(discord.ui.Button(label=f"Sent by {message.guild.name}", disabled=True))
-                        await message.author.send(content=content or None, embed=embed, view=view)
 
                 elif action_type in ("var_set", "variable"):
                     key = payload.get('key')

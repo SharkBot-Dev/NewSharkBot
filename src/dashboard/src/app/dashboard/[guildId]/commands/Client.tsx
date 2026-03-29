@@ -32,7 +32,16 @@ interface Props {
   initialPrefixes: string[];
 }
 
-// --- メインコンポーネント ---
+function parseActionPayload(payload: unknown) {
+  if (!payload) return {};
+  if (typeof payload !== "string") return payload;
+  try {
+    return JSON.parse(payload);
+  } catch {
+    return {};
+  }
+}
+
 export default function CommandsClient({ guildId, commands: initialCommands, roles, channels, initialPrefixes }: Props) {
   const [commands, setCommands] = useState(initialCommands);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -149,7 +158,7 @@ export default function CommandsClient({ guildId, commands: initialCommands, rol
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {commands.map((cmd, idx) => (
-          <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10 hover:border-blue-500/50 transition">
+          <div key={idx} className="bg-white/5 p-4 rounded-xl border border-black/10 hover:border-blue-500/50 transition">
             <div className="flex justify-between items-start mb-3">
               <span className="text-blue-400 font-mono text-xl font-bold">{!cmd.is_auto_reply && prefixes[0]}{cmd.name}</span>
               <div className="flex gap-1">
@@ -164,12 +173,12 @@ export default function CommandsClient({ guildId, commands: initialCommands, rol
           </div>
         ))}
         <button onClick={() => openEditModal({ name: "", allowed_roles: [], allowed_channels: [], required_permission: "NONE", actions: [], is_auto_reply: false, match_mode: "contains" }, null)} 
-                className="border-2 border-dashed border-white/10 p-6 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition text-black">
+                className="border-2 border-dashed border-black/10 p-6 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition text-black">
           <Plus size={24} /> <span>新規作成</span>
         </button>
         <button
         onClick={handleSaveAll}
-        className="border-2 border-dashed border-white/10 p-6 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition text-black"
+        className="border-2 border-dashed border-black/10 p-6 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition text-black"
         >
             <Save size={18} /> 全て保存
         </button>
@@ -305,7 +314,6 @@ export function CustomCommandsControl({ actions, onChange, roles, guildId }: { a
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <ActionButton onClick={() => addAction("reply")} icon={<MessageSquare size={14}/>} label="Reply" />
         <ActionButton onClick={() => addAction("send")} icon={<Send size={14}/>} label="Send" />
-        <ActionButton onClick={() => addAction("dm")} icon={<Mail size={14}/>} label="DM" />
         <ActionButton onClick={() => addAction("role")} icon={<UserPlus size={14}/>} label="Role" />
         <ActionButton onClick={() => addAction("variable")} icon={<Variable size={14}/>} label="Var" />
       </div>
@@ -323,7 +331,7 @@ export function CustomCommandsControl({ actions, onChange, roles, guildId }: { a
                 id={`action-${index}`}
                 index={index}
                 action={action}
-                payload={JSON.parse(action.payload || "{}")}
+                payload={parseActionPayload(action.payload)}
                 updatePayload={updatePayload}
                 removeAction={(idx: number) => onChange(actions.filter((_, i) => i !== idx))}
                 roles={roles}
@@ -378,17 +386,63 @@ function SortableActionItem({ id, index, action, payload, updatePayload, removeA
       
       <div className="p-4 space-y-3">
         {(action.type === "reply" || action.type === "send" || action.type === "dm") && (
-          <div>
-                        
-            <textarea 
-              className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-sm h-24 outline-none focus:border-blue-500/50"
-              placeholder="送信内容を入力..."
-              value={payload.content || ""}
-              onChange={e => updatePayload(index, { ...payload, content: e.target.value })}
-            />
+          <div className="space-y-4">
+              <div className="flex items-center justify-between bg-black/20 p-2 rounded-lg border border-white/5">
+                <span className="text-[10px] font-bold text-gray-400 uppercase">ランダム応答モード</span>
+                <input 
+                  type="checkbox" 
+                  className="w-4 h-4 accent-blue-500 cursor-pointer"
+                  checked={payload.is_random || false}
+                  onChange={e => updatePayload(index, { ...payload, is_random: e.target.checked })}
+                />
+              </div>
 
-            <EmbedSelecter guildId={guildId} value={payload.embed_id || ""} onChange={e => updatePayload(index, { ...payload, embed_id: e })} />
-          </div>
+              {!payload.is_random ? (
+                <textarea 
+                  className="w-full bg-black/20 border border-white/10 p-3 rounded-lg text-sm h-24 outline-none focus:border-blue-500/50"
+                  placeholder="送信内容を入力..."
+                  value={payload.content || ""}
+                  onChange={e => updatePayload(index, { ...payload, content: e.target.value })}
+                />
+              ) : (
+                <div className="space-y-2">
+                  {(payload.messages || [""]).map((msg: string, mIdx: number) => (
+                    <div key={mIdx} className="flex gap-2">
+                      <input 
+                        className="flex-1 bg-black/20 border border-white/10 p-2 rounded-lg text-sm outline-none focus:border-blue-500/50"
+                        placeholder={`候補 ${mIdx + 1}`}
+                        value={msg}
+                        onChange={e => {
+                          const newMsgs = [...(payload.messages || [""])];
+                          newMsgs[mIdx] = e.target.value;
+                          updatePayload(index, { ...payload, messages: newMsgs });
+                        }}
+                      />
+                      <button 
+                        onClick={() => {
+                          const newMsgs = payload.messages.filter((_: any, i: number) => i !== mIdx);
+                          updatePayload(index, { ...payload, messages: newMsgs.length ? newMsgs : [""] });
+                        }}
+                        className="text-gray-500 hover:text-red-400"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => updatePayload(index, { ...payload, messages: [...(payload.messages || [""]), ""] })}
+                    className="text-[10px] text-blue-400 hover:underline flex items-center gap-1"
+                  >
+                    <Plus size={12} /> 候補を追加
+                  </button>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-white/5">
+                <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">共通 Embed (任意)</label>
+                <EmbedSelecter guildId={guildId} value={payload.embed_id || ""} onChange={e => updatePayload(index, { ...payload, embed_id: e })} />
+              </div>
+            </div>
         )}
 
         {action.type === "role" && (
@@ -417,7 +471,13 @@ function SortableActionItem({ id, index, action, payload, updatePayload, removeA
 
 function getDefaultPayload(type: string) {
   switch(type) {
-    case "reply": case "send": case "dm": return { content: "", embed_id: "" };
+    case "reply": case "send": case "dm": 
+      return { 
+        content: "", 
+        embed_id: "", 
+        is_random: false, 
+        messages: [""] 
+      };
     case "role": return { role_id: "", type: "add" };
     case "variable": return { key: "", value: "" };
     default: return {};
