@@ -10,3 +10,5 @@ class Embed:
             for e in embed:
                 if e['ID'] == embed_id:
                     return e['data']
+                
+        return None

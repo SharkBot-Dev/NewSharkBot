@@ -51,8 +51,12 @@ func createCommand(c *gin.Context) {
 		}
 
 		for _, old := range oldCmds {
-			tx.Unscoped().Where("command_id = ?", old.ID).Delete(&model.CustomCommandAction{})
-			tx.Unscoped().Delete(&old)
+			if err := tx.Unscoped().Where("command_id = ?", old.ID).Delete(&model.CustomCommandAction{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Unscoped().Delete(&old).Error; err != nil {
+				return err
+			}
 		}
 
 		for i := range input {
@@ -98,7 +102,7 @@ func getCommandDetail(c *gin.Context) {
 
 	var command model.CustomCommandsSetting
 	err := db.Preload("Actions", func(db *gorm.DB) *gorm.DB {
-		return db.Order("custom_command_actions.order ASC")
+		return db.Order("custom_command_actions.action_order ASC")
 	}).Where("guild_id = ? AND name = ?", guildID, name).First(&command).Error
 
 	if err != nil {
@@ -192,8 +196,9 @@ func getAutoReplies(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 	var cmds []model.CustomCommandsSetting
 	err := db.Where("guild_id = ? AND is_auto_reply = ?", guildID, true).Preload("Actions").Find(&cmds)
-	if err != nil {
+	if err.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
 	}
-	c.JSON(200, cmds)
+	c.JSON(http.StatusOK, cmds)
 }
