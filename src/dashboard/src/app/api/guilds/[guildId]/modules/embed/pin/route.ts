@@ -43,7 +43,23 @@ export async function POST(
         const { guildId } = await params;
         await validateAdmin(guildId);
 
-        const { channelId, embedId, content } = await request.json();
+        let body;
+        try {
+            body = await request.json();
+        } catch {
+            return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+        }
+
+        const { channelId, embedId, content } = body ?? {};
+
+        if (
+            typeof channelId !== "string" ||
+            channelId.length === 0 ||
+            (typeof embedId !== "string" && typeof embedId !== "number") ||
+            typeof content !== "string"
+        ) {
+            return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+        }
 
         if (!channelId || content === undefined || !embedId) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -89,9 +105,7 @@ export async function POST(
         });
 
     } catch (error: any) {
-        console.error("Settings POST Error:", error);
-        const status = error.message === "Forbidden" ? 403 : error.message === "Unauthorized" ? 401 : 500;
-        return NextResponse.json({ error: error.message }, { status });
+        return NextResponse.json({ error: "Server Error." }, { status: 500 });
     }
 }
 
@@ -119,8 +133,6 @@ export async function DELETE(
         return NextResponse.json({ success: true, message: "Deleted successfully" });
 
     } catch (error: any) {
-        console.error("Settings DELETE Error:", error);
-        const status = error.message === "Forbidden" ? 403 : error.message === "Unauthorized" ? 401 : 500;
-        return NextResponse.json({ error: error.message }, { status });
+        return NextResponse.json({ error: "Server Error." }, { status: 500 });
     }
 }

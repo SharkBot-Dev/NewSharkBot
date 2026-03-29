@@ -587,9 +587,10 @@ class ResourceAPIClient:
         
     async def get_pin_setting(self, guild_id: str, channel_id: str) -> Optional[Dict[str, Any]]:
         async with self.session.get(f"{self.base_url}/guilds/pin/{guild_id}/{channel_id}") as resp:
-            if resp.status == 200:
-                return await resp.json()
-            return None
+            if resp.status == 404:
+                return None
+            resp.raise_for_status()
+            return await resp.json()
 
     async def create_pin(self, guild_id: str, data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         async with self.session.post(f"{self.base_url}/guilds/pin/{guild_id}", json=data) as resp:

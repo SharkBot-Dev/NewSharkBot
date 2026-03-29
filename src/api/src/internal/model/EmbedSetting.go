@@ -36,7 +36,7 @@ type EmbedSetting struct {
 type PinMessageSetting struct {
 	ID        uint   `gorm:"primaryKey"`
 	GuildID   string `gorm:"index;not null;type:varchar(255)" json:"guild_id"`
-	ChannelID string `gorm:"index;not null;type:varchar(255)" json:"channel_id"`
+	ChannelID string `gorm:"uniqueIndex:idx_pin_message_guild_channel;not null;type:varchar(255)" json:"channel_id"`
 
 	LastMessageID string `json:"last_message_id"`
 

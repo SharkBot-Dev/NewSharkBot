@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -147,6 +148,10 @@ func getOnePin(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	if err := db.Where("guild_id = ? AND channel_id = ?", guildID, channelId).First(&settings).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Pin setting not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch settings"})
 		return
 	}
@@ -158,10 +163,10 @@ func createPins(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 
 	var input struct {
-		ChannelId string `json:"channel_id"`
+		ChannelId string `json:"channel_id" binding:"required"`
 		MessageId string `json:"last_message_id"`
 		Content   string `json:"content"`
-		EmbedId   string `json:"embed_id"`
+		EmbedId   string `json:"embed_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {

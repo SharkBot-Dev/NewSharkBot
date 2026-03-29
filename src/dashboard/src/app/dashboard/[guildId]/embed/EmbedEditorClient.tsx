@@ -135,6 +135,12 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
 
       if (!response.ok) throw new Error("ピン作成失敗");
       
+      const created: PinMessageSetting = await response.json();
+      setPins((prev) => [
+        ...prev.filter((pin) => pin.channel_id !== created.channel_id),
+        created,
+      ]);
+
       setIsPinModalOpen(false);
       setSendingId("");
       setSendingContent("");
@@ -154,7 +160,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       return;
     }
 
-    setSaving(true);
+    setSending(true);
     try {
       const response = await fetch(`/api/guilds/${guildId}/modules/embed/pin?channel_id=${channelId}`, {
         method: "DELETE",
