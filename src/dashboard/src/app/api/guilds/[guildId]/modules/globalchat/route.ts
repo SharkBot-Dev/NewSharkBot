@@ -1,9 +1,24 @@
 import { auth } from "@/lib/auth";
+import { getValidatedChannelInServer } from "@/lib/Discord/Bot";
 import { checkAdminPermission } from "@/lib/Discord/User";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function toErrorResponse(error: unknown) {
+    const message =
+        error instanceof Error ? error.message : "Internal Server Error";
+    const status =
+        message === "Unauthorized" ? 401 :
+        message === "Forbidden" ? 403 :
+        500;
+
+    return NextResponse.json(
+        { error: status === 500 ? "Internal Server Error" : message },
+        { status }
+    );
+}
 
 /**
  * 共通の認証・権限チェック
@@ -58,12 +73,10 @@ export async function GET(
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error: any) {
-        const status = error.message === "Forbidden" ? 403 : 401;
-        return NextResponse.json({ error: error.message }, { status });
+        return toErrorResponse(error);
     }
 }
 
-// api/guilds/[guildId]/globalchat/route.ts の POST 部分
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ guildId: string }> }
@@ -72,12 +85,14 @@ export async function POST(
         const { guildId } = await params;
         const { discordUser } = await validateAdmin(guildId); 
 
-        console.log(discordUser.accountId)
-
         const body = await request.json();
         const { channel_id, room_name } = body;
 
-        console.log(room_name)
+        try {
+            const check = await getValidatedChannelInServer(guildId, channel_id);
+        } catch {
+            return NextResponse.json({ error: "Not Found" }, { status: 404 });
+        }
 
         const res = await fetch(`${BACKEND_URL}/globalchat/connect`, {
             method: "POST",
@@ -95,7 +110,7 @@ export async function POST(
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return toErrorResponse(error);
     }
 }
 
@@ -122,6 +137,6 @@ export async function DELETE(
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return toErrorResponse(error);
     }
 }

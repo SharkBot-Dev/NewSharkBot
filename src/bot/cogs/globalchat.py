@@ -27,7 +27,55 @@ class GlobalChatCog(commands.Cog):
             if res["target_id"] == str(message.guild.id) and res["type"] == "ban_server":
                 return
             
+        min_age_days = room.get("min_account_age", 0)
+        if min_age_days > 0:
+            delta = discord.utils.utcnow() - message.author.created_at
+            if delta.days < min_age_days:
+                return
+
+        slowmode = room.get("slowmode", 0)
+        if slowmode > 0:
+            res = await self.bot.api.check_globalchat_cooldown(
+                room["name"], 
+                str(message.author.id), 
+                slowmode
+            )
+            
+            if res["status"] == "limit":
+                await message.add_reaction("⏳")
+                return
+            elif res["status"] == "error":
+                logging.error(f"Cooldown API Error: {res.get('code')}")
+
         channels = await self.bot.api.globalchat_get_active_channel_ids_byname(room["name"])
+            
+        member_ids = [m["user_id"] for m in channels.get("members", [])]
+        if str(message.author.id) not in member_ids:
+            data = await self.bot.api.globalchat_join_member(room["name"], str(message.author.id))
+            logging.error(data)
+
+            rule = room.get("rule")
+            description = room.get("description")
+            
+            if rule or description:
+                embed = discord.Embed(
+                    title=f"{room['name']} へようこそ！",
+                    description=f"ルールと説明を確認してください。\n再度送信するとルールに同意したものとします。",
+                    color=discord.Color.blue()
+                )
+                if description:
+                    embed.add_field(name="ルーム説明", value=description, inline=False)
+                if rule:
+                    embed.add_field(name="ルール", value=rule, inline=False)
+                
+                embed.set_footer(text="このメッセージは初回参加時のみ表示されます。")
+                
+                try:
+                    await message.channel.send(content=message.author.mention, embed=embed)
+                except Exception as e:
+                    logging.error(f"Failed to send welcome message: {e}")
+
+                return
 
         await self.relay_message(message, channels)
 
@@ -82,6 +130,9 @@ class GlobalChatCog(commands.Cog):
             url = dest.get("webhook_url")
             if not url or url == "":
                 url = await self.check_and_fix_webhook(dest)
+
+            if not url:
+                continue
 
             tasks.append(asyncio.create_task(self.send_webhook(url, message)))
 

@@ -47,19 +47,9 @@ export async function GET(
     { params }: { params: Promise<{ guildId: string, name: string }> }
 ) {
     try {
-        const { guildId, name } = await params;
-        const { discordUser } = await validateAdmin(guildId);
+        const { name } = await params;
 
-        try {
-            const role = await getGlobalChatRole(name, discordUser.accountId);
-            if (role.role !== "owner") {
-                return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-            }
-        } catch {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const res = await fetch(`${BACKEND_URL}/globalchat/rooms/${name}`, {
+        const res = await fetch(`${BACKEND_URL}/globalchat/rooms/${encodeURIComponent(name)}`, {
             cache: 'no-store'
         });
         

@@ -23,6 +23,8 @@ func GlobalChatRegister(router *gin.RouterGroup) {
 		gc.GET("/guilds/:guild_id", getGuildConnections)
 		gc.POST("/rooms", createOrUpdateRoom) // 部屋の作成・更新
 
+		gc.POST("/rooms/:name/members", joinRoom)
+
 		gc.GET("/rooms/:name", getActiveRoomDetails)
 		gc.GET("/rooms/:name/:user_id", GetUserRoomRole)
 
@@ -94,8 +96,8 @@ func getGuildConnections(c *gin.Context) {
 
 	var connections []model.GlobalChatConnect
 	res := db.Where("guild_id = ?", guildID).Find(&connections)
-	if res.Error == gorm.ErrRecordNotFound {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Data NotFound"})
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "DB error"})
 		return
 	}
 	c.JSON(http.StatusOK, connections)
@@ -112,8 +114,6 @@ func createOrUpdateRoom(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	log.Print(input)
 
 	if input.Name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "room name is missing in request"})
@@ -252,4 +252,36 @@ func GetUserRoomRole(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"role": roomUser.Role})
+}
+
+func joinRoom(c *gin.Context) {
+	roomName := c.Param("name")
+	var input struct {
+		UserID string `json:"user_id" binding:"required"`
+		Role   string `json:"role"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+
+	newUser := model.GlobalChatRoomUser{
+		RoomName: roomName,
+		UserID:   input.UserID,
+		Role:     input.Role,
+		JoinedAt: time.Now(),
+	}
+
+	err := db.Where(model.GlobalChatRoomUser{RoomName: roomName, UserID: input.UserID}).
+		FirstOrCreate(&newUser).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to join room"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Joined successfully"})
 }

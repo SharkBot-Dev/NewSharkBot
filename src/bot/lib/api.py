@@ -5,6 +5,8 @@ import re
 from typing import Optional, List, Dict, Any, Union, Literal
 from dataclasses import dataclass, asdict
 
+import urllib.parse
+
 # --- 型定義 ---
 
 @dataclass
@@ -475,7 +477,7 @@ class ResourceAPIClient:
                 return data.get("active_channels", [])
             return []
 
-    async def globalchat_get_active_channel_ids_byname(self, name: str) -> List[str]:
+    async def globalchat_get_active_channel_ids_byname(self, name: str):
         url = f"{self.base_url}/globalchat/rooms/{name}"
         async with self.session.get(url) as resp:
             if resp.status == 200:
@@ -488,7 +490,7 @@ class ResourceAPIClient:
         payload = {
             "channel_id": str(channel_id),
             "guild_id": str(guild_id),
-            "room_name": room_name,
+            "name": room_name,
             "webhook_url": webhook_url
         }
         async with self.session.post(url, json=payload) as resp:
@@ -496,5 +498,57 @@ class ResourceAPIClient:
 
     async def globalchat_disconnect_channel(self, channel_id: int) -> bool:
         url = f"{self.base_url}/globalchat/connect/{channel_id}"
-        async with self.session.delete(url, headers=self.headers) as resp:
+        async with self.session.delete(url) as resp:
             return resp.status == 204
+            
+    async def globalchat_join_member(self, room_name: str, user_id: str, role: str = "member"):
+        payload = {
+            "user_id": str(user_id),
+            "role": role
+        }
+        async with self.session.post(f"{self.base_url}/globalchat/rooms/{room_name}/members", json=payload) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            return None
+            
+    async def check_globalchat_cooldown(self, room_name: str, user_id: str, seconds: int) -> Dict[str, Any]:
+        url = f"{self.base_url}/cooldowns/globalchat_{urllib.parse.quote(room_name)}/{user_id}"
+        
+        params = {"seconds": seconds}
+
+        try:
+            async with self.session.post(url, params=params) as resp:
+                if resp.status == 200:
+                    return {"status": "ok"}
+                
+                if resp.status == 429:
+                    data = await resp.json()
+                    return {
+                        "status": "limit",
+                        "remaining": data.get("remaining_seconds", 0)
+                    }
+                
+                return {"status": "error", "code": resp.status}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+        
+    async def cooldown_check(self, key: str, value: str, seconds: int):
+        url = f"{self.base_url}/cooldowns/{urllib.parse.quote(key)}/{value}"
+        
+        params = {"seconds": seconds}
+
+        try:
+            async with self.session.post(url, params=params) as resp:
+                if resp.status == 200:
+                    return {"status": "ok"}
+                
+                if resp.status == 429:
+                    data = await resp.json()
+                    return {
+                        "status": "limit",
+                        "remaining": data.get("remaining_seconds", 0)
+                    }
+                
+                return {"status": "error", "code": resp.status}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}

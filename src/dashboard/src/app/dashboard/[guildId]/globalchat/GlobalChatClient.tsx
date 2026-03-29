@@ -151,20 +151,21 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
                       <button 
                         onClick={() => handleInfoRoom(conn.room_name)}
                         className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition"
-                        title="ルーム情報"
+                        aria-label="ルーム情報"
                       >
                         <InfoIcon className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => checkEditRoom(conn.room_name)}
                         className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition"
-                        title="ルーム設定"
+                        aria-label="ルーム設定"
                       >
                         <Settings2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(conn.channel_id)}
                         className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition"
+                        aria-label="退出"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
