@@ -247,7 +247,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
                     </button>
 
                     <button 
-                      onClick={() => { setIsPinModalOpen(true); setSendingId(String(embed.ID)); }}
+                      onClick={() => { 
+                        const id = String(embed.ID); 
+                        setSendingId(id); 
+                        setIsPinModalOpen(true); 
+                       }}
                       className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"
                     >
                       <Pin className="w-4 h-4" />
@@ -269,7 +273,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
         </div>
       </CollapsibleSection>
 
-      <Modal isOpen={isSendModalOpen} onClose={() => setIsSendModalOpen(false)}>
+      <Modal isOpen={isSendModalOpen} onClose={() => {
+        setIsSendModalOpen(false);
+        setSendingContent("");
+        setSendingId("");
+      }}>
         <h2 className="text-xl font-bold mb-2 text-black">埋め込みを送信する</h2>
         <ChannelSelecter guildId={guildId} type_id={0} value={channelSelecterValue} onChange={(val) => setChannelSelecterValue(val)} initChannels={initChannels}></ChannelSelecter><br/>
 
@@ -328,7 +336,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
         </div>
       </CollapsibleSection>
 
-      <Modal isOpen={isPinModalOpen} onClose={() => setIsPinModalOpen(false)}>
+      <Modal isOpen={isPinModalOpen} onClose={() => {
+        setIsPinModalOpen(false)
+        setSendingContent("");
+        setSendingId("");
+      }}>
         <h2 className="text-xl font-bold mb-4 text-black">
           ピンメッセージ設定
         </h2>
