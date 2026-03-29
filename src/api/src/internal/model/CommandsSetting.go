@@ -17,6 +17,9 @@ type CustomCommandsSetting struct {
 	AllowedChannels    StringArray `gorm:"type:json" json:"allowed_channels"` // 許可チャンネルID
 	RequiredPermission string      `json:"required_permission"`               // 必要権限 (ADMINISTRATOR等)
 
+	IsAutoReply bool   `json:"is_auto_reply"`
+	MatchMode   string `json:"match_mode"`
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -27,7 +30,7 @@ type CustomCommandAction struct {
 	CommandID uint `gorm:"index" json:"command_id"`
 
 	// 実行順序
-	Order int `gorm:"order;default:0" json:"order"`
+	Order int `gorm:"column:action_order;default:0" json:"order"`
 
 	// アクション種別: "reply", "send", "dm", "var_set", "loop", "role_add", "kick", "thread_create" 等
 	Type string `json:"type"`

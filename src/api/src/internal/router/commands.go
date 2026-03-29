@@ -16,6 +16,7 @@ func RegisterCommands(router *gin.RouterGroup) {
 		commands.GET("/:guild_id", getCommands)
 		commands.GET("/:guild_id/prefixs", getPrefixes)
 		commands.POST("/:guild_id/prefixs", updatePrefixes)
+		commands.GET("/:guild_id/autoreply", getAutoReplies)
 		commands.GET("/:guild_id/:name", getCommandDetail)
 		commands.POST("/:guild_id", createCommand)
 		commands.DELETE("/:guild_id/:name", deleteCommand)
@@ -45,7 +46,9 @@ func createCommand(c *gin.Context) {
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		var oldCmds []model.CustomCommandsSetting
-		tx.Where("guild_id = ?", guildID).Find(&oldCmds)
+		if err := tx.Where("guild_id = ?", guildID).Find(&oldCmds).Error; err != nil {
+			return err
+		}
 
 		for _, old := range oldCmds {
 			tx.Unscoped().Where("command_id = ?", old.ID).Delete(&model.CustomCommandAction{})
@@ -111,10 +114,17 @@ func deleteCommand(c *gin.Context) {
 	name := c.Param("name")
 	db := c.MustGet("db").(*gorm.DB)
 
-	result := db.Where("guild_id = ? AND name = ?", guildID, name).Delete(&model.CustomCommandsSetting{})
-
-	if result.RowsAffected == 0 {
+	var cmd model.CustomCommandsSetting
+	if err := db.Where("guild_id = ? AND name = ?", guildID, name).First(&cmd).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Command not found"})
+		return
+	}
+
+	db.Unscoped().Where("command_id = ?", cmd.ID).Delete(&model.CustomCommandAction{})
+	result := db.Delete(&cmd)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete command"})
 		return
 	}
 
@@ -175,4 +185,15 @@ func updatePrefixes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"prefixes": input.Prefixes})
+}
+
+func getAutoReplies(c *gin.Context) {
+	guildID := c.Param("guild_id")
+	db := c.MustGet("db").(*gorm.DB)
+	var cmds []model.CustomCommandsSetting
+	err := db.Where("guild_id = ? AND is_auto_reply = ?", guildID, true).Preload("Actions").Find(&cmds)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+	}
+	c.JSON(200, cmds)
 }

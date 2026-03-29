@@ -77,8 +77,8 @@ export const modules = new Map<string, ModuleSetting>([
     "commands",
     {
       id: "commands",
-      name: "コマンド",
-      description: "コマンドを自作できます。",
+      name: "コマンド (自動返信)",
+      description: "コマンドや自動返信を自作できます。",
       enabled: true,
       icon: Command,
       group: "サーバー管理"

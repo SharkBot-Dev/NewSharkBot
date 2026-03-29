@@ -29,7 +29,12 @@ export default function CommandsClient({ guildId, commands: initialCommands, rol
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ commands, prefixes }),
       });
-      if (res.ok) alert("全設定を保存しました");
+      if (res.ok) {
+        alert("全設定を保存しました");
+      } else {
+        const data = await res.json();
+        alert(`保存に失敗しました: ${data.error || res.statusText}`);
+      }
     } catch (e) {
       alert("保存に失敗しました");
     }
@@ -119,7 +124,7 @@ export default function CommandsClient({ guildId, commands: initialCommands, rol
         {commands.map((cmd, idx) => (
           <div key={idx} className="bg-white/5 p-4 rounded-xl border border-white/10 hover:border-blue-500/50 transition">
             <div className="flex justify-between items-start mb-3">
-              <span className="text-blue-400 font-mono text-xl font-bold">{prefixes[0]}{cmd.name}</span>
+              <span className="text-blue-400 font-mono text-xl font-bold">{!cmd.is_auto_reply && prefixes[0]}{cmd.name}</span>
               <div className="flex gap-1">
                 <button onClick={() => openEditModal(cmd)} className="p-2 hover:bg-white/10 rounded-lg text-xs">編集</button>
                 <button className="p-2 hover:bg-red-500/10 text-red-400 rounded-lg" onClick={() => handleDeleteCommand(idx)}><Trash2 size={16}/></button>
@@ -131,7 +136,7 @@ export default function CommandsClient({ guildId, commands: initialCommands, rol
             </div>
           </div>
         ))}
-        <button onClick={() => openEditModal({ name: "", allowed_roles: [], allowed_channels: [], required_permission: "NONE", actions: [] })} 
+        <button onClick={() => openEditModal({ name: "", allowed_roles: [], allowed_channels: [], required_permission: "NONE", actions: [], is_auto_reply: false, match_mode: "contains" })} 
                 className="border-2 border-dashed border-white/10 p-6 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 transition text-black">
           <Plus size={24} /> <span>新規作成</span>
         </button>
@@ -170,6 +175,44 @@ export default function CommandsClient({ guildId, commands: initialCommands, rol
                   <MultiSelector icon={Hash} label="チャンネル" options={channels} selectedIds={editingCommand.allowed_channels} onChange={(ids: any) => setEditingCommand({...editingCommand, allowed_channels: ids})} />
                 </div>
               </div>
+            </section>
+
+            <section className="bg-white/5 p-4 rounded-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold">自動応答モード</h3>
+                  <p className="text-[10px] text-gray-500 font-medium uppercase tracking-tight">Prefixなしで反応</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="w-5 h-5 accent-blue-500 cursor-pointer"
+                  checked={editingCommand.is_auto_reply}
+                  onChange={e => setEditingCommand({...editingCommand, is_auto_reply: e.target.checked, match_mode: e.target.checked ? "contains" : "exact"})}
+                />
+              </div>
+
+              {editingCommand.is_auto_reply && (
+                <div className="pt-2 border-t border-white/5">
+                  <label className="text-[10px] text-gray-400 uppercase font-bold">一致方式</label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <button 
+                      onClick={() => setEditingCommand({...editingCommand, match_mode: "exact"})}
+                      className={`py-2 text-xs rounded-lg border transition ${editingCommand.match_mode === "exact" ? "bg-blue-600 border-blue-500" : "bg-black/20 border-white/10 text-gray-400"}`}
+                    >
+                      完全一致
+                    </button>
+                    <button 
+                      onClick={() => setEditingCommand({...editingCommand, match_mode: "contains"})}
+                      className={`py-2 text-xs rounded-lg border transition ${editingCommand.match_mode === "contains" ? "bg-blue-600 border-blue-500" : "bg-black/20 border-white/10 text-gray-400"}`}
+                    >
+                      部分一致
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-2 italic">
+                    {editingCommand.match_mode === "exact" ? "「こんにちは」というメッセージのみ反応します。" : "「あ、こんにちは！」などの文章内でも反応します。"}
+                  </p>
+                </div>
+              )}
             </section>
 
             <section className="space-y-4">
@@ -217,8 +260,8 @@ export function CustomCommandsControl({ actions, onChange, roles }: { actions: a
         <ActionButton onClick={() => addAction("reply")} icon={<MessageSquare size={14}/>} label="Reply" />
         <ActionButton onClick={() => addAction("send")} icon={<Send size={14}/>} label="Send" />
         <ActionButton onClick={() => addAction("dm")} icon={<Mail size={14}/>} label="DM" />
-        <ActionButton onClick={() => addAction("role_op")} icon={<UserPlus size={14}/>} label="Role" />
-        <ActionButton onClick={() => addAction("variable")} icon={<Variable size={14}/>} label="Variable" />
+        <ActionButton onClick={() => addAction("role")} icon={<UserPlus size={14}/>} label="Role" />
+        <ActionButton onClick={() => addAction("var_set")} icon={<Variable size={14}/>} label="Variable" />
       </div>
 
       <div className="space-y-3">
@@ -246,9 +289,9 @@ export function CustomCommandsControl({ actions, onChange, roles }: { actions: a
                   />
                 )}
 
-                {action.type === "role_op" && (
+                {action.type === "role" && (
                   <div className="flex gap-2">
-                    <select className="bg-black/40 border border-white/10 p-2 rounded text-xs" value={payload.op || "add"} onChange={e => updatePayload(index, { ...payload, op: e.target.value })}>
+                    <select className="bg-black/40 border border-white/10 p-2 rounded text-xs"value={payload.type || "add"} onChange={e => updatePayload(index, { ...payload, type: e.target.value })}>
                       <option value="add">付与</option>
                       <option value="remove">剥奪</option>
                     </select>
@@ -285,8 +328,8 @@ function ActionButton({ onClick, icon, label }: any) {
 function getDefaultPayload(type: string) {
   switch(type) {
     case "reply": case "send": case "dm": return { content: "" };
-    case "role_op": return { role_id: "", op: "add" };
-    case "variable": return { key: "", value: "", op: "set" };
+    case "role": return { role_id: "", type: "add" };
+    case "var_set": return { key: "", value: "" };
     default: return {};
   }
 }

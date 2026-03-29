@@ -26,7 +26,7 @@ export default async function CommandsContent({ params }: Props) {
     <div className="min-h-screen p-6 md:p-12">
       <div className="max-w-3xl mx-auto">
         <div className="mb-10">
-          <h1 className="text-3xl font-extrabold text-slate-900">コマンドモジュール</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900">コマンド (自動返信) モジュール</h1>
           <p className="mt-2 text-slate-600">好きなコマンドを自作できます。</p>
         </div>
 

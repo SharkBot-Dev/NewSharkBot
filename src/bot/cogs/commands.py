@@ -79,16 +79,19 @@ class CommandsCog(commands.Cog):
                 
                 await message.channel.send(content)
 
-            elif action_type == "role":
+            elif action_type in ("role", "role_op"):
                 role_id = int(payload.get('role_id'))
                 role = message.guild.get_role(role_id)
                 if role:
                     try:
-                        if payload.get('type') == "add":
+                        if payload.get('type') == "add" or payload.get('op') == "add":
                             await message.author.add_roles(role)
                         else:
                             await message.author.remove_roles(role)
-                    except:
+                    except discord.Forbidden:
+                        pass
+                    except discord.HTTPException as e:
+                        print(f"Failed to modify role: {e}")
                         continue
 
             elif action_type == "dm":
@@ -100,7 +103,7 @@ class CommandsCog(commands.Cog):
                 except discord.Forbidden:
                     pass
 
-            elif action_type == "var_set":
+            elif action_type in ("var_set", "variable"):
                 key = payload.get('key')
                 val = payload.get('value')
                 custom_vars[key] = self.parse_variables(val, message, args, custom_vars)
@@ -118,7 +121,7 @@ class CommandsCog(commands.Cog):
             text = text.replace(f"{{変数.{k}}}", v)
             
         return text
-
+    
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot or not message.guild:
@@ -136,25 +139,37 @@ class CommandsCog(commands.Cog):
                 used_prefix = p
                 break
                 
-        if not used_prefix:
-            return
+        if used_prefix:
+            content_without_prefix = message.content[len(used_prefix):].strip()
+            if not content_without_prefix:
+                return
 
-        content_without_prefix = message.content[len(used_prefix):].strip()
-        if not content_without_prefix:
-            return
+            parts = content_without_prefix.split()
+            cmd_name = parts[0]
+            args = parts[1:]
 
-        parts = content_without_prefix.split()
-        cmd_name = parts[0]
-        args = parts[1:]
+            data = await self.bot.api.get_command(message.guild.id, cmd_name)
+            if data:
+                await self.execute_actions(message, data, args)
 
-        if cmd_name == "prefixs":
-            return
-        
-        data = await self.bot.api.get_command(message.guild.id, cmd_name)
-        if not data:
-            return
+        else:
+            auto_commands = await self.bot.api.get_auto_commands(message.guild.id)
+            
+            for cmd in auto_commands:
+                trigger_name = cmd['name']
+                match_mode = cmd.get('match_mode', 'contains')
+                should_execute = False
 
-        await asyncio.create_task(self.execute_actions(message, data, args))
+                if match_mode == "exact":
+                    if message.content.strip() == trigger_name:
+                        should_execute = True
+                else:
+                    if trigger_name in message.content:
+                        should_execute = True
+
+                if should_execute:
+                    await asyncio.create_task(self.execute_actions(message, cmd, []))
+                    break
 
 async def setup(bot):
     await bot.add_cog(CommandsCog(bot))

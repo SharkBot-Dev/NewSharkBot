@@ -577,3 +577,10 @@ class ResourceAPIClient:
                 return None
 
             return await resp.json()
+        
+    async def get_auto_commands(self, guildId: str):
+        async with self.session.get(f"{self.base_url}/commands/{guildId}") as resp:
+            if resp.status != 200:
+                return None
+
+            return await resp.json()
