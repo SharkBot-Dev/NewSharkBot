@@ -21,5 +21,12 @@ export const commands = [
     "remove-timeout",
     "clear",
     "user-info",
-    "connect"
+    "connect",
+    "add-money",
+    "remove-money",
+    "spawn-item",
+    "guess",
+    "dice",
+    "bj",
+    "leaderboard"
 ];

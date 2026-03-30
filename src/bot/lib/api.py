@@ -322,6 +322,11 @@ class ResourceAPIClient:
             response.raise_for_status()
             return await response.json()
         
+    async def get_economy_leaderboard(self, guild_id: str):
+        async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}/users") as response:
+            response.raise_for_status()
+            return await response.json()
+
     async def get_economy_user(self, guild_id: str, user_id: str) -> Dict[str, Any]:
         async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}") as response:
             response.raise_for_status()
@@ -332,20 +337,20 @@ class ResourceAPIClient:
         guild_id: str, 
         user_id: str, 
         money: Optional[int] = None, 
-        item_ids: Optional[List[int]] = None
+        items: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         payload = {}
         if money is not None:
             payload["money"] = money
-        if item_ids is not None:
-            payload["item_ids"] = item_ids
+        if items is not None:
+            payload["items"] = items 
             
         url = f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}"
         
         async with self.session.post(url, json=payload) as response:
             response.raise_for_status() 
             return await response.json()
-
+        
     async def get_cooldown(self, guild_id: str, user_id: str) -> Dict[str, Any]:
         url = f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}/cooldown"
         async with self.session.get(url) as resp:
