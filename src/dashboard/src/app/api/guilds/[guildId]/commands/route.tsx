@@ -47,9 +47,21 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
-  const { action, adds = [], deletes = [] } = body; 
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
+  const { action, adds = [], deletes = [] } = body as {
+    action?: string;
+    adds?: Array<{ name?: string }>;
+    deletes?: string[];
+  };
+
+  if (action === "batch" && (!Array.isArray(adds) || !Array.isArray(deletes))) {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  
   if (action === "batch") {
     try {
       const cooldown = await checkCooldown("batch_sync", guildId, 10);
@@ -74,10 +86,14 @@ export async function POST(
         (cmd: any) => !deletes.includes(cmd.id)
       );
 
-      const validAdds = adds.filter((cmd: any) => {
-        return commands.includes(cmd.name);
-      });
-
+      const catalog = new Map(
+        Object.values(modules)
+          .flat()
+          .map((cmd: any) => [cmd.name, cmd]),
+      );
+      const validAdds = adds
+        .map((cmd) => (typeof cmd?.name === "string" ? catalog.get(cmd.name) : undefined))
+        .filter(Boolean) as any[];
       updatedList = [...updatedList, ...validAdds];
 
       const result = await syncSlashCommands(guildId, updatedList);

@@ -21,31 +21,42 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (signal?: AbortSignal) => {
+    setIsLoading(true);
+    setLiveCommands([]);
+    setEnabledNames(new Set<string>());
     setIsLoading(true);
     try {
       const res = await fetch(`/api/guilds/${guildId}/commands`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "fetch" }),
+        signal,
       });
+      if (!res.ok) throw new Error("Failed to fetch status");
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setLiveCommands(data);
-        setEnabledNames(new Set(data.map((c) => c.name)));
-      }
+      if (!Array.isArray(data)) throw new Error("Invalid response");
+      if (signal?.aborted) return;
+      setLiveCommands(data);
+      setEnabledNames(new Set(data.map((c) => c.name)));
     } catch (err) {
+      if ((err as Error).name === "AbortError") return;
       console.error("Failed to fetch status", err);
     } finally {
       setIsLoading(false);
+      if (!signal?.aborted) setIsLoading(false);
     }
   }, [guildId]);
 
   useEffect(() => {
-    if (guildId) fetchStatus();
+    if (!guildId) return;
+    const controller = new AbortController();
+    fetchStatus(controller.signal);
+    return () => controller.abort();
   }, [guildId, fetchStatus]);
 
   const toggleLocal = (name: string) => {
+    if (isSaving) return;
     setEnabledNames((prev) => {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
@@ -139,8 +150,12 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
               return (
                 <li
                   key={cmd.name}
-                  className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
-                  onClick={() => toggleLocal(cmd.name)}
+                  className={`flex items-center justify-between p-4 transition-colors ${
+                    isSaving
+                      ? "cursor-not-allowed opacity-60"
+                      : "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                  }`}
+                  onClick={isSaving ? undefined : () => toggleLocal(cmd.name)}
                 >
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
@@ -154,6 +169,7 @@ export default function CommandsControl({ guildId, targetCommands }: Props) {
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
                       isEnabled ? "bg-indigo-600" : "bg-slate-200 dark:bg-slate-700"
                     }`}
+                    disabled={isSaving}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
