@@ -486,3 +486,27 @@ export async function deleteTicketPanel(guildId: string, panelId: string): Promi
     throw new Error("Failed to delete panel");
   }
 }
+
+export async function checkCooldown(key: string, value: string, seconds: number) {
+  const url = `${RESOURCE_API_BASE_URL}/cooldowns/${encodeURIComponent(key)}/${value}?seconds=${seconds}`;
+
+  try {
+    const resp = await fetch(url, { method: "POST" });
+
+    if (resp.status === 200) {
+      return { status: "ok" };
+    }
+
+    if (resp.status === 429) {
+      const data = await resp.json();
+      return {
+        status: "limit",
+        remaining: data.remaining_seconds || 0,
+      };
+    }
+
+    return { status: "error", code: resp.status };
+  } catch (e: any) {
+    return { status: "error", message: e.message };
+  }
+}
