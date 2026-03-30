@@ -169,7 +169,14 @@ func getEconomyUserLeaderboard(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, leaderboards)
+	response := make([]gin.H, 0, len(leaderboards))
+	for _, user := range leaderboards {
+		response = append(response, gin.H{
+			"user_id": user.UserID,
+			"money":   user.Money,
+		})
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func getEconomyUserSetting(c *gin.Context) {

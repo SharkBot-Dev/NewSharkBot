@@ -27,5 +27,6 @@ export const commands = [
     "spawn-item",
     "guess",
     "dice",
-    "bj"
+    "bj",
+    "leaderboard"
 ];

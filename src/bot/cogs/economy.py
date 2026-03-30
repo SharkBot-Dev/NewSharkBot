@@ -52,7 +52,12 @@ class BlackjackView(discord.ui.View):
 
     @discord.ui.button(label="ヒット (引く)", style=discord.ButtonStyle.green)
     async def hit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != int(self.user_id): return
+        if interaction.user.id != int(self.user_id):
+            await interaction.response.send_message(
+                "このゲームはあなたの操作対象ではありません。",
+                ephemeral=True,
+            )
+            return
         
         self.player_hand.append(self.draw())
         score = self.get_score(self.player_hand)
@@ -65,7 +70,13 @@ class BlackjackView(discord.ui.View):
 
     @discord.ui.button(label="スタンド (勝負)", style=discord.ButtonStyle.red)
     async def stand(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != int(self.user_id): return
+        if interaction.user.id != int(self.user_id):
+            await interaction.response.send_message(
+                "このゲームはあなたの操作対象ではありません。",
+                ephemeral=True,
+            )
+            return
+        
         self.finished = True
         
         while self.get_score(self.dealer_hand) < 17:
@@ -83,7 +94,10 @@ class BlackjackView(discord.ui.View):
 
     async def end_game(self, interaction, result_text, money_change):
         self.stop()
-        new_money = self.current_money + money_change
+        current_data = await self.api.get_user_setting(self.guild_id, self.user_id)
+        latest_money = current_data.get('money', 0)
+
+        new_money = latest_money + money_change
         await self.api.save_user_setting(self.guild_id, self.user_id, money=new_money)
         
         embed = self.create_embed(show_dealer=True)
@@ -368,13 +382,14 @@ class EconomyCog(commands.Cog):
         user_id = str(kwargs.get('user'))
         amount = int(kwargs.get('amount'))
 
+        if amount <= 0:
+            return await interaction.followup.send("金額は1以上を指定してください。")
+
         current = await self.bot.api.get_economy_user(guild_id, user_id)
         current_money = current.get("money", 0) if current else 0
         new_money = current_money + amount
         
         await self.bot.api.save_user_setting(guild_id, user_id, money=new_money)
-        
-        await self.bot.api.update_cooldown(guild_id, user_id, "work")
 
         await interaction.followup.send(f"<@{user_id}>に{amount}コイン追加しました。", allowed_mentions=discord.AllowedMentions.none())
 
@@ -384,9 +399,12 @@ class EconomyCog(commands.Cog):
         user_id = str(kwargs.get('user'))
         amount = int(kwargs.get('amount'))
 
+        if amount <= 0:
+            return await interaction.followup.send("金額は1以上を指定してください。")
+
         current = await self.bot.api.get_economy_user(guild_id, user_id)
         current_money = current.get("money", 0) if current else 0
-        new_money = current_money - amount
+        new_money = max(0, current_money - amount)
         
         await self.bot.api.save_user_setting(guild_id, user_id, money=new_money)
         
@@ -437,7 +455,7 @@ class EconomyCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         user_id = str(interaction.user.id)
         
-        bet = int(kwargs.get('bet', 100))
+        bet = int(kwargs.get('amount', 100))
         
         user_data = await self.bot.api.get_economy_user(guild_id, user_id)
         current_money = user_data.get("money", 0)
@@ -570,7 +588,7 @@ class EconomyCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         user_id = str(interaction.user.id)
         
-        bet = int(kwargs.get('bet', 100))
+        bet = int(kwargs.get('amount', 100))
         if bet <= 0:
             return await interaction.followup.send("1コイン以上を賭けてください。")
 

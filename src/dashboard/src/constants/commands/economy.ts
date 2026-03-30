@@ -116,6 +116,11 @@ const commands = [
           description: "アイテム名を入力してください。",
           type: 3,
           required: true
+        },
+        {
+          name: "amount",
+          description: "追加する個数を入力してください。",
+          type: 4
         }
     ]
   },
