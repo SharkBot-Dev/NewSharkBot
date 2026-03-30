@@ -67,7 +67,7 @@ class TicketCog(commands.Cog):
 
         if res["status"] == "limit":
             remaining = res.get("remaining", 0)
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 f"⚠️ クールダウン中です。あと {remaining} 秒待ってください。", 
                 ephemeral=True
             )
