@@ -201,7 +201,7 @@ class SuperGlobalChatCog(commands.Cog):
                             ref_author = f"{p_dic.get('userName')}#{p_dic.get('userDiscriminator')}"
                             ref_content = p_dic.get("content", "内容なし")
                             break
-                    except: continue
+                    except json.JSONDecodeError: continue
 
             channels_config = await self.bot.api.globalchat_get_active_channel_ids_byname(name)
             if channels_config:
@@ -326,7 +326,7 @@ class SuperGlobalChatCog(commands.Cog):
                 webhook_url=webhook.url
             )
             return webhook.url
-        except:
+        except (discord.Forbidden, discord.HTTPException) as e:
             return None
 
     async def relay_message(self, message: discord.Message, config: dict, room: dict, isother_bot: bool = False, sgc_data: dict = None, ref_info: dict = None):
@@ -352,6 +352,8 @@ class SuperGlobalChatCog(commands.Cog):
 
         synced_data = [res for res in results if isinstance(res, dict)]
         if synced_data:
+            if not self.bot.redis:
+                return
             msg_id = sgc_data.get("messageId") if (isother_bot and sgc_data) else message.id
             await self.bot.redis.set(f"gc:{name}:msg:{msg_id}", json.dumps(synced_data), ex=self.msg_expiry)
 
