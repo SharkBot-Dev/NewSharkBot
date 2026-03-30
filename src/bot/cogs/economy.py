@@ -25,6 +25,8 @@ class BlackjackView(discord.ui.View):
         
         self.player_hand = [self.draw(), self.draw()]
         self.dealer_hand = [self.draw(), self.draw()]
+
+        self.is_finish = False
         
     def draw(self):
         return self.deck.pop()
@@ -77,9 +79,10 @@ class BlackjackView(discord.ui.View):
     async def stand(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_user(interaction): return
         
-        for btn in self.children:
-            btn.disabled = True
-            
+        if self.is_finish: return 
+        
+        self.is_finish = True 
+        
         while self.get_score(self.dealer_hand) < 17:
             self.dealer_hand.append(self.draw())
             
@@ -98,7 +101,7 @@ class BlackjackView(discord.ui.View):
     async def end_game(self, interaction, result_text, money_change):
         self.stop()
         
-        current_data = await self.api.get_user_setting(self.guild_id, self.user_id)
+        current_data = await self.api.get_economy_user(self.guild_id, self.user_id)
         latest_money = current_data.get('money', 0)
         new_money = latest_money + money_change
         await self.api.save_user_setting(self.guild_id, self.user_id, money=new_money)
