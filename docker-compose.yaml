@@ -16,15 +16,16 @@ services:
   bot:
     build: ./src/bot
     depends_on:
-      - api
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
     env_file:
       - ./src/bot/.env
     networks:
       - sharkbot_network
     environment:
       RESOURCE_API_BASE_URL: "http://api:8080"
-    redis:
-      condition: service_healthy
   dashboard:
     build:
       context: ./src/dashboard
