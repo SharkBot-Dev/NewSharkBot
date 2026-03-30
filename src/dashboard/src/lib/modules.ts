@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -72,6 +72,17 @@ export const modules = new Map<string, ModuleSetting>([
       icon: LogsIcon,
       group: "サーバー管理"
     }
+  ],
+  [
+    "ticket",
+    {
+      id: "ticket",
+      name: "チケット",
+      description: "お問い合わせパネルを作成できます。",
+      enabled: true,
+      icon: Ticket,
+      group: "サーバー管理",
+    },
   ],
   [
     "commands",

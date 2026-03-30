@@ -12,6 +12,7 @@ interface Props {
   value?: string;
   onChange?: (channelId: string) => void;
   initChannels?: Channel[]; // anyを排除
+  required?: boolean;
 }
 
 export default function ChannelSelecter({
@@ -20,6 +21,7 @@ export default function ChannelSelecter({
   value,
   onChange,
   initChannels,
+  required
 }: Props) {
   const [rawChannels, setRawChannels] = useState<Channel[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -65,6 +67,12 @@ export default function ChannelSelecter({
     onChange?.(e.target.value);
   };
 
+  const getPlaceholderText = () => {
+    if (isLoading) return "読み込み中...";
+    if (displayChannels.length === 0) return "利用可能なチャンネルがありません";
+    return "チャンネルを選択してください";
+  };
+
   return (
     <div className="w-full">
       <select
@@ -73,13 +81,16 @@ export default function ChannelSelecter({
         disabled={isLoading || (displayChannels.length === 0 && !isLoading)}
         className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm text-slate-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
       >
-        <option value="" disabled>
-          {isLoading
-            ? "読み込み中..."
-            : displayChannels.length === 0
-            ? "利用可能なチャンネルがありません"
-            : "チャンネルを選択してください"}
+        <option value="" disabled={required}>
+          {getPlaceholderText()}
         </option>
+
+        {displayChannels.map((channel) => (
+          <option key={channel.id} value={channel.id}>
+            {channel.type === 0 ? "# " : "🔊 "}
+            {channel.name}
+          </option>
+        ))}
 
         {displayChannels.map((channel) => (
           <option key={channel.id} value={channel.id}>
