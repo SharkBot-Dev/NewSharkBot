@@ -1,7 +1,8 @@
 package router
 
 import (
-	"fmt"
+	"errors"
+	"log"
 	"math"
 	"net/http"
 	"strconv"
@@ -131,26 +132,40 @@ func deleteEconomyItem(c *gin.Context) {
 	guildID := c.Param("id")
 	itemID := c.Param("item_id")
 	db := c.MustGet("db").(*gorm.DB)
+
 	itemIDInt, err := strconv.Atoi(itemID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item_id format"})
 		return
 	}
 
-	result := db.Where("guild_id = ? AND id = ?", guildID, itemIDInt).Delete(&model.EconomyItemSetting{})
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("guild_id = ? AND item_id = ?", guildID, itemIDInt).Delete(&model.Inventory{}).Error; err != nil {
+			return err
+		}
 
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete"})
+		result := tx.Where("guild_id = ? AND id = ?", guildID, itemIDInt).Delete(&model.EconomyItemSetting{})
+		if result.Error != nil {
+			return result.Error
+		}
+
+		if result.RowsAffected == 0 {
+			return errors.New("item not found")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		if err.Error() == "item not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete: " + err.Error()})
+		}
 		return
 	}
 
-	if result.RowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Setting not found"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Deleted successfully"})
-
+	c.JSON(http.StatusOK, gin.H{"message": "Deleted successfully from store and inventories"})
 }
 
 func getEconomyUserLeaderboard(c *gin.Context) {
@@ -186,20 +201,23 @@ func getEconomyUserSetting(c *gin.Context) {
 
 	var userSetting model.EconomyUserSetting
 
-	err := db.Preload("Items").Where("guild_id = ? AND user_id = ?", guildID, userID).First(&userSetting).Error
+	err := db.Preload("Inventory.Item").
+		Where("guild_id = ? AND user_id = ?", guildID, userID).
+		First(&userSetting).Error
 
 	if err == gorm.ErrRecordNotFound {
 		userSetting = model.EconomyUserSetting{
-			GuildID: guildID,
-			UserID:  userID,
-			Money:   0,
-			Items:   []model.EconomyItemSetting{},
+			GuildID:   guildID,
+			UserID:    userID,
+			Money:     0,
+			Inventory: []model.Inventory{},
 		}
 		if err := db.Create(&userSetting).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user setting"})
 			return
 		}
 	} else if err != nil {
+		log.Print(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
 		return
 	}
@@ -212,9 +230,14 @@ func saveEconomyUserSetting(c *gin.Context) {
 	userID := c.Param("user")
 	db := c.MustGet("db").(*gorm.DB)
 
+	type ItemInput struct {
+		ItemID   uint `json:"item_id"`
+		Quantity int  `json:"quantity"`
+	}
+
 	var input struct {
-		Money   *int   `json:"money"`
-		ItemIDs []uint `json:"item_ids"`
+		Money *int        `json:"money"`
+		Items []ItemInput `json:"items"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -222,49 +245,56 @@ func saveEconomyUserSetting(c *gin.Context) {
 		return
 	}
 
-	var userSetting model.EconomyUserSetting
-	if err := db.Where("guild_id = ? AND user_id = ?", guildID, userID).First(&userSetting).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			userSetting = model.EconomyUserSetting{GuildID: guildID, UserID: userID}
-			if err := db.Create(&userSetting).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user setting"})
-				return
-			}
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-			return
-		}
-	}
-
 	err := db.Transaction(func(tx *gorm.DB) error {
-		if input.Money != nil {
-			userSetting.Money = *input.Money
+		var userSetting model.EconomyUserSetting
+		if err := tx.Where("guild_id = ? AND user_id = ?", guildID, userID).
+			FirstOrCreate(&userSetting, model.EconomyUserSetting{GuildID: guildID, UserID: userID}).Error; err != nil {
+			return err
 		}
 
-		if input.ItemIDs != nil {
-			var items []model.EconomyItemSetting
-			if len(input.ItemIDs) > 0 {
-				if err := tx.Where("id IN ? AND guild_id = ?", input.ItemIDs, guildID).Find(&items).Error; err != nil {
-					return err
-				}
-				if len(items) != len(input.ItemIDs) {
-					return fmt.Errorf("invalid item IDs provided")
-				}
-			}
-			if err := tx.Model(&userSetting).Association("Items").Replace(items); err != nil {
+		if input.Money != nil {
+			if err := tx.Model(&userSetting).Update("money", *input.Money).Error; err != nil {
 				return err
 			}
 		}
 
-		return tx.Save(&userSetting).Error
+		if input.Items != nil {
+			if err := tx.Where("user_settings_id = ?", userSetting.ID).Delete(&model.Inventory{}).Error; err != nil {
+				return err
+			}
+
+			if len(input.Items) > 0 {
+				var newInventory []model.Inventory
+				for _, item := range input.Items {
+					if item.Quantity <= 0 {
+						continue
+					}
+					newInventory = append(newInventory, model.Inventory{
+						UserSettingsID: userSetting.ID,
+						GuildID:        guildID,
+						UserID:         userID,
+						ItemID:         item.ItemID,
+						Quantity:       item.Quantity,
+					})
+				}
+				if len(newInventory) > 0 {
+					if err := tx.Create(&newInventory).Error; err != nil {
+						return err
+					}
+				}
+			}
+		}
+		return nil
 	})
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user setting"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, userSetting)
+	var updatedUser model.EconomyUserSetting
+	db.Preload("Inventory.Item").Where("guild_id = ? AND user_id = ?", guildID, userID).First(&updatedUser)
+	c.JSON(http.StatusOK, updatedUser)
 }
 
 func getEconomyCooldown(c *gin.Context) {

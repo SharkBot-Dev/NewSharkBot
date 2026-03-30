@@ -16,7 +16,24 @@ type EconomyUserSetting struct {
 	UserID  string `gorm:"uniqueIndex:idx_guild_user;size:255" json:"user_id"`
 	Money   int    `gorm:"not null;default:0" json:"money"`
 
-	Items []EconomyItemSetting `gorm:"many2many:user_inventory;" json:"items"`
+	Inventory []Inventory `gorm:"foreignKey:UserSettingsID" json:"inventory"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type Inventory struct {
+	ID      uint   `gorm:"primaryKey" json:"id"`
+	GuildID string `gorm:"uniqueIndex:idx_user_item;size:255" json:"guild_id"`
+
+	UserSettingsID uint `gorm:"index" json:"user_settings_id"`
+
+	UserID string `gorm:"uniqueIndex:idx_user_item;size:255" json:"user_id"`
+
+	ItemID   uint `gorm:"uniqueIndex:idx_user_item" json:"item_id"`
+	Quantity int  `gorm:"not null;default:1" json:"quantity"`
+
+	Item EconomyItemSetting `gorm:"foreignKey:ItemID" json:"item"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

@@ -57,6 +57,7 @@ func main() {
 		&model.LevelSetting{},
 		&model.LevelRewardSetting{},
 		&model.LevelUserSetting{},
+		&model.Inventory{},
 		&model.EconomySetting{},
 		&model.EconomyUserSetting{},
 		&model.EconomyItemSetting{},

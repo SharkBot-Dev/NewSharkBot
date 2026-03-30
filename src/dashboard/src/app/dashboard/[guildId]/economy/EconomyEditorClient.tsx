@@ -44,6 +44,17 @@ export default function EconomyEditorClient({ guildId, init_items, roles }: Prop
   // アイテム作成
   const handleCreateItem = async () => {
     if (!newItem.name || newItem.price === undefined) return;
+
+    if (isNaN(newItem.price)) {
+        alert("価格を数値で入力してください。");
+        return;
+    }
+
+    if (newItem.price < 1) {
+        alert("1以上の価格を指定してください。");
+        return;
+    }
+
     setSaving(true);
 
     try {

@@ -8,23 +8,24 @@ import random
 from lib.command import Command
 from main import NewSharkBot
 
+import discord
+import random
+
 class BlackjackView(discord.ui.View):
-    def __init__(self, interaction, bet, current_money, bot_api, guild_id, user_id):
+    def __init__(self, interaction, bet, bot_api, guild_id, user_id):
         super().__init__(timeout=60)
         self.interaction = interaction
         self.bet = bet
-        self.current_money = current_money
         self.api = bot_api
         self.guild_id = guild_id
-        self.user_id = user_id
+        self.user_id = int(user_id)
         
         self.deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11] * 4
         random.shuffle(self.deck)
         
         self.player_hand = [self.draw(), self.draw()]
         self.dealer_hand = [self.draw(), self.draw()]
-        self.finished = False
-
+        
     def draw(self):
         return self.deck.pop()
 
@@ -41,51 +42,53 @@ class BlackjackView(discord.ui.View):
         d_score = self.get_score(self.dealer_hand)
         
         embed = discord.Embed(title="🃏 ブラックジャック", color=discord.Color.blue())
-        embed.add_field(name="👤 あなたの手札", value=f"カード: {self.player_hand}\nスコア: **{p_score}**", inline=False)
+        
+        p_cards = ", ".join(map(str, self.player_hand)).replace("11", "A")
+        embed.add_field(name="👤 あなたの手札", value=f"カード: `[{p_cards}]` \nスコア: **{p_score}**", inline=False)
         
         if show_dealer:
-            embed.add_field(name="🏢 ディーラーの手札", value=f"カード: {self.dealer_hand}\nスコア: **{d_score}**", inline=False)
+            d_cards = ", ".join(map(str, self.dealer_hand)).replace("11", "A")
+            embed.add_field(name="🏢 ディーラーの手札", value=f"カード: `[{d_cards}]` \nスコア: **{d_score}**", inline=False)
         else:
-            embed.add_field(name="🏢 ディーラーの手札", value=f"カード: [{self.dealer_hand[0]}, ?]", inline=False)
+            d_first_card = str(self.dealer_hand[0]).replace("11", "A")
+            embed.add_field(name="🏢 ディーラーの手札", value=f"カード: `[{d_first_card}, ?]` \nスコア: **?**", inline=False)
         
         return embed
 
+    async def check_user(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("このゲームはあなたの操作対象ではありません。", ephemeral=True)
+            return False
+        return True
+
     @discord.ui.button(label="ヒット (引く)", style=discord.ButtonStyle.green)
     async def hit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != int(self.user_id):
-            await interaction.response.send_message(
-                "このゲームはあなたの操作対象ではありません。",
-                ephemeral=True,
-            )
-            return
+        if not await self.check_user(interaction): return
         
         self.player_hand.append(self.draw())
         score = self.get_score(self.player_hand)
         
         if score > 21:
-            self.finished = True
             await self.end_game(interaction, "バースト！あなたの負けです。", -self.bet)
         else:
             await interaction.response.edit_message(embed=self.create_embed())
 
     @discord.ui.button(label="スタンド (勝負)", style=discord.ButtonStyle.red)
     async def stand(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != int(self.user_id):
-            await interaction.response.send_message(
-                "このゲームはあなたの操作対象ではありません。",
-                ephemeral=True,
-            )
-            return
+        if not await self.check_user(interaction): return
         
-        self.finished = True
-        
+        for btn in self.children:
+            btn.disabled = True
+            
         while self.get_score(self.dealer_hand) < 17:
             self.dealer_hand.append(self.draw())
             
         p_score = self.get_score(self.player_hand)
         d_score = self.get_score(self.dealer_hand)
         
-        if d_score > 21 or p_score > d_score:
+        if d_score > 21:
+            await self.end_game(interaction, "ディーラーがバースト！あなたの勝ちです。", self.bet)
+        elif p_score > d_score:
             await self.end_game(interaction, "あなたの勝ちです！", self.bet)
         elif p_score < d_score:
             await self.end_game(interaction, "ディーラーの勝ちです。", -self.bet)
@@ -94,17 +97,20 @@ class BlackjackView(discord.ui.View):
 
     async def end_game(self, interaction, result_text, money_change):
         self.stop()
+        
         current_data = await self.api.get_user_setting(self.guild_id, self.user_id)
         latest_money = current_data.get('money', 0)
-
         new_money = latest_money + money_change
         await self.api.save_user_setting(self.guild_id, self.user_id, money=new_money)
         
         embed = self.create_embed(show_dealer=True)
-        embed.description = f"**結果: {result_text}**\nコイン変動: `{money_change:+,}`"
-        embed.color = discord.Color.gold() if money_change > 0 else discord.Color.red()
+        embed.description = f"### 結果: {result_text}\nコイン変動: `{money_change:+,}` | 現在の所持金: `{new_money:,}`"
+        embed.color = discord.Color.gold() if money_change > 0 else (discord.Color.red() if money_change < 0 else discord.Color.light_grey())
         
-        await interaction.response.edit_message(embed=embed, view=None)
+        if interaction.response.is_done():
+            await interaction.edit_original_response(embed=embed, view=None)
+        else:
+            await interaction.response.edit_message(embed=embed, view=None)
 
 class EconomyCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
@@ -211,9 +217,15 @@ class EconomyCog(commands.Cog):
 
         embed = discord.Embed(title="🛒 サーバーショップ", color=discord.Color.gold())
         for item in items:
+            if not item.get("can_buy"):
+                continue
+
             item_type = item.get('type', 'item')
             desc = f"価格: `{item['price']}` コイン\nタイプ: `{item_type}`"
             
+            if not item.get("can_buy_multiple") and not item.get("auto_use"):
+                desc += "\n⚠️ *1つのみ所持可能です*"
+
             if item_type == "role" and item.get('role_id'):
                 desc += "\n✨ *購入時にロールが付与されます*"
 
@@ -239,19 +251,20 @@ class EconomyCog(commands.Cog):
             target_item = next((i for i in all_items if i["name"].lower().strip() == item_name.lower().strip()), None)
 
             if not target_item:
-                return await interaction.followup.send(f"そのアイテムは見つかりませんでした。")
+                return await interaction.followup.send("そのアイテムは見つかりませんでした。")
 
             if not target_item.get("can_buy"):
                 return await interaction.followup.send("このアイテムは現在購入できません。")
 
             user_data = await self.bot.api.get_economy_user(guild_id, user_id)
             current_money = user_data.get("money", 0)
-            current_inventory = user_data.get("items", [])
+            current_inventory = user_data.get("inventory", [])
 
-            is_auto_use = target_item.get("auto_use")
+            is_auto_use = target_item.get("auto_use", False)
+            target_id = target_item["id"]
 
             if not is_auto_use and not target_item.get("can_buy_multiple"):
-                already_has = any(i["id"] == target_item["id"] for i in current_inventory)
+                already_has = any(inv["item_id"] == target_id for inv in current_inventory)
                 if already_has:
                     return await interaction.followup.send("このアイテムは既に所持しています。")
                 if amount > 1:
@@ -263,19 +276,27 @@ class EconomyCog(commands.Cog):
                     f"所持金が足りません。\n必要: **{total_price}** / 所持: **{current_money}**"
                 )
 
-            new_item_ids = [i["id"] for i in current_inventory]
-            
+            new_items_payload = []
             if not is_auto_use:
-                for _ in range(amount):
-                    new_item_ids.append(target_item["id"])
+                item_found = False
+                for inv in current_inventory:
+                    iq = inv["quantity"]
+                    if inv["item_id"] == target_id:
+                        iq += amount
+                        item_found = True
+                    new_items_payload.append({"item_id": inv["item_id"], "quantity": iq})
+                
+                if not item_found:
+                    new_items_payload.append({"item_id": target_id, "quantity": amount})
+            else:
+                new_items_payload = None
 
             new_money = current_money - total_price
-            
             await self.bot.api.save_user_setting(
                 guild_id=guild_id,
                 user_id=user_id,
                 money=new_money,
-                item_ids=new_item_ids
+                items=new_items_payload
             )
 
             success_msg = f"🛍️ **{target_item['name']}** を {amount}個 購入しました！"
@@ -292,7 +313,7 @@ class EconomyCog(commands.Cog):
                                 await interaction.user.add_roles(role)
                                 success_msg += f"\nロール {role.name} が付与されました。"
                             except discord.Forbidden:
-                                success_msg += f"\nロール付与権限が足りませんでした（管理者にお問い合わせください）。"
+                                success_msg += f"\nロール付与権限が足りませんでした（管理者のロール順位を確認してください）。"
 
             await interaction.followup.send(success_msg)
 
@@ -306,75 +327,84 @@ class EconomyCog(commands.Cog):
         user_id = str(interaction.user.id)
 
         user_data = await self.bot.api.get_economy_user(guild_id, user_id)
-        items = user_data.get("items", [])
 
-        if not items:
+        inventory = user_data.get("inventory", [])
+
+        if not inventory:
             return await interaction.followup.send("インベントリは空です。")
 
-        inventory_counts = {}
-        for item in items:
-            name = item["name"]
-            inventory_counts[name] = inventory_counts.get(name, 0) + 1
-
         embed = discord.Embed(
-            title=f"🎒 {interaction.user.display_name}さんのインベントリ",
+            title=f"👜 {interaction.user.display_name}さんのインベントリ",
             color=discord.Color.blue()
         )
 
         item_list_text = ""
-        for name, count in inventory_counts.items():
-            item_list_text += f"**{name}** × {count}\n"
+        for inv in inventory:
+            item_name = inv["item"]["name"]
+            count = inv["quantity"]
+            item_list_text += f"**{item_name}** × {count}\n"
         
         embed.description = item_list_text
         await interaction.followup.send(embed=embed)
 
     async def use_command(self, interaction: discord.Interaction, **kwargs):
-        item = kwargs.get("item", None)
-        if not item:
+        item_input = kwargs.get("item", None)
+        if not item_input:
             return await interaction.response.send_message("アイテム名を指定してください。", ephemeral=True)
-        
-        item_name = item
         
         await interaction.response.defer()
         guild_id = str(interaction.guild_id)
         user_id = str(interaction.user.id)
 
-        user_data = await self.bot.api.get_economy_user(guild_id, user_id)
-        current_items = user_data.get("items", [])
-
-        target_index = next((index for index, i in enumerate(current_items) if i["name"].lower().strip() == item_name.lower().strip()), None)
-
-        if target_index is None:
-            return await interaction.followup.send(f"そのアイテムを持っていません。", ephemeral=True)
-
-        target_item = current_items[target_index]
-
-        success_msg = f"✨ **{item_name}** を使用しました！"
-        
-        if target_item.get("type") == "role":
-            role_id = target_item.get("role_id")
-            if role_id:
-                role = interaction.guild.get_role(int(role_id))
-                if role:
-                    try:
-                        await interaction.user.add_roles(role)
-                        success_msg += f"\nロール {role.name} が付与されました。"
-                    except discord.Forbidden:
-                        success_msg += f"\n権限不足によりロールを付与できませんでした。"
-
-        new_item_ids = [i["id"] for i in current_items]
-        new_item_ids.pop(target_index) 
-
         try:
+            user_data = await self.bot.api.get_economy_user(guild_id, user_id)
+            inventory = user_data.get("inventory", [])
+
+            target_inv_entry = next(
+                (inv for inv in inventory if inv.get("item") and inv["item"]["name"].lower().strip() == item_input.lower().strip()), 
+                None
+            )
+
+            if not target_inv_entry:
+                return await interaction.followup.send("そのアイテムを持っていません。", ephemeral=True)
+
+            target_item = target_inv_entry["item"]
+            target_id = target_inv_entry["item_id"]
+            success_msg = f"✨ **{target_item['name']}** を使用しました！"
+            
+            if target_item.get("type") == "role":
+                role_id = target_item.get("role_id")
+                if role_id:
+                    role = interaction.guild.get_role(int(role_id))
+                    if role:
+                        try:
+                            await interaction.user.add_roles(role)
+                            success_msg += f"\nロール **{role.name}** が付与されました。"
+                        except discord.Forbidden:
+                            success_msg += f"\n⚠️ 権限不足によりロールを付与できませんでした。"
+
+            new_items_payload = []
+            for inv in inventory:
+                item_id = inv["item_id"]
+                quantity = inv["quantity"]
+                
+                if item_id == target_id:
+                    quantity -= 1
+                
+                if quantity > 0:
+                    new_items_payload.append({"item_id": item_id, "quantity": quantity})
+
             await self.bot.api.save_user_setting(
                 guild_id=guild_id,
                 user_id=user_id,
-                item_ids=new_item_ids
+                items=new_items_payload
             )
+            
             await interaction.followup.send(success_msg)
+
         except Exception as e:
-            print(f"Error using item: {e}")
-            await interaction.followup.send("アイテムの使用処理に失敗しました。")
+            print(f"Error in use_command: {e}")
+            await interaction.followup.send("アイテムの使用中にエラーが発生しました。")
 
     async def add_money_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
@@ -421,6 +451,8 @@ class EconomyCog(commands.Cog):
 
         if not item_name:
             return await interaction.followup.send("アイテム名を指定してください。")
+        if amount <= 0:
+            return await interaction.followup.send("個数は1以上を指定してください。")
 
         try:
             all_items = await self.bot.api.get_economy_items(guild_id)
@@ -428,26 +460,37 @@ class EconomyCog(commands.Cog):
 
             if not target_item:
                 return await interaction.followup.send(f"アイテムがストアに見つかりません。")
-
+            
             user_data = await self.bot.api.get_economy_user(guild_id, user_id)
-            current_item_ids = [i["id"] for i in user_data.get("items", [])]
+            current_inventory = user_data.get("inventory", [])
 
-            for _ in range(amount):
-                current_item_ids.append(target_item["id"])
+            new_items_payload = []
+            item_found = False
+            target_id = target_item["id"]
+
+            for inv in current_inventory:
+                iq = inv["quantity"]
+                if inv["item_id"] == target_id:
+                    iq += amount
+                    item_found = True
+                new_items_payload.append({"item_id": inv["item_id"], "quantity": iq})
+
+            if not item_found:
+                new_items_payload.append({"item_id": target_id, "quantity": amount})
 
             await self.bot.api.save_user_setting(
                 guild_id=guild_id,
                 user_id=user_id,
-                item_ids=current_item_ids
+                items=new_items_payload
             )
 
             await interaction.followup.send(
-                f"🎁 <@{user_id}> のインベントリに **{target_item['name']}** を {amount}個 追加しました。",
+                f"🎁 <@{user_id}> のインベントリに **{target_item['name']}** を {amount}個 追加（生成）しました。",
                 allowed_mentions=discord.AllowedMentions.none()
             )
 
         except Exception as e:
-            print(f"Error in spawn_item_command: {e}")
+            logging.error(f"Error in spawn_item_command: {e}")
             await interaction.followup.send("アイテムの生成中にエラーが発生しました。")
 
     async def guess_command(self, interaction: discord.Interaction, **kwargs):
