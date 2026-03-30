@@ -77,6 +77,19 @@ class TicketCog(commands.Cog):
             await interaction.followup.send(content="内部APIエラーが発生しました。", ephemeral=True)
             return
 
+        ticket_limit = config.get('ticketLimit', 1)
+        if ticket_limit > 0:
+            name_prefix = config.get('nameTemplate', "ticket-{ユーザー名}").replace("{ユーザー名}", user.name).replace("{ユーザーID}", str(user.id))
+            existing_tickets = [
+                ch for ch in guild.text_channels 
+                if ch.topic and ch.topic.startswith(f"チケットオーナー:{user.id}")
+            ]
+            if len(existing_tickets) >= ticket_limit:
+                return await interaction.followup.send(
+                    f"⚠️ すでに {ticket_limit} 件のチケットが開いています。",
+                    ephemeral=True
+                )
+
         category = guild.get_channel(int(config['categoryId'])) if config.get('categoryId') else None
 
         overwrites = {

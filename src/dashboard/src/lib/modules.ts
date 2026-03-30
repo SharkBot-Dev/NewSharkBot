@@ -74,6 +74,17 @@ export const modules = new Map<string, ModuleSetting>([
     }
   ],
   [
+    "ticket",
+    {
+      id: "ticket",
+      name: "チケット",
+      description: "お問い合わせパネルを作成できます。",
+      enabled: true,
+      icon: Ticket,
+      group: "サーバー管理",
+    },
+  ],
+  [
     "commands",
     {
       id: "commands",
@@ -103,17 +114,6 @@ export const modules = new Map<string, ModuleSetting>([
       description: "サーバー内の埋め込みを作成＆管理できます",
       enabled: true,
       icon: BookCheck,
-      group: "ユーティリティ",
-    },
-  ],
-  [
-    "ticket",
-    {
-      id: "ticket",
-      name: "チケット",
-      description: "お問い合わせパネルを作成できます。",
-      enabled: true,
-      icon: Ticket,
       group: "ユーティリティ",
     },
   ],

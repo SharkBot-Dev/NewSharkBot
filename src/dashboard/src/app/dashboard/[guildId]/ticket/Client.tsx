@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Layout, Settings2, FolderPlus, FileText, Users, Bell, Hash, Info, Clock, Plus, Trash2, ChevronRight } from "lucide-react";
+import { Save, Layout, Settings2, FolderPlus, FileText, Users, Bell, Hash, Info, Clock, Plus, Trash2, ChevronRight, Maximize } from "lucide-react";
 import { useState, useMemo } from "react";
 import ChannelSelecter from "@/components/channel-selecter";
 import EmbedSelecter from "@/components/EmbedSelecter";
@@ -331,6 +331,17 @@ export default function TicketClient({ guildId, roles, initialPanels }: Props) {
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-black"
                 value={activePanel.cooldown}
                 onChange={(e) => updateActivePanel({ cooldown: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs font-black text-slate-500 uppercase">
+                <Maximize size={14} /> 最大作成数
+              </label>
+              <input 
+                type="number"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-black"
+                value={activePanel.ticketLimit}
+                onChange={(e) => updateActivePanel({ ticketLimit: Number(e.target.value) })}
               />
             </div>
           </div>
