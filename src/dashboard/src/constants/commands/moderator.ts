@@ -119,7 +119,7 @@ const commands = [
   {
     name: "warn",
     description: "ユーザーを警告します。",
-    default_member_permissions: Permissions.ManageNicknames.toString(),
+    default_member_permissions: Permissions.ModerateMembers.toString(),
     options: [
       {
         name: "user",
@@ -153,7 +153,7 @@ const commands = [
     options: [
       {
         name: "role",
-        description: "ユーザーを入力してください。",
+        description: "ロールを入力してください。",
         type: 8,
         required: true,
       }

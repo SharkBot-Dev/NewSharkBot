@@ -253,7 +253,7 @@ class ModeratorCog(commands.Cog):
             user = await guild.fetch_member(int(user))
             if not user:
                 return await interaction.followup.send(content="ユーザーが見つかりませんでした。", allowed_mentions=discord.AllowedMentions.none())
-        except:
+        except (TypeError, ValueError, discord.NotFound, discord.HTTPException):
             return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
 
         await interaction.followup.send(content=f"<@{user.id}>", embed=discord.Embed(title="あなたは警告されました。", description=reason, color=discord.Color.yellow()).set_author(name=user.name, icon_url=user.display_avatar.url))
