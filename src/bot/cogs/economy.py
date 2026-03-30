@@ -641,7 +641,7 @@ class EconomyCog(commands.Cog):
         if current_money < bet:
             return await interaction.followup.send(f"所持金が足りません（所持: {current_money}コイン）。")
 
-        view = BlackjackView(interaction, bet, current_money, self.bot.api, guild_id, user_id)
+        view = BlackjackView(interaction, bet, self.bot.api, guild_id, user_id)
         embed = view.create_embed()
         await interaction.followup.send(embed=embed, view=view)
 
