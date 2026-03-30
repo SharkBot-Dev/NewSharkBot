@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/docs"
 	config "github.com/SharkBot-Dev/NewSharkBot/api/internal"
@@ -34,6 +36,120 @@ func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "OK",
 	})
+}
+
+func InitDefaultRooms(db *gorm.DB, ownerID string) error {
+	// ルールの共通テキスト
+	commonRules := `・荒らさない
+・スパムをしない
+・喧嘩しない
+・もめ事を持ち込まない
+・宣伝しない
+ルールに違反すると処罰されます。`
+
+	adsRules := `・荒らさない
+・スパムしない
+・喧嘩しない
+・もめ事を持ち込まない
+・荒らしな内容を宣伝しない
+・shopな内容を宣伝しない
+・nsfwな内容を宣伝しない
+・公序良俗に反した内容を宣伝しない
+・運営の禁止した内容を宣伝しない
+ルールに違反すると処罰されます。`
+
+	artRules := `・荒らさない
+・スパムをしない
+・喧嘩しない
+・もめ事を持ち込まない
+・宣伝しない
+・nsfwな内容を送信しない
+・公序良俗に反した内容を送信しない
+・運営の禁止した内容を送信しない
+・AI画像はAIであることを明記すること
+ルールに違反すると処罰されます。`
+
+	// デフォルトデータのリスト
+	defaultRooms := []model.GlobalChatRoom{
+		{
+			Name:          "main",
+			Description:   "総合グローバルチャットです。",
+			Rule:          commonRules,
+			Slowmode:      1,
+			MinAccountAge: 1,
+			IsActive:      true,
+		},
+		{
+			Name:          "ads",
+			Description:   "宣伝しあえるグローバルチャットです。",
+			Rule:          adsRules,
+			Slowmode:      1,
+			MinAccountAge: 1,
+			IsActive:      true,
+		},
+		{
+			Name:          "shiritori",
+			Description:   "しりとりができます。",
+			Rule:          commonRules,
+			Slowmode:      1,
+			MinAccountAge: 1,
+			IsActive:      true,
+		},
+		{
+			Name:          "art",
+			Description:   "自分のイラストをみんなに見てもらおう！",
+			Rule:          artRules,
+			Slowmode:      1,
+			MinAccountAge: 1,
+			IsActive:      true,
+		},
+		{
+			Name:          "sgc",
+			Description:   "様々なBotのユーザーがいるグローバルチャットです。",
+			Rule:          commonRules,
+			Slowmode:      1,
+			MinAccountAge: 1,
+			IsActive:      true,
+		},
+		{
+			Name:          "dsgc",
+			Description:   "様々なBotのユーザーがいるテストグローバルチャットです。",
+			Rule:          commonRules,
+			Slowmode:      1,
+			MinAccountAge: 1,
+			IsActive:      true,
+		},
+	}
+
+	for _, room := range defaultRooms {
+		err := db.Where(model.GlobalChatRoom{Name: room.Name}).
+			Attrs(room).
+			FirstOrCreate(&room).Error
+
+		if err != nil {
+			return err
+		}
+
+		var count int64
+		db.Model(&model.GlobalChatRoomUser{}).
+			Where("room_name = ? AND user_id = ?", room.Name, ownerID).
+			Count(&count)
+
+		if count == 0 {
+			owner := model.GlobalChatRoomUser{
+				RoomName: room.Name,
+				UserID:   ownerID,
+				Role:     "owner",
+				JoinedAt: time.Now(),
+			}
+			if err := db.Create(&owner).Error; err != nil {
+				log.Printf("Failed to create owner for room %s: %v", room.Name, err)
+			}
+		}
+	}
+
+	log.Println("Default rooms check/creation completed.")
+	return nil
 }
 
 func main() {
@@ -112,6 +228,8 @@ func main() {
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)
+
+	InitDefaultRooms(db, config.OWNER_ID)
 
 	// ポート8080でサーバーを起動（デフォルト）
 	// サーバーは0.0.0.0:8080でリッスンします（Windowsではlocalhost:8080）

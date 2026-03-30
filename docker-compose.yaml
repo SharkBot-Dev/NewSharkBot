@@ -7,6 +7,7 @@ services:
     environment:
       DB_DSN: "host=postgres port=5432 user=sharkbot password=password dbname=sharkbot sslmode=disable"
       GIN_MODE: "debug"
+      OWNER_ID: "1335428061541437531"
     depends_on:
       postgres:
         condition: service_healthy
@@ -15,7 +16,10 @@ services:
   bot:
     build: ./src/bot
     depends_on:
-      - api
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
     env_file:
       - ./src/bot/.env
     networks:
@@ -53,8 +57,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - sharkbot_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 volumes:
   postgres_data:
+  redis_data:
 networks:
   sharkbot_network:
     driver: bridge

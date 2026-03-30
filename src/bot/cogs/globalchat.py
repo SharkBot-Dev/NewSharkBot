@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -6,15 +7,18 @@ import discord
 import asyncio
 from typing import Optional
 
+from main import NewSharkBot
 from lib.command import Command
 
 class GlobalChatCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: NewSharkBot):
         self.bot = bot
 
         connect = Command(name="connect", description="グローバルチャットに接続します。", module_name="グローバルチャット")
         connect.execute = self.connect_command
         self.bot.add_slashcommand(connect)
+
+        self.msg_expiry = 86400
 
         print("init -> GlobalChatCog")
 
@@ -63,8 +67,52 @@ class GlobalChatCog(commands.Cog):
             await interaction.followup.send("⚠️ サーバーとの通信中にエラーが発生しました。")
 
     @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if message.author.bot or message.is_system():
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if after.author.bot or not self.bot.redis:
+            return
+
+        config = await self.bot.api.globalchat_get_channel_config(after.channel.id)
+        if not config or not config.get("room"):
+            return
+
+        room = config["room"]
+        name = room.get('name')
+
+        if name in ["sgc", "dsgc"]:
+            return
+
+        data = await self.bot.redis.get(f"gc:{name}:msg:{after.id}")
+        if not data:
+            return
+
+        destinations = json.loads(data)
+
+        tasks = []
+        for dest in destinations:
+            tasks.append(self._edit_webhook_message(dest, after))
+
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _edit_webhook_message(self, dest: dict, message: discord.Message):
+        try:
+            webhook = discord.Webhook.from_url(dest["webhook_url"], session=self.bot.session)
+            await webhook.edit_message(
+                dest["message_id"],
+                content=message.clean_content or " ",
+            )
+        except Exception as e:
+            logging.error(f"Edit failed for {dest['message_id']}: {e}")
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message):
+        if not self.bot.redis:
+            return
+        
+        if not message.guild:
+            return
+        
+        if message.author.bot:
             return
 
         config = await self.bot.api.globalchat_get_channel_config(message.channel.id)
@@ -72,6 +120,52 @@ class GlobalChatCog(commands.Cog):
             return
 
         room = config["room"]
+        name = room.get('name')
+
+        if name in ["sgc", "dsgc"]:
+            return
+
+        data = await self.bot.redis.get(f"gc:{name}:msg:{message.id}")
+        if not data:
+            return
+
+        destinations = json.loads(data)
+
+        tasks = []
+        for dest in destinations:
+            tasks.append(self._delete_webhook_message(dest))
+
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        
+        await self.bot.redis.delete(f"gc:{name}:msg:{message.id}")
+
+    async def _delete_webhook_message(self, dest: dict):
+        try:
+            webhook = discord.Webhook.from_url(dest["webhook_url"], session=self.bot.session)
+            await webhook.delete_message(dest["message_id"])
+        except (discord.NotFound, discord.Forbidden):
+            pass
+        except Exception as e:
+            logging.error(f"Delete failed for {dest['message_id']}: {e}")
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.author.bot or message.is_system():
+            return
+        
+        if not message.guild:
+            return
+
+        config = await self.bot.api.globalchat_get_channel_config(message.channel.id)
+        if not config or not config.get("room"):
+            return
+
+        room = config["room"]
+        name = room.get('name')
+
+        if name in ["sgc", "dsgc"]:
+            return
 
         for res in room.get("restrictions", []):
             if res["target_id"] == str(message.author.id) and res["type"] in ["ban_user", "mute_user"]:
@@ -133,7 +227,7 @@ class GlobalChatCog(commands.Cog):
 
                 return
 
-        await self.relay_message(message, channels)
+        await self.relay_message(message, channels, room)
 
     async def check_and_fix_webhook(self, channel: dict) -> Optional[str]:
         guild_id = int(channel["guild_id"])
@@ -171,10 +265,11 @@ class GlobalChatCog(commands.Cog):
         
         return webhook_url
 
-    async def relay_message(self, message: discord.Message, config: dict):
+    async def relay_message(self, message: discord.Message, config: dict, room: dict):
         if config == {}:
             return
 
+        name = room.get('name')
         destinations = config.get('connections', [])
 
         tasks = []
@@ -189,21 +284,24 @@ class GlobalChatCog(commands.Cog):
             if not url:
                 continue
 
-            tasks.append(asyncio.create_task(self.send_webhook(url, message)))
+            tasks.append(self.send_webhook(url, message))
 
         if not tasks:
             return
 
-        done, pending = await asyncio.wait(tasks, timeout=5.0)
-
-        for task in done:
-            try:
-                await task
-            except Exception as e:
-                pass
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        for p in pending:
-            p.cancel()
+        synced_data = []
+        for res in results:
+            if isinstance(res, dict):
+                synced_data.append(res)
+
+        if synced_data:
+            await self.bot.redis.set(
+                f"gc:{name}:msg:{message.id}", 
+                json.dumps(synced_data), 
+                ex=self.msg_expiry
+            )
 
     async def send_webhook(self, url: str, message: discord.Message):
         if not url.startswith("https://discord.com/api/webhooks/"):
@@ -233,13 +331,16 @@ class GlobalChatCog(commands.Cog):
                     embeds.append(img_embed)
 
         try:
-            await webhook.send(
+            sent_msg = await webhook.send(
                 content=message.clean_content or " ",
                 username=f"{message.author.name} ({message.author.id}) [{message.guild.name}]",
                 avatar_url=message.author.display_avatar.url,
                 embeds=embeds[:5],
-                allowed_mentions=discord.AllowedMentions.none()
+                allowed_mentions=discord.AllowedMentions.none(),
+                wait=True
             )
+
+            return {"webhook_url": url, "message_id": sent_msg.id}
         except discord.NotFound:
             pass
         except Exception as e:
