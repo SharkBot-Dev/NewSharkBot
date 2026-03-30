@@ -356,7 +356,10 @@ class ModeratorCog(commands.Cog):
         await log_channel.send(embed=embed)
 
     async def send_mod_log(self, guild: discord.Guild, user: discord.User, action: str, reason: str, message_content: str = ""):
-        basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
+        try:
+            basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
+        except:
+            return
         if not basic_setting or not basic_setting.get("log_channel_id"):
             return
 

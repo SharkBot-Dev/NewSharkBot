@@ -48,7 +48,7 @@ type ModeratorSetting struct {
 
 type EnabledAutoModeratorSetting struct {
 	GuildID string `gorm:"primaryKey;size:20" json:"guild_id" binding:"required"`
-	Type    string `gorm:"primaryKey;size:50" json:"type" binding:"required,oneof=invite badword badlink spoiler"`
+	Type    string `gorm:"primaryKey;size:50" json:"type" binding:"required,oneof=invite badword badlink spoiler token everyone"`
 
 	Actions             StringArray `gorm:"type:text" json:"actions" binding:"required,dive,oneof=kick ban warn timeout delete"`
 	WhitelistChannelIDs StringArray `gorm:"type:text" json:"whitelist_channel_ids"`
