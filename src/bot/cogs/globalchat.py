@@ -137,7 +137,6 @@ class GlobalChatCog(commands.Cog):
 
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
-            await self.bot.redis.delete(f"gc:{name}:msg:{message.id}")
         
         await self.bot.redis.delete(f"gc:{name}:msg:{message.id}")
 

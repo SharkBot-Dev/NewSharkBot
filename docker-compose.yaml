@@ -17,13 +17,14 @@ services:
     build: ./src/bot
     depends_on:
       - api
-      - redis
     env_file:
       - ./src/bot/.env
     networks:
       - sharkbot_network
     environment:
       RESOURCE_API_BASE_URL: "http://api:8080"
+    redis:
+      condition: service_healthy
   dashboard:
     build:
       context: ./src/dashboard
@@ -63,6 +64,11 @@ services:
     restart: always
     networks:
       - sharkbot_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 volumes:
   postgres_data:
   redis_data:

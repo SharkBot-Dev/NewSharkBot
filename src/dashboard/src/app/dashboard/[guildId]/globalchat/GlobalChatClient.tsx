@@ -254,10 +254,15 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
             </div>
           </div>
 
-          <div className="back-gray text-black rounded-lg">
+          <div className="bg-gray-100 text-black rounded-lg">
               <p>
                 以下の部屋名は公式のものです。<br/>
-                main, sgc, dsgc, ads, shiritori, art
+                main .. 総合グローバルチャットです。<br/>
+                ads .. 宣伝しあえるグローバルチャットです。<br/>
+                shiritori .. しりとりができます。<br/>
+                art .. 自分のイラストをみんなに見てもらおう！<br/>
+                sgc .. 様々なBotのユーザーがいるグローバルチャットです。<br/>
+                dsgc .. 様々なBotのユーザーがいるテストグローバルチャットです。
               </p>
           </div>
           

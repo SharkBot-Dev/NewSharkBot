@@ -372,7 +372,7 @@ class SuperGlobalChatCog(commands.Cog):
             content = sgc_data.get("content")
             msg_id = sgc_data.get('messageId')
             if ref_info:
-                if ref_info.get('author') and ref_info.get('author'):
+                if ref_info.get('author') and ref_info.get('content'):
                         
                     re_embed = discord.Embed(
                         description=f"**{ref_info['author']}** に返信:\n> {ref_info['content']}", 

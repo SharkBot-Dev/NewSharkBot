@@ -44,6 +44,8 @@ class NewSharkBot(commands.AutoShardedBot):
         if self.session is not None:
             await self.session.close()
 
+        await super().close()
+
 bot = NewSharkBot()
 
 
