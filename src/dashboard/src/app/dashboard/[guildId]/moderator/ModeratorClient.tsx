@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Shield, MessageSquare, Link, EyeOff, Settings } from "lucide-react";
+import { Save, Shield, MessageSquare, Link, EyeOff, Settings, User2Icon, Users } from "lucide-react";
 import { useState } from "react";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import Modal from "@/components/Modal";
@@ -21,7 +21,9 @@ const automod_map: Record<string, string> = {
   "badword": "NGワード対策",
   "badlink": "リンク対策",
   "invite": "招待リンク対策",
+  "token": "Token対策",
   "spoiler": "大量のネタバレ対策",
+  "everyone": "全体メンション対策"
 }
 
 export default function ModeratorClient({ guildId, automod, setting, channels, roles }: Props) {
@@ -92,9 +94,11 @@ export default function ModeratorClient({ guildId, automod, setting, channels, r
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-black">
         {[
           { type: "invite", name: "招待リンク対策", icon: <Link /> },
+          { type: "token", name: "Token対策", icon: <User2Icon /> },
           { type: "badword", name: "NGワード対策", icon: <MessageSquare /> },
           { type: "badlink", name: "リンク対策", icon: <Shield /> },
           { type: "spoiler", name: "大量のネタバレ対策", icon: <EyeOff /> },
+          { type: "everyone", name: "全体メンション対策", icon: <Users /> }
         ].map((item) => (
           <div key={item.type} className="p-4 border border-gray-300 rounded-xl bg-card hover:shadow-md transition">
             <div className="flex justify-between items-center mb-4">

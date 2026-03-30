@@ -14,6 +14,8 @@ STATUS_EMOJIS = {
     discord.Status.offline: "<:offline:1407922298563854496>",
 }
 
+TOKEN_PATTERN = re.compile(r"[\w-]{24,28}\.[\w-]{6}\.[\w-]{25,110}")
+
 class ModeratorCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -354,7 +356,10 @@ class ModeratorCog(commands.Cog):
         await log_channel.send(embed=embed)
 
     async def send_mod_log(self, guild: discord.Guild, user: discord.User, action: str, reason: str, message_content: str = ""):
-        basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
+        try:
+            basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
+        except Exception:
+            return
         if not basic_setting or not basic_setting.get("log_channel_id"):
             return
 
@@ -405,9 +410,25 @@ class ModeratorCog(commands.Cog):
 
         if "invite" in automod_map:
             config = automod_map["invite"]
-            if "discord.gg/" in message.content or "discord.com/invite/" in message.content:
+            if re.search(r"(discord(?:\.gg|(?:app)?\.com/invite)[/\\][\w-]+)", message.content.replace(" ", "")):
                 if not self._is_whitelisted(message, config):
                     await self.execute_automod(message, config, "招待リンク検知", "許可されていない招待リンク")
+                    return
+
+        if "token" in automod_map:
+            config = automod_map["token"]
+
+            if TOKEN_PATTERN.search(message.content):
+                if not self._is_whitelisted(message, config):
+                    await self.execute_automod(message, config, "トークン検知", "機密情報の露出")
+                    return
+
+        if "everyone" in automod_map:
+            config = automod_map["everyone"]
+
+            if message.mention_everyone:
+                if not self._is_whitelisted(message, config):
+                    await self.execute_automod(message, config, "全体メンション検知", "全体メンションの使用")
                     return
 
         if "spoiler" in automod_map:
@@ -458,6 +479,18 @@ class ModeratorCog(commands.Cog):
         if "timeout" in actions:
             try:
                 await message.author.timeout(discord.utils.utcnow() + datetime.timedelta(minutes=10), reason=reason)
+            except:
+                pass
+
+        if "kick" in actions:
+            try:
+                await message.author.kick(reason=reason)
+            except:
+                pass
+
+        if "ban" in actions:
+            try:
+                await message.author.ban(reason=reason)
             except:
                 pass
 
