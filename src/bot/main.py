@@ -5,6 +5,7 @@ import aiohttp
 import dotenv
 from discord.ext import commands
 import discord
+from redis.asyncio import Redis, ConnectionPool
 
 from lib import tree
 from lib.command import Command
@@ -24,6 +25,8 @@ class NewSharkBot(commands.AutoShardedBot):
         )
         print("InitDone")
 
+        self.redis: Redis = None
+
         self.session = None
         self.api = None
 
@@ -34,6 +37,10 @@ class NewSharkBot(commands.AutoShardedBot):
         self.slashcommands[command.name] = command
 
     async def close(self):
+        if self.redis is not None:
+            await self.redis.aclose()
+            print("Redis connection closed")
+
         if self.session is not None:
             await self.session.close()
 
@@ -70,6 +77,14 @@ async def on_message(message: discord.Message):
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("------")
+
+    if not bot.redis:
+        pool = ConnectionPool.from_url("redis://redis:6379/0", decode_responses=True)
+        bot.redis = Redis(connection_pool=pool)
+
+    if bot.redis:
+        await bot.redis.set("bot_status", "online")
+        print("Redis status updated.")
 
 if __name__ == "__main__":
     bot.run(os.environ.get("DISCORD_TOKEN"))

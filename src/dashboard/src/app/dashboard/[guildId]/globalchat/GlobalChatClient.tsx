@@ -253,6 +253,13 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
               />
             </div>
           </div>
+
+          <div className="back-gray text-black rounded-lg">
+              <p>
+                以下の部屋名は公式のものです。<br/>
+                main, sgc, dsgc, ads, shiritori, art
+              </p>
+          </div>
           
           <div className="flex justify-end pt-2">
             <button
