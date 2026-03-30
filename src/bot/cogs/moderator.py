@@ -358,7 +358,7 @@ class ModeratorCog(commands.Cog):
     async def send_mod_log(self, guild: discord.Guild, user: discord.User, action: str, reason: str, message_content: str = ""):
         try:
             basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
-        except:
+        except Exception:
             return
         if not basic_setting or not basic_setting.get("log_channel_id"):
             return
@@ -410,7 +410,7 @@ class ModeratorCog(commands.Cog):
 
         if "invite" in automod_map:
             config = automod_map["invite"]
-            if re.search(r"(discord\.(gg|com/invite|app\.com/invite)[/\\][\w-]+)", message.content.replace(" ", "")):
+            if re.search(r"(discord(?:\.gg|(?:app)?\.com/invite)[/\\][\w-]+)", message.content.replace(" ", "")):
                 if not self._is_whitelisted(message, config):
                     await self.execute_automod(message, config, "招待リンク検知", "許可されていない招待リンク")
                     return
@@ -479,6 +479,18 @@ class ModeratorCog(commands.Cog):
         if "timeout" in actions:
             try:
                 await message.author.timeout(discord.utils.utcnow() + datetime.timedelta(minutes=10), reason=reason)
+            except:
+                pass
+
+        if "kick" in actions:
+            try:
+                await message.author.kick(reason=reason)
+            except:
+                pass
+
+        if "ban" in actions:
+            try:
+                await message.author.ban(reason=reason)
             except:
                 pass
 
