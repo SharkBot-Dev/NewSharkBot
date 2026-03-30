@@ -24,6 +24,8 @@ func RegisterEconomy(router *gin.RouterGroup) {
 		guilds.DELETE("/:id/items/:item_id", deleteEconomyItem)
 
 		// ユーザー
+		guilds.GET("/:id/users", getEconomyUserLeaderboard)
+
 		guilds.GET("/:id/users/:user", getEconomyUserSetting)
 		guilds.POST("/:id/users/:user", saveEconomyUserSetting)
 
@@ -149,6 +151,25 @@ func deleteEconomyItem(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Deleted successfully"})
 
+}
+
+func getEconomyUserLeaderboard(c *gin.Context) {
+	guildID := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var leaderboards []model.EconomyUserSetting
+
+	err := db.Where("guild_id = ?", guildID).
+		Order("money DESC").
+		Limit(10).
+		Find(&leaderboards).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch leaderboard"})
+		return
+	}
+
+	c.JSON(http.StatusOK, leaderboards)
 }
 
 func getEconomyUserSetting(c *gin.Context) {

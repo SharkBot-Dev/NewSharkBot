@@ -322,6 +322,11 @@ class ResourceAPIClient:
             response.raise_for_status()
             return await response.json()
         
+    async def get_economy_leaderboard(self, guild_id: str):
+        async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}/users") as response:
+            response.raise_for_status()
+            return await response.json()
+
     async def get_economy_user(self, guild_id: str, user_id: str) -> Dict[str, Any]:
         async with self.session.get(f"{self.base_url}/guilds/economy/{guild_id}/users/{user_id}") as response:
             response.raise_for_status()
