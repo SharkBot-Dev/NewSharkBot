@@ -27,6 +27,7 @@ class BlackjackView(discord.ui.View):
         self.dealer_hand = [self.draw(), self.draw()]
 
         self.is_finish = False
+        self._action_lock = asyncio.Lock()
         
     def draw(self):
         return self.deck.pop()
@@ -65,15 +66,18 @@ class BlackjackView(discord.ui.View):
 
     @discord.ui.button(label="ヒット (引く)", style=discord.ButtonStyle.green)
     async def hit(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not await self.check_user(interaction): return
-        
-        self.player_hand.append(self.draw())
-        score = self.get_score(self.player_hand)
-        
-        if score > 21:
-            await self.end_game(interaction, "バースト！あなたの負けです。", -self.bet)
-        else:
-            await interaction.response.edit_message(embed=self.create_embed())
+        if not await self.check_user(interaction):
+            return
+        async with self._action_lock:
+            if self.is_finish:
+                return
+            self.player_hand.append(self.draw())
+            score = self.get_score(self.player_hand)
+            if score > 21:
+                self.is_finish = True
+                await self.end_game(interaction, "バースト！あなたの負けです。", -self.bet)
+            else:
+                await interaction.response.edit_message(embed=self.create_embed())
 
     @discord.ui.button(label="スタンド (勝負)", style=discord.ButtonStyle.red)
     async def stand(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -83,6 +87,13 @@ class BlackjackView(discord.ui.View):
         
         self.is_finish = True 
         
+        if not await self.check_user(interaction):
+            return
+        async with self._action_lock:
+            if self.is_finish:
+                return
+            self.is_finish = True
+
         while self.get_score(self.dealer_hand) < 17:
             self.dealer_hand.append(self.draw())
             
