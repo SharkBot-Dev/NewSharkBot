@@ -537,16 +537,19 @@ class EconomyCog(commands.Cog):
             except asyncio.TimeoutError:
                 return await interaction.followup.send(f"⏰ 時間切れです！正解は **{answer}** でした。")
 
+        current_data = await self.bot.api.get_user_setting(self.guild_id, self.user_id)
+        latest_money = current_data.get('money', 0)
+
         if win:
             reward = bet * 2
-            new_money = current_money + reward
+            new_money = latest_money + reward
             await self.bot.api.save_user_setting(guild_id, user_id, money=new_money)
             await interaction.followup.send(
                 f"🎉 **正解！！** {attempts}回目で当てました！\n"
                 f"報酬として **{reward}** コインを獲得しました！"
             )
         else:
-            new_money = current_money - bet
+            new_money = latest_money - bet
             await self.bot.api.save_user_setting(guild_id, user_id, money=new_money)
             await interaction.followup.send(
                 f"💀 残念... チャンスを使い果たしました。\n"
