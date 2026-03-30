@@ -59,6 +59,24 @@ class TicketCog(commands.Cog):
         guild = interaction.guild
         user = interaction.user
 
+        cooldown_key = f"ticket:{interaction.guild.id}:{config['id']}"
+        cooldown_value = str(interaction.user.id)
+        cooldown_seconds = config.get('cooldown', 60)
+
+        res = await self.bot.api.cooldown_check(cooldown_key, cooldown_value, cooldown_seconds)
+
+        if res["status"] == "limit":
+            remaining = res.get("remaining", 0)
+            return await interaction.response.send_message(
+                f"⚠️ クールダウン中です。あと {remaining} 秒待ってください。", 
+                ephemeral=True
+            )
+        
+        if res["status"] == "error":
+            print(f"Cooldown check error: {res.get('code') or res.get('message')}")
+            await interaction.followup.send(content="内部APIエラーが発生しました。", ephemeral=True)
+            return
+
         category = guild.get_channel(int(config['categoryId'])) if config.get('categoryId') else None
 
         overwrites = {
@@ -79,7 +97,8 @@ class TicketCog(commands.Cog):
                 name=channel_name,
                 category=category,
                 overwrites=overwrites,
-                reason=f"Ticket created by {user.name}"
+                reason=f"Ticket created by {user.name}",
+                topic=f"チケットオーナー:{user.id}",
             )
         except discord.Forbidden:
             await interaction.followup.send("Botにチャンネル作成権限がありません。", ephemeral=True)
@@ -144,19 +163,23 @@ class TicketCog(commands.Cog):
 
     async def handle_delete_ticket(self, interaction: discord.Interaction, config: Dict[str, Any]):
         channel = interaction.channel
-        log_file = await self.generate_ticket_log(channel)
+        try:
+            log_file = await self.generate_ticket_log(channel)
 
-        log_channel_id = config.get('logChannelId')
-        if log_channel_id:
-            log_channel = interaction.guild.get_channel(int(log_channel_id))
-            if log_channel:
-                embed = discord.Embed(
-                    title="チケットログ記録",
-                    description=f"**チケット:** {channel.name}\n**クローズ実行者:** {interaction.user.mention}",
-                    color=discord.Color.dark_gray(),
-                    timestamp=datetime.datetime.now()
-                )
-                await log_channel.send(embed=embed, file=log_file)
+            log_channel_id = config.get('logChannelId')
+            if log_channel_id:
+                log_channel = interaction.guild.get_channel(int(log_channel_id))
+                if log_channel:
+                    embed = discord.Embed(
+                        title="チケットログ記録",
+                        description=f"**チケット:** {channel.name}\n**クローズ実行者:** {interaction.user.mention}",
+                        color=discord.Color.dark_gray(),
+                        timestamp=datetime.datetime.now()
+                    )
+                    await log_channel.send(embed=embed, file=log_file)
+        except Exception as e:
+            print(f"[TicketLogError] {e}")
+            pass
 
         await interaction.followup.send("チャンネルを削除しています...", ephemeral=True)
         await asyncio.sleep(3)
@@ -188,10 +211,17 @@ class TicketCog(commands.Cog):
         
         staff_role_ids = config.get('staffRoleIds', [])
         
-        creator = None
-        async for message in channel.history(limit=1, oldest_first=True):
-            if message.mentions:
-                creator = message.mentions[0]
+        if channel.topic and channel.topic.startswith("チケットオーナー:"):
+            try:
+                creator_id = int(channel.topic.removeprefix("チケットオーナー:"))
+            except ValueError:
+                creator_id = None
+            if creator_id is not None:
+                creator = guild.get_member(creator_id)
+        else:
+            async for message in channel.history(limit=1, oldest_first=True):
+                if message.mentions:
+                    creator = message.mentions[0]
         
         new_overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False)
