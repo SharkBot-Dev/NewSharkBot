@@ -254,7 +254,7 @@ export default function GlobalChatClient({ guildId, initChannels, settings, user
             </div>
           </div>
 
-          <div className="bg-gray-100 text-black rounded-lg">
+          <div className="bg-gray-100 text-black rounded-lg p-5">
               <p>
                 以下の部屋名は公式のものです。<br/>
                 main .. 総合グローバルチャットです。<br/>
