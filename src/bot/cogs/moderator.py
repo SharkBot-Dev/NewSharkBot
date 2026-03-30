@@ -14,6 +14,8 @@ STATUS_EMOJIS = {
     discord.Status.offline: "<:offline:1407922298563854496>",
 }
 
+TOKEN_PATTERN = re.compile(r"[\w-]{24,28}\.[\w-]{6}\.[\w-]{25,110}")
+
 class ModeratorCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -405,9 +407,25 @@ class ModeratorCog(commands.Cog):
 
         if "invite" in automod_map:
             config = automod_map["invite"]
-            if "discord.gg/" in message.content or "discord.com/invite/" in message.content:
+            if re.search(r"(discord\.(gg|com/invite|app\.com/invite)[/\\][\w-]+)", message.content.replace(" ", "")):
                 if not self._is_whitelisted(message, config):
                     await self.execute_automod(message, config, "招待リンク検知", "許可されていない招待リンク")
+                    return
+
+        if "token" in automod_map:
+            config = automod_map["token"]
+
+            if TOKEN_PATTERN.search(message.content):
+                if not self._is_whitelisted(message, config):
+                    await self.execute_automod(message, config, "トークン検知", "機密情報の露出")
+                    return
+
+        if "everyone" in automod_map:
+            config = automod_map["everyone"]
+
+            if message.mention_everyone:
+                if not self._is_whitelisted(message, config):
+                    await self.execute_automod(message, config, "全体メンション検知", "全体メンションの使用")
                     return
 
         if "spoiler" in automod_map:
