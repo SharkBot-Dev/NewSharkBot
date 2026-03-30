@@ -43,6 +43,25 @@ export interface PinMessageSetting {
     updated_at?: string;
 }
 
+export interface TicketPanel {
+  id: string;
+  name: string;
+  targetChannelId: string;
+  embedId: string;
+  content: string;
+  panelButtons: any[]; // 実際には TicketButtonConfig[]
+  categoryId: string;
+  logChannelId: string;
+  staffRoleIds: string[];
+  mentionRoleIds: string[];
+  nameTemplate: string;
+  cooldown: number;
+  ticketLimit: number;
+  innerButtons: any[];
+  innerEmbedId: string,
+  innerContent: string
+}
+
 const isValidDiscordId = (id: string) => /^\d{17,20}$/.test(id);
 
 export async function createGuildEntry(guildId: string) {
@@ -429,4 +448,41 @@ export async function deletePin(guildId: string, channelId: string): Promise<boo
     });
     
     return resp.ok;
+}
+
+export default async function getTicketSettings(guildId: string): Promise<TicketPanel[]> {
+  const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/ticket/${guildId}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch ticket settings");
+  }
+
+  const data = await response.json();
+  return data.panels || [];
+}
+
+export async function saveTicketPanels(guildId: string, panels: TicketPanel[]): Promise<void> {
+  const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/ticket/${guildId}/save-all`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ panels }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to save ticket settings");
+  }
+}
+
+export async function deleteTicketPanel(guildId: string, panelId: string): Promise<void> {
+  const response = await fetch(`${RESOURCE_API_BASE_URL}/guilds/ticket/${guildId}/${panelId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete panel");
+  }
 }

@@ -602,3 +602,20 @@ class ResourceAPIClient:
         params = {"channel_id": channel_id}
         async with self.session.delete(f"{self.base_url}/guilds/pin/{guild_id}", params=params) as resp:
             return resp.status == 200
+        
+    async def get_ticket_settings(self, guild_id: str) -> Dict[str, Any]:
+        url = f"{self.base_url}/guilds/ticket/{guild_id}"
+        async with self.session.get(url) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def save_ticket_panels(self, guild_id: str, panels: List[Dict[str, Any]]) -> Dict[str, Any]:
+        url = f"{self.base_url}/guilds/ticket/{guild_id}/save-all"
+        async with self.session.post(url, json={"panels": panels}) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def delete_ticket_panel(self, guild_id: str, panel_id: str) -> bool:
+        url = f"{self.base_url}/guilds/ticket/{guild_id}/{panel_id}"
+        async with self.session.delete(url) as resp:
+            return resp.status == 200

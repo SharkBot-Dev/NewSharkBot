@@ -74,6 +74,7 @@ func main() {
 		&model.CustomCommandAction{},
 		&model.PrefixSetting{},
 		&model.PinMessageSetting{},
+		&model.TicketPanel{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
@@ -106,6 +107,7 @@ func main() {
 	router.RegisterCooldowns(r.Group("/"))
 	router.GlobalChatRegister(r.Group("/"))
 	router.RegisterCommands(r.Group("/"))
+	router.RegisterTicket(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)
