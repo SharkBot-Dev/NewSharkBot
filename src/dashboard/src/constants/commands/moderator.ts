@@ -115,6 +115,26 @@ const commands = [
       },
     ]
   },
+  
+  {
+    name: "warn",
+    description: "ユーザーを警告します。",
+    default_member_permissions: Permissions.ManageNicknames.toString(),
+    options: [
+      {
+        name: "user",
+        description: "ユーザーを入力してください。",
+        type: 6,
+        required: true,
+      },
+      {
+        name: "reason",
+        description: "警告する理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
   {
     name: "user-info",
     description: "ユーザーの情報を表示します。",
@@ -126,6 +146,22 @@ const commands = [
         required: false,
       }
     ]
+  },
+  {
+    name: "role-info",
+    description: "ロールの情報を表示します。",
+    options: [
+      {
+        name: "role",
+        description: "ユーザーを入力してください。",
+        type: 8,
+        required: true,
+      }
+    ]
+  },
+  {
+    name: "server-info",
+    description: "サーバーの情報を表示します。"
   }
 ];
 
