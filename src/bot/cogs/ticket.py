@@ -72,7 +72,7 @@ class TicketCog(commands.Cog):
             if role:
                 overwrites[role] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True)
 
-        channel_name = config.get('nameTemplate', "ticket-{user}").replace("{ユーザー名}", user.name).replace("{ユーザーID}", str(user.id))
+        channel_name = config.get('nameTemplate', "ticket-{ユーザー名}").replace("{ユーザー名}", user.name).replace("{ユーザーID}", str(user.id))
 
         try:
             ticket_channel = await guild.create_text_channel(
@@ -94,7 +94,7 @@ class TicketCog(commands.Cog):
             button = discord.ui.Button(label=btn['label'], emoji=btn.get('emoji'), style=style, custom_id=custom_id)
             view.add_item(button)
 
-        mention_ids = config.get('mentionRoleIds')
+        mention_ids = config.get('mentionRoleIds') or []
         mentions = " ".join([f"<@&{rid}>" for rid in mention_ids])
         mentions = f"{interaction.user.mention} {mentions}"
 
@@ -107,7 +107,11 @@ class TicketCog(commands.Cog):
         }
 
         if embed_inner_id:
-            embed_data = await self.bot.embed.getEmbed(str(guild.id), int(embed_inner_id))
+            try:
+                embed_data = await self.bot.embed.getEmbed(str(guild.id), int(embed_inner_id))
+            except (ValueError, TypeError):
+                embed_data = None
+
             if embed_data:
                 send_kwargs["embed"] = discord.Embed.from_dict(embed_data)
 
@@ -119,7 +123,7 @@ class TicketCog(commands.Cog):
         guild = interaction.guild
         channel = interaction.channel
 
-        staff_role_ids = config.get('staffRoleIds')
+        staff_role_ids = config.get('staffRoleIds') or []
         new_overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False)
         }

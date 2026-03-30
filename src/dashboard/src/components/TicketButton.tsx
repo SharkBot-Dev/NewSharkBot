@@ -192,12 +192,17 @@ const TicketButtonSelector: React.FC<TicketSelectorProps> = ({ buttons, onChange
       alert("ボタンは最大5個までです。"); 
       return;
     }
+
+    const defaultAction = mode === "panel" 
+      ? TicketActionType.Create 
+      : TicketActionType.Close;
+
     const newButton: TicketButtonConfig = {
       id: `btn_${Date.now()}`,
       label: '新規ボタン',
       emoji: '📩',
       style: ButtonStyle.Primary,
-      action: TicketActionType.Create,
+      action: defaultAction,
     };
     onChange([...buttons, newButton]);
   };
