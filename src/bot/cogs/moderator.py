@@ -42,9 +42,21 @@ class ModeratorCog(commands.Cog):
         clear.execute = self.clear_command
         self.bot.add_slashcommand(clear)
 
+        warn = Command(name="warn", description="ユーザーを警告します。", module_name="モデレーター")
+        warn.execute = self.warn_command
+        self.bot.add_slashcommand(warn)
+
         user_info = Command(name="user-info", description="ユーザーの情報を取得します。", module_name="モデレーター")
         user_info.execute = self.user_info_command
         self.bot.add_slashcommand(user_info)
+
+        role_info = Command(name="role-info", description="ロールの情報を表示します。", module_name="モデレーター")
+        role_info.execute = self.role_info_command
+        self.bot.add_slashcommand(role_info)
+
+        server_info = Command(name="server-info", description="サーバーの情報を表示します。", module_name="モデレーター")
+        server_info.execute = self.server_info_command
+        self.bot.add_slashcommand(server_info)
 
         print("init -> ModeratorCog")
 
@@ -230,6 +242,22 @@ class ModeratorCog(commands.Cog):
 
         await interaction.channel.send(f'{len(deleted)} 件のメッセージを削除しました。', delete_after=5)
 
+    async def warn_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        guild = interaction.guild
+        user = kwargs.get('user')
+        reason = kwargs.get('reason', "なし")
+
+        try:
+            user = await guild.fetch_member(int(user))
+            if not user:
+                return await interaction.followup.send(content="ユーザーが見つかりませんでした。", allowed_mentions=discord.AllowedMentions.none())
+        except (TypeError, ValueError, discord.NotFound, discord.HTTPException):
+            return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
+
+        await interaction.followup.send(content=f"<@{user.id}>", embed=discord.Embed(title="あなたは警告されました。", description=reason, color=discord.Color.yellow()).set_author(name=user.name, icon_url=user.display_avatar.url))
+
     async def user_info_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
 
@@ -274,6 +302,38 @@ class ModeratorCog(commands.Cog):
 
         await interaction.followup.send(embed=embed)
 
+    async def role_info_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        role_id = kwargs.get("role")
+
+        try:
+            role = await interaction.guild.fetch_role(int(role_id))
+            if not role:
+                return await interaction.followup.send(content="ロール見つかりませんでした。", allowed_mentions=discord.AllowedMentions.none())
+        except:
+            return await interaction.followup.send(content="ロールが見つかりませんでした。")
+        
+        embed = discord.Embed(title=f"{role.name}の情報", color=discord.Color.blue())
+        embed.add_field(name="名前", value=role.name, inline=False)
+        embed.add_field(name="メンバー数", value=len(role.members))
+        embed.add_field(name="作成日", value=role.created_at.strftime("%Y-%m-%d %H:%M:%S"))
+
+        await interaction.followup.send(embed=embed)
+
+    async def server_info_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+
+        embed = discord.Embed(title=f"{interaction.guild.name}の情報", color=discord.Color.blue())
+        embed.add_field(name="名前", value=interaction.guild.name, inline=False)
+        embed.add_field(name="メンバー数", value=interaction.guild.member_count)
+        embed.add_field(name="作成日", value=interaction.guild.created_at.strftime("%Y-%m-%d %H:%M:%S"))
+        embed.add_field(name="オーナー", value=f"<@{interaction.guild.owner_id}>")
+
+        if interaction.guild.icon:
+            embed.set_thumbnail(url=interaction.guild.icon.url)
+
+        await interaction.followup.send(embed=embed)
 
     async def send_moderator_log(self, guild: discord.Guild, moderator: discord.User, user: discord.User, action: str, reason: str):
         basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
