@@ -11,6 +11,7 @@ export async function getUsersGuilds(accessToken: string) {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+    next: { revalidate: 60 },
   });
 
   if (!res.ok) throw new Error("Failed to fetch user's guilds");
