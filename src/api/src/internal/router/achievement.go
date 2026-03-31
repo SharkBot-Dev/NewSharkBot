@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
@@ -90,17 +91,29 @@ func createOrUpdateAchievement(c *gin.Context) {
 
 	input.GuildID = guildID
 
-	// トランザクションを使用して、Stepsの削除と再作成を安全に行う
 	err := db.Transaction(func(tx *gorm.DB) error {
-		// IDがある場合は既存更新、ない場合は新規作成
-		if err := tx.Save(&input).Error; err != nil {
-			return err
+		if input.ID != 0 {
+			result := tx.Model(&model.Achievement{}).
+				Where("id = ? AND guild_id = ?", input.ID, guildID).
+				Updates(&input)
+
+			if result.Error != nil {
+				return result.Error
+			}
+			if result.RowsAffected == 0 {
+				return errors.New("指定された実績が見つからないか、権限がありません")
+			}
+		} else {
+			// --- 新規作成の場合 ---
+			if err := tx.Create(&input).Error; err != nil {
+				return err
+			}
 		}
 		return nil
 	})
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "実績の保存に失敗しました"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, input)

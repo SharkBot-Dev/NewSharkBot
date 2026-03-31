@@ -59,10 +59,29 @@ export default function AchievementsClient({ guildId, roles, channels, initSetti
   const handleSaveAll = async () => {
     setLoading(true);
     try {
-      const cleanedAchievements = achievements.map(ach => ({
-        ...ach,
-        steps: ach.is_step ? ach.steps : [ach.steps[0]]
-      }));
+      const cleanedAchievements = achievements.map(ach => {
+        let steps = ach.steps;
+
+        if (ach.is_step) {
+          steps = [...ach.steps].sort((a, b) => a.threshold - b.threshold);
+
+          for (let i = 1; i < steps.length; i++) {
+            if (steps[i].threshold <= steps[i - 1].threshold) {
+              throw new Error(
+                `実績「${ach.name}」のステップ設定が不正です: ` +
+                `閾値 ${steps[i].threshold} は前のステップ (${steps[i - 1].threshold}) より大きい必要があります。`
+              );
+            }
+          }
+        } else {
+          steps = [ach.steps[0]];
+        }
+
+        return {
+          ...ach,
+          steps: steps
+        };
+      });
 
       // 全ての実績を保存し、レスポンス（ID確定後のデータ）を配列に格納
       const savedAchievements = [];

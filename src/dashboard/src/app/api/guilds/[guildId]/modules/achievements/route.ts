@@ -86,7 +86,11 @@ export async function POST(
         const savedData = await res.json();
         return NextResponse.json({ success: true, data: savedData });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const status =
+            error.message === "Forbidden" ? 403 :
+            error.message === "Unauthorized" ? 401 :
+            500;
+        return NextResponse.json({ error: error.message }, { status });
     }
 }
 

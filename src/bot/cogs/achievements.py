@@ -2,6 +2,7 @@ import logging
 import discord
 from discord.ext import commands
 from typing import List, Dict, Any, Optional
+from lib.page import PaginationView
 from main import NewSharkBot
 from lib.command import Command
 
@@ -29,46 +30,63 @@ class AchievementCog(commands.Cog):
         if not all_achievements:
             return await interaction.followup.send("このサーバーにはまだ実績が設定されていません。")
 
-        embed = discord.Embed(
-            title=f"🏆 {interaction.user.display_name} の実績一覧",
-            description="現在の進捗状況です。",
-            color=discord.Color.gold()
-        )
+        def chunk_list(lst, n):
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
 
-        for ach in all_achievements:
-            ach_id = ach.get('id')
-            progress = progress_map.get(ach_id, {})
-            current_val = progress.get('current_value', 0)
-            
-            steps = ach.get("steps", [])
-            if not steps:
-                continue
+        achievement_chunks = list(chunk_list(all_achievements, 5))
+        embed_list = []
 
-            sorted_steps = sorted(steps, key=lambda x: x.get("threshold", 0))
-            
-            achieved_step = None
-            next_step = None
-            for step in sorted_steps:
-                if current_val >= step.get("threshold", 0):
-                    achieved_step = step
+        for i, chunk in enumerate(achievement_chunks):
+            embed = discord.Embed(
+                title=f"🏆 {interaction.user.display_name} の実績一覧",
+                description=f"現在の進捗状況です ({i+1}/{len(achievement_chunks)}ページ)",
+                color=discord.Color.gold()
+            )
+
+            for ach in chunk:
+                ach_id = ach.get('id')
+                progress = progress_map.get(ach_id, {})
+                current_val = progress.get('current_value', 0)
+                
+                steps = ach.get("steps", [])
+                if not steps: continue
+
+                sorted_steps = sorted(steps, key=lambda x: x.get("threshold", 0))
+                
+                achieved_step = None
+                next_step = None
+                for step in sorted_steps:
+                    if current_val >= step.get("threshold", 0):
+                        achieved_step = step
+                    else:
+                        next_step = step
+                        break
+                
+                status_text = f"✅ **{achieved_step['name']}** 達成中！" if achieved_step else "❌ 未達成"
+
+                if next_step:
+                    target = next_step.get("threshold", 1)
+                    percent = min(current_val / target, 1.0) if target > 0 else 0
+                    bar_count = int(percent * 10)
+                    progress_bar = "🟦" * bar_count + "⬜" * (10 - bar_count)
+                    status_text += f"\n`{progress_bar}` {current_val}/{target} (次は: **{next_step['name']}**)"
                 else:
-                    next_step = step
-                    break
+                    status_text += "\n`🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦` (全段階コンプリート！)"
+
+                embed.add_field(name=f"✨ {ach.get('name', '実績')}", value=status_text, inline=False)
             
-            status_text = f"✅ **{achieved_step['name']}** 達成中！" if achieved_step else "❌ 未達成"
+            embed_list.append(embed)
 
-            if next_step:
-                target = next_step.get("threshold", 1)
-                percent = min(current_val / target, 1.0) if target > 0 else 0
-                bar_count = int(percent * 10)
-                progress_bar = "🟦" * bar_count + "⬜" * (10 - bar_count)
-                status_text += f"\n`{progress_bar}` {current_val}/{target} (次は: **{next_step['name']}**)"
-            else:
-                status_text += "\n`🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦` (全段階コンプリート！)"
+        if len(embed_list) <= 1:
+            return await interaction.followup.send(embed=embed_list[0])
 
-            embed.add_field(name=f"✨ {ach.get('name', '実績')}", value=status_text, inline=False)
-
-        await interaction.followup.send(embed=embed)
+        view = PaginationView(embeds=embed_list)
+        view.page_indicator.label = f"1 / {len(embed_list)}"
+        view.first_page.disabled = True
+        view.prev_page.disabled = True
+        
+        await interaction.followup.send(embed=embed_list[0], view=view)
 
     def parse_achievements(self, raw_data: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
         parsed: Dict[str, List[Dict[str, Any]]] = {}

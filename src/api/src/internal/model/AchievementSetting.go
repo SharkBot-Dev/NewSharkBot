@@ -49,9 +49,9 @@ type AchievementStep struct {
 // UserAchievementProgress: ユーザーごとの進捗と達成済みフラグ
 type UserAchievementProgress struct {
 	ID            uint   `gorm:"primaryKey" json:"id"`
-	GuildID       string `gorm:"index:idx_user_ach;not null"`
-	UserID        string `gorm:"index:idx_user_ach;not null"`
-	AchievementID uint   `gorm:"index:idx_user_ach" json:"achievement_id"`
+	GuildID       string `gorm:"uniqueIndex:idx_user_ach;not null"`
+	UserID        string `gorm:"uniqueIndex:idx_user_ach;not null"`
+	AchievementID uint   `gorm:"uniqueIndex:idx_user_ach;not null" json:"achievement_id"`
 
 	CurrentValue int `json:"current_value"` // 現在のカウント
 
