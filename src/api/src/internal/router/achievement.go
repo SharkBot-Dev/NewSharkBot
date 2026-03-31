@@ -3,6 +3,7 @@ package router
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/SharkBot-Dev/NewSharkBot/api/internal/model"
 	"github.com/gin-gonic/gin"
@@ -193,10 +194,11 @@ func updateUserProgress(c *gin.Context) {
 
 	err := db.Where("guild_id = ? AND user_id = ? AND achievement_id = ?",
 		guildID, userID, input.AchievementID).
-		Assign(model.UserAchievementProgress{
-			CurrentValue:  input.CurrentValue,
-			IsCompleted:   input.IsCompleted,
-			LastStepOrder: input.LastStepOrder,
+		Assign(map[string]interface{}{
+			"current_value":   input.CurrentValue,
+			"is_completed":    input.IsCompleted,
+			"last_step_order": input.LastStepOrder,
+			"updated_at":      time.Now(),
 		}).
 		FirstOrCreate(&input).Error
 

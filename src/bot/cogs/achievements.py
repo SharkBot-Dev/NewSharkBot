@@ -104,10 +104,12 @@ class AchievementCog(commands.Cog):
         user_id = str(member.id)
         client = self.bot.api
 
+        # 1. モジュール有効化チェック
         is_enabled_data = await client.is_module_enabled(guild_id, "achievements")
         if not is_enabled_data or not is_enabled_data.get('enabled'):
             return
 
+        # 2. 全実績リストを取得
         raw_achievements = await client.get_achievement_list(guild_id)
         parsed_achievements = self.parse_achievements(raw_achievements)
         target_achievements = parsed_achievements.get(ach_type, [])
@@ -115,35 +117,62 @@ class AchievementCog(commands.Cog):
         if not target_achievements:
             return
 
+        # 3. ユーザーの現在の進捗を辞書化して取得
         user_progress_list = await client.get_achievements_user_progress(guild_id, user_id)
+        progress_map = {p['achievement_id']: p for p in user_progress_list}
 
         for ach in target_achievements:
             ach_id = ach.get('id')
-            progress = next((p for p in user_progress_list if p.get('achievement_id') == ach_id), None)
-            if progress and progress.get('is_completed'):
+            progress = progress_map.get(ach_id, {})
+
+            # すでに全段階クリア済みの場合は何もしない
+            if progress.get('is_completed'):
                 continue
 
-            current_val = (progress['current_value'] if progress else 0) + 1
-            last_order = progress.get('last_step_order', -1) if progress else -1
+            # 現在のDB上の値を取得
+            old_val = progress.get('current_value', 0)
+            # 今回の更新後の値
+            new_val = old_val + 1
+            # 最後に達成済みのステップ番号 (未達成は -1)
+            last_order = progress.get('last_step_order', -1)
             
             steps = ach.get('steps', [])
-            new_step_reached = None
-            new_last_order = last_order
+            if not steps:
+                continue
 
-            for i, step in enumerate(steps):
-                threshold = int(step.get('threshold', 0))
-                if i > last_order and current_val >= threshold:
-                    new_step_reached = step
-                    new_last_order = i
-
-            is_completed = (new_last_order == len(steps) - 1) if steps else False
+            # 閾値順にソート
+            sorted_steps = sorted(steps, key=lambda x: int(x.get('threshold', 0)))
             
+            new_step_reached = None
+            current_last_order = last_order
+
+            # 【重要】次に達成すべきステップ「だけ」を見る
+            next_order = last_order + 1
+
+            new_step_reached = None
+            current_last_order = last_order
+
+            next_order = last_order + 1
+
+            if next_order < len(sorted_steps):
+                target_step = sorted_steps[next_order]
+                threshold = int(target_step.get('threshold', 0))
+
+                if new_val >= threshold and old_val < threshold:
+                    new_step_reached = target_step
+                    current_last_order = next_order
+
+            # 最終ステップまで到達したか
+            is_completed = (current_last_order == len(sorted_steps) - 1)
+            
+            # DBを更新（通知の有無に関わらずカウントは進める）
             await client.update_achievements_user_progress(
-                guild_id, user_id, ach_id, current_val,
+                guild_id, user_id, ach_id, new_val,
                 is_completed=is_completed,
-                last_step_order=new_last_order 
+                last_step_order=current_last_order 
             )
 
+            # 新しくステップを達成した「その瞬間」だけ通知を飛ばす
             if new_step_reached:
                 await self.dispatch_achievement_reward(guild, member, ach, new_step_reached)
 
