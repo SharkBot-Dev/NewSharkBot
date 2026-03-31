@@ -126,7 +126,7 @@ func createOrUpdateAchievement(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "実績の保存に失敗しました"})
 		return
 	}
 	c.JSON(http.StatusOK, input)
@@ -180,7 +180,16 @@ func updateUserProgress(c *gin.Context) {
 	input.GuildID = guildID
 	input.UserID = userID
 
-	// 指定された実績に対するユーザーの進捗を更新
+	var achievement model.Achievement
+	if err := db.Where("id = ? AND guild_id = ?", input.AchievementID, guildID).First(&achievement).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "指定された実績が見つかりません"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "実績の検証に失敗しました"})
+		return
+	}
+
 	err := db.Where("guild_id = ? AND user_id = ? AND achievement_id = ?",
 		guildID, userID, input.AchievementID).
 		Assign(model.UserAchievementProgress{
