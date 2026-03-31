@@ -104,6 +104,9 @@ class SuperGlobalChatCog(commands.Cog):
         if name not in ["sgc", "dsgc"]:
             return
 
+        if not self.filter_global(after.content):
+            return
+
         data = await self.bot.redis.get(f"gc:{name}:msg:{after.id}")
         if not data:
             return
@@ -294,6 +297,9 @@ class SuperGlobalChatCog(commands.Cog):
                 if rule: embed.add_field(name="ルール", value=rule, inline=False)
                 await message.channel.send(content=message.author.mention, embed=embed)
                 return
+            
+        if not self.filter_global(message.content):
+            return
             
         # JSONを中継用チャンネルに送信
         js_content = await self.sgc_make_json(message)
