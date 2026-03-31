@@ -145,3 +145,5 @@ __pycache__
 src/api/build.sh
 
 deploy.env
+
+font/
