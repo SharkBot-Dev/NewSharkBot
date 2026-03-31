@@ -192,6 +192,10 @@ func main() {
 		&model.PrefixSetting{},
 		&model.PinMessageSetting{},
 		&model.TicketPanel{},
+		&model.Achievement{},
+		&model.AchievementSetting{},
+		&model.AchievementStep{},
+		&model.UserAchievementProgress{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
@@ -225,6 +229,7 @@ func main() {
 	router.GlobalChatRegister(r.Group("/"))
 	router.RegisterCommands(r.Group("/"))
 	router.RegisterTicket(r.Group("/"))
+	router.RegisterAchievement(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)

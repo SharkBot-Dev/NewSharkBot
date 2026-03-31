@@ -15,6 +15,7 @@ import ModeratorCommands from "@/constants/commands/moderator"
 import SearchCommands from "@/constants/commands/search"
 import TestCommands from "@/constants/commands/test"
 import GlobalChatCommands from "@/constants/commands/globalchat"
+import AchievementsCommands from "@/constants/commands/achievements"
 
 import { checkCooldown, fetchGuildSettings } from "@/lib/api/requests";
 
@@ -30,7 +31,8 @@ const modules = {
   "moderator": ModeratorCommands,
   "search": SearchCommands,
   "test": TestCommands,
-  "globalchat": GlobalChatCommands
+  "globalchat": GlobalChatCommands,
+  "achievements": AchievementsCommands
 }
 
 export async function POST(

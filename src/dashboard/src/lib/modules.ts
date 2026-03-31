@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -136,6 +136,17 @@ export const modules = new Map<string, ModuleSetting>([
       description: "サーバーに魅力的なレベルシステムを追加します。",
       enabled: true,
       icon: Rocket,
+      group: "遊び",
+    },
+  ],
+  [
+    "achievements",
+    {
+      id: "achievements",
+      name: "実績",
+      description: "サーバー内の活動に応じて、メンバーに実績とロール報酬を自動付与します。",
+      enabled: true,
+      icon: Ghost,
       group: "遊び",
     },
   ],

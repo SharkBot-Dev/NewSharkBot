@@ -1,3 +1,7 @@
+import collections
+import string
+
+import discord
 from discord.ext import commands
 
 class Embed:
@@ -12,3 +16,30 @@ class Embed:
                     return e['data']
                 
         return None
+    
+    def _apply_placeholders_to_embed(self, embed: discord.Embed, placeholders: dict) -> discord.Embed:
+        if embed.title:
+            embed.title = self.safe_format(embed.title, placeholders)
+        
+        if embed.description:
+            embed.description = self.safe_format(embed.description, placeholders)
+        
+        for field in embed.fields:
+            field.name = self.safe_format(field.name, placeholders)
+            field.value = self.safe_format(field.value, placeholders)
+            
+        if embed.footer and embed.footer.text:
+            embed.footer.text = self.safe_format(field.name, placeholders)
+            embed.set_footer(text=self.safe_format(embed.footer.text, placeholders))
+            
+        return embed
+    
+    def safe_format(self, template: str, placeholders: dict) -> str:
+        if not template:
+            return ""
+        
+        return string.Formatter().vformat(
+            template, 
+            (), 
+            collections.defaultdict(str, placeholders)
+        )
