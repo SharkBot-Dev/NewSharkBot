@@ -7,6 +7,8 @@ class PaginationView(discord.ui.View):
         self.current_page = 0
 
     async def update_view(self, interaction: discord.Interaction):
+        self.current_page = max(0, min(self.current_page, len(self.embeds) - 1))
+
         self.page_indicator.label = f"{self.current_page + 1} / {len(self.embeds)}"
         self.first_page.disabled = (self.current_page == 0)
         self.prev_page.disabled = (self.current_page == 0)
@@ -22,7 +24,7 @@ class PaginationView(discord.ui.View):
 
     @discord.ui.button(label="＜", style=discord.ButtonStyle.grey)
     async def prev_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page -= 1
+        self.current_page = max(0, self.current_page - 1)
         await self.update_view(interaction)
 
     @discord.ui.button(label="1 / ?", style=discord.ButtonStyle.blue, disabled=True)
@@ -31,7 +33,7 @@ class PaginationView(discord.ui.View):
 
     @discord.ui.button(label="＞", style=discord.ButtonStyle.grey)
     async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
-        self.current_page += 1
+        self.current_page = min(len(self.embeds) - 1, self.current_page + 1)
         await self.update_view(interaction)
 
     @discord.ui.button(label="≫", style=discord.ButtonStyle.grey)

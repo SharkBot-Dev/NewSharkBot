@@ -57,7 +57,7 @@ func updateAchievementSetting(c *gin.Context) {
 
 	input.GuildID = guildID
 	// GuildIDをキーにして保存または更新 (Upsert)
-	if err := db.Where("guild_id = ?", guildID).Save(&input).Error; err != nil {
+	if err := db.Where("guild_id = ?", guildID).Assign(input).FirstOrCreate(&input).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "設定の保存に失敗しました"})
 		return
 	}
@@ -95,6 +95,7 @@ func createOrUpdateAchievement(c *gin.Context) {
 		if input.ID != 0 {
 			result := tx.Model(&model.Achievement{}).
 				Where("id = ? AND guild_id = ?", input.ID, guildID).
+				Select("*").
 				Updates(&input)
 
 			if result.Error != nil {
@@ -103,8 +104,20 @@ func createOrUpdateAchievement(c *gin.Context) {
 			if result.RowsAffected == 0 {
 				return errors.New("指定された実績が見つからないか、権限がありません")
 			}
+
+			if err := tx.Where("achievement_id = ?", input.ID).Delete(&model.AchievementStep{}).Error; err != nil {
+				return err
+			}
+
+			if len(input.Steps) > 0 {
+				for i := range input.Steps {
+					input.Steps[i].AchievementID = input.ID
+				}
+				if err := tx.Create(&input.Steps).Error; err != nil {
+					return err
+				}
+			}
 		} else {
-			// --- 新規作成の場合 ---
 			if err := tx.Create(&input).Error; err != nil {
 				return err
 			}
