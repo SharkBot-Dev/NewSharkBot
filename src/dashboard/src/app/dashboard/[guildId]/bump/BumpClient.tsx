@@ -26,6 +26,7 @@ interface Props {
 const BUMP_BOT_PRESETS = [
   { id: "302050872383242240", name: "DISBOARD", defaultContent: "Bumpの時間が来たよ！\n</bump:947088344167366698>" },
   { id: "761562078095867916", name: "Dissoku", defaultContent: "Upの時間が来たよ！\n</up:1363739182672904354>" },
+  { id: "1233072112139501608", name: "鯖ちゃんねる", defaultContent: "Voteの時間が来たよ！\n</vote:1233256792507682860>" },
 ];
 
 const DEFAULT_NEW_BOT: BumpBotConfig = {

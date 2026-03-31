@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone, timedelta
+import time
 import discord
 from discord.ext import commands, tasks
 
@@ -9,7 +10,7 @@ class BumpsCog(commands.Cog):
         print("init -> BumpsCog")
         self.bump_check_loop.start()
 
-        self.ON_MESSAGE_BOTS = ["302050872383242240"]
+        self.ON_MESSAGE_BOTS = ["302050872383242240", "1233072112139501608"]
         self.ON_EDIT_BOTS = ["761562078095867916"]
 
     def cog_unload(self):
@@ -68,8 +69,8 @@ class BumpsCog(commands.Cog):
             except Exception as e:
                 logging.error(f"Error in bump loop: {e}")
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @commands.Cog.listener("on_message")
+    async def on_message_disboard(self, message: discord.Message):
         if not message.guild or not message.author.bot:
             return
 
@@ -94,6 +95,46 @@ class BumpsCog(commands.Cog):
                 "last_bumped_at": datetime.now(timezone.utc).isoformat()
             }
             
+            if await self.update_single_bot_setting(message.guild.id, bot_id_str, updates):
+                await message.add_reaction("✅")
+
+    @commands.Cog.listener("on_message")
+    async def on_message_sabach(self, message: discord.Message):
+        if not message.guild or not message.author.bot:
+            return
+
+        status = await self.bot.api.is_module_enabled(str(message.guild.id), "bump")
+        if not status or not status.get('enabled'):
+            return
+
+        is_success = False
+        if message.embeds:
+            desc = message.embeds[0].description or ""
+            if "このサーバーに1票を投じました！" in desc:
+                is_success = True
+                try:
+                    next_timestamp = (
+                        message.embeds[0].fields[0]
+                        .value.replace("<t:", "")
+                        .replace(":R>", "")
+                        .strip()
+                    )
+                except (IndexError, AttributeError):
+                    next_timestamp = str(int(time.time() + 7200))
+
+        if is_success:
+            bot_id_str = str(message.author.id)
+            if bot_id_str not in self.ON_MESSAGE_BOTS:
+                return
+
+            ts_int = int(next_timestamp)
+            next_dt = datetime.fromtimestamp(ts_int, tz=timezone.utc)
+
+            updates = {
+                "next_notify_at": next_dt.isoformat(),
+                "last_bumped_at": datetime.now(timezone.utc).isoformat()
+            }
+
             if await self.update_single_bot_setting(message.guild.id, bot_id_str, updates):
                 await message.add_reaction("✅")
 
