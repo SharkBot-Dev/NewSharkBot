@@ -365,7 +365,7 @@ class ModeratorCog(commands.Cog):
             await interaction.followup.send(content="権限がありません。")
             return
         except Exception:
-            await interaction.followup.send(content="チャンネルのアンロックに失敗しました。")
+            await interaction.followup.send(content="チャンネルのロックに失敗しました。")
             return
 
     async def unlock_command(self, interaction: discord.Interaction, **kwargs):
