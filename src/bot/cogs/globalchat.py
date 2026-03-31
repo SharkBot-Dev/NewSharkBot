@@ -22,6 +22,13 @@ class GlobalChatCog(commands.Cog):
 
         print("init -> GlobalChatCog")
 
+    def filter_global(self, content: str) -> bool:
+        blocked_words = [
+            "discord.com", "discord.gg", "x.gd", "shorturl.asia",
+            "tiny.cc", "everyone", "here",
+        ]
+        return not any(word in content for word in blocked_words)
+
     async def connect_command(self, interaction: discord.Interaction, **kwargs):
         BACKEND_URL = os.environ.get("RESOURCE_API_BASE_URL", "http://localhost:8080")
 
@@ -80,6 +87,10 @@ class GlobalChatCog(commands.Cog):
 
         if name in ["sgc", "dsgc"]:
             return
+        
+        if name in ["main", "art"]:
+            if not self.filter_global(after.content):
+                return
 
         data = await self.bot.redis.get(f"gc:{name}:msg:{after.id}")
         if not data:
@@ -225,6 +236,10 @@ class GlobalChatCog(commands.Cog):
                 except Exception as e:
                     logging.error(f"Failed to send welcome message: {e}")
 
+                return
+
+        if name in ["main", "art"]:
+            if not self.filter_global(message.content):
                 return
 
         await self.relay_message(message, channels, room)
