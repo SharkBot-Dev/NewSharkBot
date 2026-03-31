@@ -14,6 +14,8 @@ const EVENT_PRESETS = [
   { name: "channel_delete", label: "チャンネル削除" },
   { name: "role_create", label: "ロール作成" },
   { name: "role_delete", label: "ロール削除" },
+  { name: "role_add", label: "ロール追加" },
+  { name: "role_remove", label: "ロール剥奪" },
 ];
 
 interface LoggingEvent {
