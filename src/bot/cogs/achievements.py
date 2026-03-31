@@ -146,12 +146,6 @@ class AchievementCog(commands.Cog):
             new_step_reached = None
             current_last_order = last_order
 
-            # 【重要】次に達成すべきステップ「だけ」を見る
-            next_order = last_order + 1
-
-            new_step_reached = None
-            current_last_order = last_order
-
             next_order = last_order + 1
 
             if next_order < len(sorted_steps):
