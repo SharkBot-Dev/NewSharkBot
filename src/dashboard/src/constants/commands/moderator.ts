@@ -136,6 +136,32 @@ const commands = [
     ]
   },
   {
+    name: "lock",
+    description: "チャンネルをロックします。",
+    default_member_permissions: Permissions.ManageChannels.toString(),
+    options: [
+      {
+        name: "reason",
+        description: "ロックする理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
+  {
+    name: "unlock",
+    description: "チャンネルのロックを解除します。",
+    default_member_permissions: Permissions.ManageChannels.toString(),
+    options: [
+      {
+        name: "reason",
+        description: "ロックを解除する理由を入力してください。",
+        type: 3,
+        required: false,
+      },
+    ]
+  },
+  {
     name: "user-info",
     description: "ユーザーの情報を表示します。",
     options: [

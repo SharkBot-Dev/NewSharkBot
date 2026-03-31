@@ -60,6 +60,14 @@ class ModeratorCog(commands.Cog):
         server_info.execute = self.server_info_command
         self.bot.add_slashcommand(server_info)
 
+        lock = Command(name="lock", description="チャンネルをロックします。", module_name="モデレーター")
+        lock.execute = self.lock_command
+        self.bot.add_slashcommand(lock)
+
+        unlock = Command(name="unlock", description="チャンネルのロックを解除します。", module_name="モデレーター")
+        unlock.execute = self.unlock_command
+        self.bot.add_slashcommand(unlock)
+
         print("init -> ModeratorCog")
 
     def parse_duration(self, duration_str: str):
@@ -336,6 +344,36 @@ class ModeratorCog(commands.Cog):
             embed.set_thumbnail(url=interaction.guild.icon.url)
 
         await interaction.followup.send(embed=embed)
+
+    async def lock_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+        overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
+        overwrite.send_messages = False
+        overwrite.create_polls = False
+        overwrite.use_application_commands = False
+        overwrite.attach_files = False
+        overwrite.create_public_threads = False
+        overwrite.create_private_threads = False
+        overwrite.add_reactions = False
+        await interaction.channel.set_permissions(
+            interaction.guild.default_role, overwrite=overwrite
+        )
+        await interaction.followup.send(content="🔒チャンネルをロックしました。")
+
+    async def unlock_command(self, interaction: discord.Interaction, **kwargs):
+        await interaction.response.defer()
+        overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
+        overwrite.send_messages = True
+        overwrite.create_polls = True
+        overwrite.use_application_commands = True
+        overwrite.attach_files = True
+        overwrite.create_public_threads = True
+        overwrite.create_private_threads = True
+        overwrite.add_reactions = True
+        await interaction.channel.set_permissions(
+            interaction.guild.default_role, overwrite=overwrite
+        )
+        await interaction.followup.send(content="🔓チャンネルを開放しました。")
 
     async def send_moderator_log(self, guild: discord.Guild, moderator: discord.User, user: discord.User, action: str, reason: str):
         basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
