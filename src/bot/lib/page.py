@@ -27,7 +27,7 @@ class PaginationView(discord.ui.View):
         self.current_page = max(0, self.current_page - 1)
         await self.update_view(interaction)
 
-    @discord.ui.button(label="1 / ?", style=discord.ButtonStyle.blue, disabled=True)
+    @discord.ui.button(label="1 / ?", style=discord.ButtonStyle.blurple, disabled=True)
     async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
         pass
 
