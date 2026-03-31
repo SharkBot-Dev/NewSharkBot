@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -125,6 +125,17 @@ export const modules = new Map<string, ModuleSetting>([
       description: "Web上のコンテンツをなんでも検索できます。",
       enabled: true,
       icon: SearchIcon,
+      group: "ユーティリティ",
+    },
+  ],
+  [
+    "bump",
+    {
+      id: "bump",
+      name: "Bump通知",
+      description: "Bumpの実行できる時間になったらお知らせします。",
+      enabled: true,
+      icon: UploadIcon,
       group: "ユーティリティ",
     },
   ],
