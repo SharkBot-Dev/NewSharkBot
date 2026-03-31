@@ -111,6 +111,7 @@ func createOrUpdateAchievement(c *gin.Context) {
 
 			if len(input.Steps) > 0 {
 				for i := range input.Steps {
+					input.Steps[i].ID = 0
 					input.Steps[i].AchievementID = input.ID
 				}
 				if err := tx.Create(&input.Steps).Error; err != nil {
