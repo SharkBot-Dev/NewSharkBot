@@ -14,7 +14,7 @@ class LoggingCog(commands.Cog):
 
         all_event_names = [
             "message_delete", "message_edit", "member_kick", "member_ban", 
-            "channel_create", "channel_delete", "role_create", "role_delete"
+            "channel_create", "channel_delete", "role_create", "role_delete", "role_add", "role_remove"
         ]
         for name in all_event_names:
             if name == event_name: continue
@@ -123,6 +123,34 @@ class LoggingCog(commands.Cog):
         embed.add_field(name="変更後", value=after.content, inline=False)
 
         await self._process_log(before.guild, "message_edit", embed, str(before.channel.id))
+
+    @commands.Cog.listener("on_member_update")
+    async def on_member_update_role_log(
+        self, before: discord.Member, after: discord.Member
+    ):
+        before_roles = set(before.roles)
+        after_roles = set(after.roles)
+
+        added_roles = after_roles - before_roles
+        removed_roles = before_roles - after_roles
+
+        def _roles_field_value(roles):
+            text = "\n".join(sorted((r.mention for r in roles), key=str.casefold))
+            return text if len(text) <= 1024 else text[:1021] + "..."
+
+        if added_roles:
+            embed = discord.Embed(title="✅ ロール追加", color=discord.Color.green())
+            embed.add_field(name="メンバー情報", value=f"{before.mention} (`{before.id}`)")
+            embed.add_field(name="追加されたロール", value=_roles_field_value(added_roles), inline=False)
+
+            await self._process_log(before.guild, "role_add", embed)
+
+        if removed_roles:
+            embed = discord.Embed(title="❌ ロール剥奪", color=discord.Color.red())
+            embed.add_field(name="メンバー情報", value=f"{before.mention} (`{before.id}`)")
+            embed.add_field(name="削除されたロール", value=_roles_field_value(removed_roles), inline=False)
+
+            await self._process_log(before.guild, "role_remove", embed)
 
     @commands.Cog.listener("on_audit_log_entry_create")
     async def on_audit_log_entry_create(self, entry: discord.AuditLogEntry):

@@ -358,7 +358,7 @@ class ModeratorCog(commands.Cog):
         overwrite.add_reactions = False
         try:
             await interaction.channel.set_permissions(
-                interaction.guild.default_role, overwrite=overwrite, reason=reason
+                interaction.guild.default_role, overwrite=overwrite, reason=self.reason_parse(reason, interaction.user, "ロック")
             )
             await interaction.followup.send(content="🔒チャンネルをロックしました。")
         except discord.Forbidden:
@@ -381,7 +381,7 @@ class ModeratorCog(commands.Cog):
         overwrite.add_reactions = None
         try:
             await interaction.channel.set_permissions(
-                interaction.guild.default_role, overwrite=overwrite, reason=reason
+                interaction.guild.default_role, overwrite=overwrite, reason=self.reason_parse(reason, interaction.user, "アンロック")
             )
             await interaction.followup.send(content="🔓チャンネルを開放しました。")
         except discord.Forbidden:
