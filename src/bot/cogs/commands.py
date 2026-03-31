@@ -39,7 +39,17 @@ class CommandsCog(commands.Cog):
             arg_value = option.get("value")
             resolved_args[arg_name] = arg_value
 
-        asyncio.create_task(command.execute(interaction, **resolved_args))
+        try:
+            await command.execute(interaction, **resolved_args)
+        except discord.Forbidden:
+            if not interaction.response.is_done():
+                return await interaction.response.send_message(ephemeral=True, content="権限エラーが発生しました。")
+            return await interaction.followup.send(ephemeral=True, content="権限エラーが発生しました。")
+        except Exception as e:
+            logging.error(e)
+            if not interaction.response.is_done():
+                return await interaction.response.send_message(ephemeral=True, content="予期しないエラーが発生しました。")
+            return await interaction.followup.send(ephemeral=True, content="予期しないエラーが発生しました。")
 
     async def get_prefix(self, guildId: int):
         fetch = await self.bot.api.get_prefixs(str(guildId))
