@@ -1,8 +1,10 @@
 import asyncio
 import copy
+import io
 import logging
 import time
 
+import aiohttp
 from discord.ext import commands
 import random
 import discord
@@ -54,17 +56,20 @@ class LevelsCog(commands.Cog):
 
         print("init -> LevelsCog")
 
-    async def rank_command(self, interaction: discord.Interaction, **kwargs):
+    def process_string(self, text, limit=15, suffix="..."):
+        if len(text) > limit:
+            return text[:limit] + suffix
+        return text
 
+    async def rank_command(self, interaction: discord.Interaction, **kwargs):
         if not self.bot.api:
             return
         
         await interaction.response.defer()
         
         user_id = kwargs.get("user", None)
-        if not user_id:
-            user = interaction.user
-        else:
+        user = interaction.user
+        if user_id:
             user = interaction.guild.get_member(int(user_id))
             if not user:
                 return await interaction.followup.send(content="ユーザーが見つかりませんでした。")
@@ -72,15 +77,46 @@ class LevelsCog(commands.Cog):
         guild_id = str(interaction.guild.id)
         data = await self.bot.api.get_user_level(guild_id, str(user.id))
 
-        if not data:
+        if not data or 'xp' not in data:
             return await interaction.followup.send(content="ユーザーのランクが見つかりませんでした。")
         
-        embed = discord.Embed(color=discord.Color.blue(), title=f"{user.display_name}のランク")
-        embed.set_thumbnail(url=user.display_avatar.url)
-        embed.add_field(name="レベル", value=data['level'])
-        embed.add_field(name="経験値", value=data['xp'])
+        total_xp = data['xp']
+        current_level = LevelUtils.get_level_from_total_xp(total_xp)
+        
+        xp_at_start_of_level = LevelUtils.get_total_xp_for_level(current_level)
 
-        await interaction.followup.send(embed=embed)
+        xp_at_start_of_next_level = LevelUtils.get_total_xp_for_level(current_level + 1)
+        
+        display_current_xp = total_xp - xp_at_start_of_level
+        display_max_xp = xp_at_start_of_next_level - xp_at_start_of_level
+
+        image_api_url = "http://images:8000/levels/rank"
+        
+        params = {
+            "name": self.process_string(user.name),
+            "level": current_level,
+            "current_xp": display_current_xp,
+            "max_xp": display_max_xp,
+            "avatar_url": str(user.display_avatar.url),
+            "status": str(user.status)
+        }
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(image_api_url, params=params, timeout=10) as response:
+                    if response.status == 200:
+                        content = await response.read()
+                        byte = io.BytesIO(content)
+                        image_file = discord.File(byte, filename="rank_card.png")
+                        await interaction.followup.send(file=image_file)
+
+                        byte.close()
+                    else:
+                        print(f"API Error: {response.status}")
+                        await interaction.followup.send(content="画像の生成に失敗しました。")
+        except Exception as e:
+            print(f"Connection Error: {e}")
+            await interaction.followup.send(content="画像生成サーバーに接続できませんでした。")
 
     async def levels_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
