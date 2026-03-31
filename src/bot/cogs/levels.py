@@ -58,7 +58,7 @@ class LevelsCog(commands.Cog):
 
     def process_string(self, text, limit=15, suffix="..."):
         if len(text) > limit:
-            return text[:limit] + suffix
+            return text[: max(0, limit - len(suffix))] + suffix
         return text
 
     async def rank_command(self, interaction: discord.Interaction, **kwargs):

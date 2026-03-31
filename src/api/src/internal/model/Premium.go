@@ -9,7 +9,9 @@ func IsPremium(p Premium) bool {
 	if p.PlanType == "free" {
 		return false
 	}
-	// 現在時刻が期限内であればtrue
+	if p.ExpiresAt.IsZero() {
+		return true
+	}
 	return time.Now().Before(p.ExpiresAt)
 }
 

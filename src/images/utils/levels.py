@@ -10,6 +10,9 @@ def is_safe_url(url):
     if parsed.scheme not in ('http', 'https'):
         return False
     
+    if not parsed.hostname:
+        return False
+    
     try:
         ip = ipaddress.ip_address(parsed.hostname)
         if ip.is_private or ip.is_loopback:
