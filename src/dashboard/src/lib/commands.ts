@@ -29,5 +29,6 @@ export const commands = [
     "dice",
     "bj",
     "leaderboard",
-    "achievements"
+    "achievements",
+    "youtube"
 ];
