@@ -22,7 +22,7 @@ class SearchCog(commands.Cog):
         ]
 
         for name, desc, func in commands_to_add:
-            cmd = Command(name=name, description=desc, module_name="経済")
+            cmd = Command(name=name, description=desc, module_name="検索")
             cmd.execute = func
             self.bot.add_slashcommand(cmd)
 
