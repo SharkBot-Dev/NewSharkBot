@@ -1,5 +1,4 @@
 import discord
-from discord import ui
 from discord.ext import commands
 
 from lib import command
@@ -107,6 +106,9 @@ class EmbedMakerView(ui.View):
         if interaction.user != self.author:
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
         
+        if interaction.channel is None:
+            return await interaction.response.send_message("チャンネルが見つかりません。", ephemeral=True)
+
         await interaction.response.send_message(content="✅ 送信しました。", ephemeral=True)
         await interaction.channel.send(embed=self.embed)
         
@@ -115,10 +117,13 @@ class EmbedMakerView(ui.View):
         if interaction.user != self.author:
             return await interaction.response.send_message("権限がありません。", ephemeral=True)
         
+        if not self.embed.title:
+            return await interaction.response.send_message("保存するにはタイトルを設定してください。", ephemeral=True)
+
         try:
             saved = await self.api.save_embed_setting(str(interaction.guild.id), self.embed.title, self.embed.to_dict())
         except:
-            await interaction.response.send_message(content="❌ 保存しました。", ephemeral=True)
+            await interaction.response.send_message(content="❌ 保存に失敗しました。", ephemeral=True)
             return
 
         await interaction.response.send_message(content="✅ 保存しました。", ephemeral=True)
