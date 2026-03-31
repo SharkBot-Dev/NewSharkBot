@@ -70,7 +70,7 @@ async function safeFetch(guildId: string) {
 
   } catch (error) {
     console.error("Bump settings fetch error:", error);
-    return { bots: [] };
+    throw error;
   }
 }
 

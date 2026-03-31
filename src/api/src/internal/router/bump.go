@@ -12,9 +12,9 @@ import (
 func RegisterBumps(router *gin.RouterGroup) {
 	bump := router.Group("/bump")
 	{
+		bump.GET("/pending", GetPendingBumps)
 		bump.GET("/:guild_id", getBumpsSetting)
 		bump.POST("/:guild_id", saveBumpSetting)
-		bump.GET("/:guild_id/pending", GetPendingBumps)
 	}
 }
 

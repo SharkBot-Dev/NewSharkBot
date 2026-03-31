@@ -43,8 +43,13 @@ class BumpsCog(commands.Cog):
         for item in pending_list:
             try:
                 guild_id = int(item.get('guild_id'))
+                bot_id = item.get('bot_id')
+
+                await self.update_single_bot_setting(guild_id, bot_id, {"next_notify_at": None})
+
                 guild = self.bot.get_guild(guild_id)
-                if not guild: continue
+                if not guild:
+                    continue
 
                 channel_id = int(item.get('channel_id'))
                 channel = guild.get_channel(channel_id)

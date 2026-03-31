@@ -11,6 +11,7 @@ interface BumpBotConfig {
   channel_id: string;
   role_ids: string[];
   content: string;
+  embed_id: string;
 }
 
 interface Props {
@@ -32,6 +33,7 @@ const DEFAULT_NEW_BOT: BumpBotConfig = {
   channel_id: "",
   role_ids: [],
   content: "Bumpの時間が来たよ！",
+  embed_id: ""
 };
 
 function truncateWithEllipsis(str: string, limit: number = 10): string {
@@ -211,8 +213,8 @@ export default function BumpClient({ guildId, channels, roles, initSettings }: P
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">通知メッセージの埋め込み</label>
               <EmbedSelecter
-                value={newBot.content}
-                onChange={e => setNewBot(prev => ({ ...prev, content: e }))}
+                value={newBot.embed_id}
+                onChange={e => setNewBot(prev => ({ ...prev, embed_id: e }))}
                 guildId={guildId}
               />
             </div>
