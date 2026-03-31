@@ -1,5 +1,7 @@
 FROM ghcr.io/astral-sh/uv:python3.14-alpine
 
+RUN apk add --no-cache fontconfig ttf-dejavu
+
 WORKDIR /app
 
 COPY . .

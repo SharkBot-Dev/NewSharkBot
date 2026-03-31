@@ -1,6 +1,23 @@
 import io
+import ipaddress
+import os
 import requests
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from urllib.parse import urlparse
+
+def is_safe_url(url):
+    parsed = urlparse(url)
+    if parsed.scheme not in ('http', 'https'):
+        return False
+    
+    try:
+        ip = ipaddress.ip_address(parsed.hostname)
+        if ip.is_private or ip.is_loopback:
+            return False
+    except ValueError:
+        if parsed.hostname in ('localhost', '127.0.0.1'):
+            return False
+    return True
 
 def generate_rank_card_blocking(
     user_name: str, 
@@ -14,6 +31,16 @@ def generate_rank_card_blocking(
 ) -> bytes:
     card_w, card_h = 600, 200
     
+    if not is_safe_url(avatar_url):
+        avatar_url = "https://github.com/identicons/neko.png" 
+
+    if not background_path.startswith(("http://", "https://")):
+        safe_base = "./static/"
+        filename = os.path.basename(background_path)
+        background_path = os.path.join(safe_base, filename)
+    elif not is_safe_url(background_path):
+        background_path = "static/sea.jpg"
+
     try:
         if background_path.startswith(("http://", "https://")):
             bg_resp = requests.get(background_path, timeout=5)
@@ -59,8 +86,8 @@ def generate_rank_card_blocking(
     draw.ellipse((s_x, s_y, s_x+s_size, s_y+s_size), fill=status_color)
 
     try:
-        font_name = ImageFont.truetype("font/DejaVuSans.ttf", 34)
-        font_sub = ImageFont.truetype("font/DejaVuSans.ttf", 18)
+        font_name = ImageFont.truetype("/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf", 34)
+        font_sub = ImageFont.truetype("/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf", 18)
     except:
         font_name = ImageFont.load_default()
         font_sub = ImageFont.load_default()
@@ -77,7 +104,10 @@ def generate_rank_card_blocking(
     bar_y = 145 
     bar_w = 360
     bar_h = 12
-    progress = min(current_xp / max_xp, 1.0)
+    if max_xp <= 0:
+        progress = 0.0
+    else:
+        progress = min(max(current_xp / max_xp, 0.0), 1.0)
     
     draw.rounded_rectangle([bar_x, bar_y, bar_x + bar_w, bar_y + bar_h], radius=6, fill="#484b4e")
 

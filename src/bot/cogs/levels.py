@@ -80,15 +80,12 @@ class LevelsCog(commands.Cog):
         if not data or 'xp' not in data:
             return await interaction.followup.send(content="ユーザーのランクが見つかりませんでした。")
         
-        total_xp = data['xp']
-        current_level = LevelUtils.get_level_from_total_xp(total_xp)
-        
-        xp_at_start_of_level = LevelUtils.get_total_xp_for_level(current_level)
-
-        xp_at_start_of_next_level = LevelUtils.get_total_xp_for_level(current_level + 1)
-        
-        display_current_xp = total_xp - xp_at_start_of_level
-        display_max_xp = xp_at_start_of_next_level - xp_at_start_of_level
+        current_level = data["level"]
+        display_current_xp = data["xp"]
+        display_max_xp = (
+            LevelUtils.get_total_xp_for_level(current_level + 1)
+            - LevelUtils.get_total_xp_for_level(current_level)
+        )
 
         image_api_url = "http://images:8000/levels/rank"
         
@@ -114,8 +111,8 @@ class LevelsCog(commands.Cog):
                     else:
                         print(f"API Error: {response.status}")
                         await interaction.followup.send(content="画像の生成に失敗しました。")
-        except Exception as e:
-            print(f"Connection Error: {e}")
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            logging.exception("Failed to reach rank image service")
             await interaction.followup.send(content="画像生成サーバーに接続できませんでした。")
 
     async def levels_command(self, interaction: discord.Interaction, **kwargs):
