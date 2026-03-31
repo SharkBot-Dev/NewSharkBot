@@ -347,6 +347,7 @@ class ModeratorCog(commands.Cog):
 
     async def lock_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
+        reason = kwargs.get("reason", "なし")
         overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
         overwrite.send_messages = False
         overwrite.create_polls = False
@@ -355,25 +356,40 @@ class ModeratorCog(commands.Cog):
         overwrite.create_public_threads = False
         overwrite.create_private_threads = False
         overwrite.add_reactions = False
-        await interaction.channel.set_permissions(
-            interaction.guild.default_role, overwrite=overwrite
-        )
-        await interaction.followup.send(content="🔒チャンネルをロックしました。")
+        try:
+            await interaction.channel.set_permissions(
+                interaction.guild.default_role, overwrite=overwrite, reason=reason
+            )
+            await interaction.followup.send(content="🔒チャンネルをロックしました。")
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。")
+            return
+        except Exception:
+            await interaction.followup.send(content="チャンネルのアンロックに失敗しました。")
+            return
 
     async def unlock_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
+        reason = kwargs.get("reason", "なし")
         overwrite = interaction.channel.overwrites_for(interaction.guild.default_role)
-        overwrite.send_messages = True
-        overwrite.create_polls = True
-        overwrite.use_application_commands = True
-        overwrite.attach_files = True
-        overwrite.create_public_threads = True
-        overwrite.create_private_threads = True
-        overwrite.add_reactions = True
-        await interaction.channel.set_permissions(
-            interaction.guild.default_role, overwrite=overwrite
-        )
-        await interaction.followup.send(content="🔓チャンネルを開放しました。")
+        overwrite.send_messages = None
+        overwrite.create_polls = None
+        overwrite.use_application_commands = None
+        overwrite.attach_files = None
+        overwrite.create_public_threads = None
+        overwrite.create_private_threads = None
+        overwrite.add_reactions = None
+        try:
+            await interaction.channel.set_permissions(
+                interaction.guild.default_role, overwrite=overwrite, reason=reason
+            )
+            await interaction.followup.send(content="🔓チャンネルを開放しました。")
+        except discord.Forbidden:
+            await interaction.followup.send(content="権限がありません。")
+            return
+        except Exception:
+            await interaction.followup.send(content="チャンネルのアンロックに失敗しました。")
+            return
 
     async def send_moderator_log(self, guild: discord.Guild, moderator: discord.User, user: discord.User, action: str, reason: str):
         basic_setting = await self.bot.api.get_moderator_settings(str(guild.id))
