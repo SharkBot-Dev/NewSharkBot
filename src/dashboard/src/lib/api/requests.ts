@@ -510,3 +510,54 @@ export async function checkCooldown(key: string, value: string, seconds: number)
     return { status: "error", message: e.message };
   }
 }
+
+async function achievementsApiRequest<T>(method: string, path: string, body?: any): Promise<T> {
+  const response = await fetch(`${RESOURCE_API_BASE_URL}/achievements${path}`, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(error.error || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getAchievementSettings(guildId: string) {
+  return achievementsApiRequest<any>("GET", `/settings/${guildId}`);
+}
+
+export async function updateAchievementSettings(guildId: string, data: any) {
+  return achievementsApiRequest<any>("POST", `/settings/${guildId}`, data);
+}
+
+export async function getAchievementList(guildId: string) {
+  return achievementsApiRequest<any[]>("GET", `/list/${guildId}`);
+}
+
+export async function saveAchievement(guildId: string, data: any) {
+  return achievementsApiRequest<any>("POST", `/list/${guildId}`, data);
+}
+
+export async function deleteAchievement(guildId: string, achievementId: number) {
+  return achievementsApiRequest<{ message: string }>("DELETE", `/list/${guildId}/${achievementId}`);
+}
+
+export async function getUserProgress(guildId: string, userId: string) {
+  return achievementsApiRequest<any[]>("GET", `/progress/${guildId}/${userId}`);
+}
+
+export async function updateUserProgress(
+  guildId: string, 
+  userId: string, 
+  achievementId: number, 
+  value: number
+) {
+  return achievementsApiRequest<any>("POST", `/progress/${guildId}/${userId}`, {
+    achievement_id: achievementId,
+    current_value: value,
+  });
+}

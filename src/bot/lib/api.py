@@ -624,3 +624,39 @@ class ResourceAPIClient:
         url = f"{self.base_url}/guilds/ticket/{guild_id}/{panel_id}"
         async with self.session.delete(url) as resp:
             return resp.status == 200
+
+    async def _request_achievements(self, method: str, path: str, json: Optional[Dict] = None) -> Any:
+        url = f"{self.base_url}/achievements{path}"
+        async with self.session.request(method, url, json=json) as resp:
+            if resp.status == 404:
+                return None
+            resp.raise_for_status()
+            return await resp.json()
+
+    async def get_achievements_settings(self, guild_id: str) -> Dict:
+        return await self._request_achievements("GET", f"/settings/{guild_id}")
+
+    async def update_achievements_settings(self, guild_id: str, data: Dict) -> Dict:
+        return await self._request_achievements("POST", f"/settings/{guild_id}", json=data)
+
+    async def get_achievement_list(self, guild_id: str) -> List[Dict]:
+        return await self._request_achievements("GET", f"/list/{guild_id}") or []
+
+    async def upsert_achievement(self, guild_id: str, data: Dict) -> Dict:
+        return await self._request_achievements("POST", f"/list/{guild_id}", json=data)
+
+    async def delete_achievement(self, guild_id: str, achievement_id: int) -> bool:
+        await self._request_achievements("DELETE", f"/list/{guild_id}/{achievement_id}")
+        return True
+
+    async def get_achievements_user_progress(self, guild_id: str, user_id: str) -> List[Dict]:
+        return await self._request_achievements("GET", f"/progress/{guild_id}/{user_id}") or []
+
+    async def update_achievements_user_progress(self, guild_id: str, user_id: str, achievement_id: int, current_value: int, is_completed: bool = False, last_step_order: int = 0) -> Dict:
+        payload = {
+            "achievement_id": achievement_id,
+            "current_value": current_value,
+            "is_completed": is_completed,
+            "last_step_order": last_step_order
+        }
+        return await self._request_achievements("POST", f"/progress/{guild_id}/{user_id}", json=payload)

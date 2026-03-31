@@ -28,5 +28,6 @@ export const commands = [
     "guess",
     "dice",
     "bj",
-    "leaderboard"
+    "leaderboard",
+    "achievements"
 ];
