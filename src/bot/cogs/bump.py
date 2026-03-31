@@ -66,7 +66,7 @@ class BumpsCog(commands.Cog):
                         item.get('bot_id'), 
                         {"next_notify_at": None}
                     )
-            except Exception as e:
+            except (ValueError, KeyError, discord.HTTPException) as e:
                 logging.error(f"Error in bump loop: {e}")
 
     @commands.Cog.listener("on_message")

@@ -18,16 +18,18 @@ export default function DashboardLayout({
   const guildId = params.guildId as string;
 
   const [loading, setLoading] = useState(true);
+  const [hasPermission, setHasPermission] = useState(true);
 
   useEffect(() => {
     async function checkPermission() {
+      if (!guildId) return;
       setLoading(true);
       try {
         const res = await fetch(`/api/discord/guild/${guildId}`);
         if (!res.ok) {
-          alert("Botを導入する画面にリダイレクトします。");
-          window.location.href = `https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID}&permissions=8&integration_type=0&scope=bot+applications.commands`;
-          return;
+          setHasPermission(false);
+        } else {
+          setHasPermission(true);
         }
       } catch (error) {
         console.error("Error checking permission:", error);
@@ -43,6 +45,29 @@ export default function DashboardLayout({
     return (
       <div className="h-screen flex items-center justify-center bg-slate-50">
         <div className="animate-spin h-8 w-8 border-4 border-indigo-500 rounded-full border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!hasPermission) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
+          <ShieldQuestion className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">ボットが未導入です</h2>
+          <p className="text-slate-600 mb-8">
+            このサーバーでダッシュボードを利用するには、SharkBotを招待する必要があります。
+          </p>
+          <a
+            href={`https://discord.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID}&permissions=8&integration_type=0&scope=bot+applications.commands&guild_id=${guildId}`}
+            className="block w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition-colors"
+          >
+            ボットを招待する
+          </a>
+          <Link href="/dashboard" className="block mt-4 text-sm text-slate-400 hover:text-slate-600">
+            サーバー選択に戻る
+          </Link>
+        </div>
       </div>
     );
   }
