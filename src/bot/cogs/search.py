@@ -46,7 +46,7 @@ class SearchCog(commands.Cog):
                             return await interaction.followup.send(f"{item['link']}")
 
                     return await interaction.followup.send(
-                        f"結果が見つかりませんでした。"
+                        "結果が見つかりませんでした。"
                     )
         except:
             return await interaction.followup.send(f"検索に失敗しました。")
@@ -55,8 +55,12 @@ class SearchCog(commands.Cog):
         await interaction.response.defer()
 
         search = kwargs.get('search')
+        if not search:
+            return await interaction.followup.send("検索ワードを入力してください。")
 
         token = os.environ.get('YOUTUBE_APIKEY')
+        if not token:
+            return await interaction.followup.send("内部エラーが発生しました。")
 
         url = "https://www.googleapis.com/youtube/v3/search"
         params = {
@@ -67,19 +71,22 @@ class SearchCog(commands.Cog):
             'key': token
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    
-                    if data.get('items'):
-                        video_id = data['items'][0]['id']['videoId']
-                        video_url = f"https://www.youtube.com/watch?v={video_id}"
-                        await interaction.followup.send(video_url)
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        if data.get('items'):
+                            video_id = data['items'][0]['id']['videoId']
+                            video_url = f"https://www.youtube.com/watch?v={video_id}"
+                            await interaction.followup.send(video_url)
+                        else:
+                            await interaction.followup.send("動画が見つかりませんでした。")
                     else:
-                        await interaction.followup.send("動画が見つかりませんでした。")
-                else:
-                    await interaction.followup.send(f"エラーが発生しました")
+                        await interaction.followup.send("エラーが発生しました")
+        except:
+            return await interaction.followup.send("エラーが発生しました")
 
 async def setup(bot):
     await bot.add_cog(SearchCog(bot))
