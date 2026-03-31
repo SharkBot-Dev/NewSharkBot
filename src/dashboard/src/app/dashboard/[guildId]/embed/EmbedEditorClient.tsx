@@ -8,6 +8,8 @@ import { EmbedSetting, PinMessageSetting } from "@/lib/api/requests"; // 型定�
 import Modal from "@/components/Modal";
 import ChannelSelecter from "@/components/channel-selecter";
 import { useRouter } from "next/navigation";
+import CommandsControl from "@/components/commands";
+import commands from "@/constants/commands/embed";
 
 interface Props {
   guildId: string;
@@ -112,6 +114,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
   };
 
   const handleSend = async () => {
+    if (channelSelecterValue == "") {
+      alert("チャンネルを選択してください。")
+      return;
+    }
+
     setSending(true);
 
     try {
@@ -142,6 +149,11 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
   };
 
   const handleCreatePin = async () => {
+    if (channelSelecterValue == "") {
+      alert("チャンネルを選択してください。")
+      return;
+    }
+
     setSending(true);
     try {
       const response = await fetch(`/api/guilds/${guildId}/modules/embed/pin`, {
@@ -400,6 +412,10 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
           </button>
         </div>
       </Modal>
+      
+      <CollapsibleSection title="コマンド設定">
+        <CommandsControl guildId={guildId} targetCommands={commands}></CommandsControl>
+      </CollapsibleSection>
     </div>
   );
 }
