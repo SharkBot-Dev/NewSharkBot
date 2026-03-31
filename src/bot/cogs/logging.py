@@ -134,17 +134,21 @@ class LoggingCog(commands.Cog):
         added_roles = after_roles - before_roles
         removed_roles = before_roles - after_roles
 
+        def _roles_field_value(roles):
+            text = "\n".join(sorted((r.mention for r in roles), key=str.casefold))
+            return text if len(text) <= 1024 else text[:1021] + "..."
+
         if added_roles:
-            embed = discord.Embed(title="➕ ロール追加", color=discord.Color.green())
+            embed = discord.Embed(title="✅ ロール追加", color=discord.Color.green())
             embed.add_field(name="メンバー情報", value=f"{before.mention} (`{before.id}`)")
-            embed.add_field(name="追加されたロール", value="\n".join([rr.mention for rr in added_roles]), inline=False)
+            embed.add_field(name="追加されたロール", value=_roles_field_value(added_roles), inline=False)
 
             await self._process_log(before.guild, "role_add", embed)
 
         if removed_roles:
-            embed = discord.Embed(title="➖ ロール剥奪", color=discord.Color.red())
+            embed = discord.Embed(title="❌ ロール剥奪", color=discord.Color.red())
             embed.add_field(name="メンバー情報", value=f"{before.mention} (`{before.id}`)")
-            embed.add_field(name="削除されたロール", value="\n".join([rr.mention for rr in removed_roles]), inline=False)
+            embed.add_field(name="削除されたロール", value=_roles_field_value(removed_roles), inline=False)
 
             await self._process_log(before.guild, "role_remove", embed)
 
