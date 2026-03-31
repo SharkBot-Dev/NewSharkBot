@@ -46,8 +46,6 @@ services:
       dockerfile: Dockerfile
     networks:
       - sharkbot_network
-    ports:
-      - "8000:8000"
   postgres:
     image: postgres:18
     environment:
