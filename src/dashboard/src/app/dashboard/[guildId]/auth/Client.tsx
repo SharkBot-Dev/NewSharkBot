@@ -34,7 +34,7 @@ export default function AuthClient({ guildId, roles, channels }: Props) {
   const [content, setContent] = useState("サーバーへようこそ！下のボタンから認証を行ってください。");
   const [targetChannelId, setTargetChannelId] = useState("");
   const [buttons, setButtons] = useState<ButtonConfig[]>([
-    { id: "btn-1", label: "認証する", emoji: "✅", style: ButtonStyle.Success, roleId: "", type: "web" }
+    { id: "btn-1", label: "認証する", emoji: "✅", style: ButtonStyle.Success, roleId: "", type: "click" }
   ]);
 
   const addButton = () => {
@@ -105,22 +105,6 @@ export default function AuthClient({ guildId, roles, channels }: Props) {
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto space-y-6 text-slate-900">
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-black flex items-center gap-2">
-              <ShieldCheck className="text-indigo-500" size={28} /> 認証パネル設定
-            </h1>
-            <p className="text-sm text-slate-500 font-medium">認証ボタンとメッセージをカスタマイズして送信します。</p>
-          </div>
-          <button 
-            onClick={handleSaveAndSend}
-            className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
-          >
-            <Send size={20} />
-            パネルを送信
-          </button>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-1">
           <div className="lg:col-span-7 space-y-6">
@@ -183,6 +167,14 @@ export default function AuthClient({ guildId, roles, channels }: Props) {
               </div>
             </CollapsibleSection>
           </div>
+
+          <button 
+            onClick={handleSaveAndSend}
+            className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
+          >
+            <Send size={20} />
+            パネルを送信
+          </button>
         </div>
       </div>
     </div>

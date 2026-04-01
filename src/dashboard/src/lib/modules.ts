@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon, Check } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -47,7 +47,7 @@ export const modules = new Map<string, ModuleSetting>([
       name: "メンバー認証",
       description: "メンバーをロボットではないことを確認します。",
       enabled: true,
-      icon: SmilePlus,
+      icon: Check,
       group: "サーバー管理",
     },
   ],
