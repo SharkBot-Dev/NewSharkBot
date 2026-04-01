@@ -2,13 +2,7 @@
 
 import { ShieldQuestion } from "lucide-react"
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
+export default function NotFound() {
   return (
       <div className="h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">

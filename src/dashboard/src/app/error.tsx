@@ -15,7 +15,13 @@ export default function Error({
           <ShieldQuestion className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 mb-2">エラーが発生しました。</h2>
           <p className="text-slate-600 mb-8">
-            しばらく時間をおいてから、再度お試しください。
+            <button
+              type="button"
+              onClick={() => reset()}
+              className="rounded-lg bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600"
+            >
+              再試行
+            </button>
           </p>
         </div>
       </div>
