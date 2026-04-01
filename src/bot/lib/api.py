@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 
 import urllib.parse
 
-# --- 型定義 ---
+import logging
 
 @dataclass
 class EmbedSetting:
@@ -660,3 +660,50 @@ class ResourceAPIClient:
             "last_step_order": last_step_order
         }
         return await self._request_achievements("POST", f"/progress/{guild_id}/{user_id}", json=payload)
+    
+    async def get_bump_settings(self, guild_id: int) -> Optional[Dict[str, Any]]:
+        url = f"{self.base_url}/bump/{guild_id}"
+        try:
+            async with self.session.get(url) as resp:
+                if resp.status == 404:
+                    return {"bots": []}
+                
+                if resp.status != 200:
+                    logging.error(f"Failed to fetch bump settings: {resp.status}")
+                    return None
+                
+                return await resp.json()
+        except Exception as e:
+            logging.error(f"Error fetching bump settings for {guild_id}: {e}")
+            return None
+
+    async def save_bump_settings(self, guild_id: int, data: Dict[str, Any]) -> bool:
+        url = f"{self.base_url}/bump/{guild_id}"
+        
+        payload = {
+            "guild_id": str(guild_id),
+            "bots": data.get("bots", [])
+        }
+
+        try:
+            async with self.session.post(url, json=payload) as resp:
+                if resp.status == 200:
+                    return True
+                
+                error_text = await resp.text()
+                logging.error(f"Failed to save bump settings: {resp.status} - {error_text}")
+                return False
+        except Exception as e:
+            logging.error(f"Error saving bump settings for {guild_id}: {e}")
+            return False
+
+    async def get_pending_bumps(self) -> list:
+        url = f"{self.base_url}/bump/pending"
+        try:
+            async with self.session.get(url) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+                return []
+        except Exception as e:
+            logging.error(f"Error fetching pending bumps: {e}")
+            return []
