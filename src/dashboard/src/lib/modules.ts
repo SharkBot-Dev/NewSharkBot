@@ -19,17 +19,6 @@ export interface NoIconModuleSetting {
 
 export const modules = new Map<string, ModuleSetting>([
   [
-    "test",
-    {
-      id: "test",
-      name: "テスト",
-      description: "テストモジュールです",
-      enabled: false,
-      icon: null,
-      group: "デバッグ用",
-    },
-  ],
-  [
     "welcome",
     {
       id: "welcome",
