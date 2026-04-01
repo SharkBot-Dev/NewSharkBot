@@ -292,9 +292,18 @@ class SuperGlobalChatCog(commands.Cog):
             rule = room.get("rule")
             description = room.get("description")
             if rule or description:
-                embed = discord.Embed(title=f"{name} へようこそ！", description="ルールを確認してください。", color=discord.Color.blue())
-                if description: embed.add_field(name="説明", value=description, inline=False)
-                if rule: embed.add_field(name="ルール", value=rule, inline=False)
+                embed = discord.Embed(
+                    title=f"{room['name']} へようこそ！",
+                    description=f"ルールと説明を確認してください。\n再度送信するとルールに同意したものとします。",
+                    color=discord.Color.blue()
+                )
+                if description:
+                    embed.add_field(name="ルーム説明", value=description, inline=False)
+                if rule:
+                    embed.add_field(name="ルール", value=rule, inline=False)
+                
+                embed.set_footer(text="このメッセージは初回参加時のみ表示されます。")
+                
                 await message.channel.send(content=message.author.mention, embed=embed)
                 return
             
