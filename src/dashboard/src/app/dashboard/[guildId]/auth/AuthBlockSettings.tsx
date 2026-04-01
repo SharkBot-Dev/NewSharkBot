@@ -26,7 +26,7 @@ export default function AuthBlockSettings({ guildId, initialBlockedIds }: Props)
       .filter(id => id !== "")
       .filter((id, index, self) => self.indexOf(id) === index);
 
-    const invalidIds = idList.filter(id => !/^\d+$/.test(id));
+    const invalidIds = idList.filter(id => !/^\d{17,20}$/.test(id));
     if (invalidIds.length > 0) {
       alert(`無効なIDが含まれています`);
       setIsSaving(false);

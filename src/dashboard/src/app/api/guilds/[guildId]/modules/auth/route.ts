@@ -44,7 +44,7 @@ export async function POST(
 
         const { channelId, embed, buttons, content } = await request.json();
 
-        if (!channelId || !buttons || !Array.isArray(buttons)) {
+        if (!channelId || !buttons || !Array.isArray(buttons) || buttons.length === 0) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
