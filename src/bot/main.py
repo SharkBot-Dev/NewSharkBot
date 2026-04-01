@@ -66,6 +66,9 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
 async def setup_hook() -> None:
     await load_cogs(bot)
 
+    # 既存のグローバルコマンドを削除
+    await bot.tree.sync()
+
     bot.session = aiohttp.ClientSession()
 
     base_url = os.environ.get("RESOURCE_API_BASE_URL", "http://localhost:8080")
