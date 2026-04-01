@@ -41,7 +41,7 @@ class WelcomeCog(commands.Cog):
             embed = None
             embed_setting = setting.get("Embed")
             
-            if embed_setting:
+            if isinstance(embed_setting, dict):
                 embed_data = copy.deepcopy(embed_setting.get("data")) or {}
                 
                 if isinstance(embed_data, dict):
