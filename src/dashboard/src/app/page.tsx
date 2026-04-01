@@ -98,6 +98,7 @@ export default async function Page() {
           href="https://wiki.sharkbot.xyz" 
           target="_blank"
           className="flex items-center p-4 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors border border-slate-200 group"
+          rel="noopener noreferrer"
         >
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm">
             <BookOpen size={20} className="text-slate-600" />
@@ -112,6 +113,7 @@ export default async function Page() {
           href="https://status.sharkbot.xyz/status" 
           target="_blank"
           className="flex items-center p-4 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors border border-slate-200 group"
+          rel="noopener noreferrer"
         >
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm">
             <Activity size={20} className="text-emerald-500" />
