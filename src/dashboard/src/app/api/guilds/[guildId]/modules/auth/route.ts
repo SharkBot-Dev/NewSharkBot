@@ -1,3 +1,4 @@
+import { fetchEmbedSettings } from "@/lib/api/requests";
 import { auth } from "@/lib/auth";
 import { getValidatedChannelInServer, sendMessage } from "@/lib/Discord/Bot";
 import { checkAdminPermission } from "@/lib/Discord/User";
@@ -65,19 +66,42 @@ export async function POST(
             },
         ];
 
-        const result = await sendMessage(
-            channelId,
-            "", 
-            embed,     // 埋め込みオブジェクト
-            discordComponents
-        );
+        if (embed != "") {
+            const embeds = await fetchEmbedSettings(guildId);
+            const embedData = embeds.find((embed) => embed.ID === Number(embed));
 
-        return NextResponse.json({ 
-            success: true, 
-            message: "Authentication panel has been sent.",
-            data: result 
-        });
+            if (!embedData) {
+                return NextResponse.json({ error: "Embed not found" }, { status: 404 });
+            }
 
+
+            const result = await sendMessage(
+                channelId,
+                content, 
+                embedData,
+                discordComponents
+            );
+
+            return NextResponse.json({ 
+                success: true, 
+                message: "Authentication panel has been sent.",
+                data: result 
+            });
+        } else {
+
+            const result = await sendMessage(
+                channelId,
+                content, 
+                [],
+                discordComponents
+            );
+
+            return NextResponse.json({ 
+                success: true, 
+                message: "Authentication panel has been sent.",
+                data: result 
+            });
+        }
     } catch (error: any) {
         console.error("Auth Panel POST Error:", error);
         

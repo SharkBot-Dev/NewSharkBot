@@ -85,8 +85,6 @@ class BlackjackView(discord.ui.View):
         
         if self.is_finish: return 
         
-        self.is_finish = True 
-        
         if not await self.check_user(interaction):
             return
         async with self._action_lock:
