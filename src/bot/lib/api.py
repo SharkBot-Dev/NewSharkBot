@@ -707,3 +707,16 @@ class ResourceAPIClient:
         except Exception as e:
             logging.error(f"Error fetching pending bumps: {e}")
             return []
+        
+    async def create_auth_code(self, guild_id: str, user_id: str, role_id: str, code: str) -> Dict[str, Any]:
+        payload = {
+            "guild_id": guild_id,
+            "user_id": user_id,
+            "role_id": role_id,
+            "code": code
+        }
+        async with self.session.post(f"{self.base_url}/auth/code", json=payload) as resp:
+            if resp.status != 201:
+                error_text = await resp.text()
+                raise Exception(f"Failed to create auth code: {resp.status} - {error_text}")
+            return await resp.json()

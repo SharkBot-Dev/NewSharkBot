@@ -561,3 +561,60 @@ export async function updateUserProgress(
     current_value: value,
   });
 }
+
+export async function getAuthCode(guildId: string, code: string) {
+    const res = await fetch(`${RESOURCE_API_BASE_URL}/auth/code/${guildId}/${code}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+    });
+
+    if (!res.ok) {
+        throw new Error(res.status === 404 ? "コードが見つからないか、期限切れです。" : "サーバーエラーが発生しました。");
+    }
+
+    return res.json();
+}
+
+export async function deleteAuthCode(guildId: string, code: string) {
+    const res = await fetch(`${RESOURCE_API_BASE_URL}/auth/code/${guildId}/${code}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" }
+    });
+
+    if (!res.ok) {
+        console.log(res.statusText)
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "認証の確定に失敗しました。");
+    }
+
+    return res.json();
+}
+
+export async function getAuthBlockGuilds(guildId: string) {
+    const res = await fetch(`${RESOURCE_API_BASE_URL}/auth/blockguilds/${guildId}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        next: { revalidate: 60 }, 
+    });
+
+    if (!res.ok) {
+        return { blockd_guilds: [] };
+    }
+
+    return res.json();
+}
+
+export async function updateAuthBlockGuilds(guildId: string, blockdGuildIds: string[]) {
+    const res = await fetch(`${RESOURCE_API_BASE_URL}/auth/blockguilds/${guildId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blockd_guilds: blockdGuildIds }),
+    });
+
+    if (!res.ok) {
+        throw new Error("設定の保存に失敗しました。");
+    }
+
+    return res.json();
+}

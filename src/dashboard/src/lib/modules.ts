@@ -41,6 +41,17 @@ export const modules = new Map<string, ModuleSetting>([
     },
   ],
   [
+    "auth",
+    {
+      id: "auth",
+      name: "メンバー認証",
+      description: "メンバーをロボットではないことを確認します。",
+      enabled: true,
+      icon: SmilePlus,
+      group: "サーバー管理",
+    },
+  ],
+  [
     "moderator",
     {
       id: "moderator",
