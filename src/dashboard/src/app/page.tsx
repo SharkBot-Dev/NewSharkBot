@@ -5,9 +5,9 @@ import {
   Settings2, 
   Trash2, 
   Trophy, 
-  LineChart, 
   Activity,
-  BookOpen
+  BookOpen,
+  Globe
 } from "lucide-react";
 import Link from "next/link";
 
@@ -71,12 +71,12 @@ export default async function Page() {
           </div>
 
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mb-6">
-              <LineChart size={24} />
+            <div className="w-12 h-12 bg-sky-100 text-sky-600 rounded-lg flex items-center justify-center mb-6">
+              <Globe size={24} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">成長を可視化</h3>
+            <h3 className="text-xl font-bold text-slate-900">グローバルチャット</h3>
             <p className="text-slate-500 mt-3 leading-relaxed">
-              サーバーの統計データをダッシュボードから確認。いつ、どれくらい盛り上がったのかが一目でわかります。
+              他のサーバーとチャンネルを同期し、リアルタイムで交流。あなたのサーバーにいながら、世界中のユーザーと会話を楽しめます。
             </p>
           </div>
 
