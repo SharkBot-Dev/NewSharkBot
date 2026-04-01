@@ -66,42 +66,29 @@ export async function POST(
             },
         ];
 
-        if (embed != "") {
+        let embedData = undefined;
+
+        if (embed) {
             const embeds = await fetchEmbedSettings(guildId);
-            const embedData = embeds.find((embed) => embed.ID === Number(embed));
+            embedData = embeds.find((e) => e.ID === Number(embed));
 
             if (!embedData) {
                 return NextResponse.json({ error: "Embed not found" }, { status: 404 });
             }
-
-
-            const result = await sendMessage(
-                channelId,
-                content, 
-                embedData,
-                discordComponents
-            );
-
-            return NextResponse.json({ 
-                success: true, 
-                message: "Authentication panel has been sent.",
-                data: result 
-            });
-        } else {
-
-            const result = await sendMessage(
-                channelId,
-                content, 
-                [],
-                discordComponents
-            );
-
-            return NextResponse.json({ 
-                success: true, 
-                message: "Authentication panel has been sent.",
-                data: result 
-            });
         }
+
+        const result = await sendMessage(
+            channelId,
+            content, 
+            embedData,
+            discordComponents
+        );
+
+        return NextResponse.json({ 
+            success: true, 
+            message: "Authentication panel has been sent.",
+            data: result 
+        });
     } catch (error: any) {
         console.error("Auth Panel POST Error:", error);
         
