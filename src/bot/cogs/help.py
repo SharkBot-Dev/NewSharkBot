@@ -81,7 +81,7 @@ class HelpCog(commands.Cog):
 
     async def dashboard_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.send_message(
-            ephemeral=True, content="ここにダッシュボードURLを入れる"
+            ephemeral=True, content="https://www.sharkbot.xyz/"
         )
 
 
