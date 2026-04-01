@@ -256,12 +256,6 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       </div>
 
       <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        {editingId && (
-          <div className="absolute top-4 right-6 text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded">
-            編集モード: ID {editingId}
-          </div>
-        )}
-
         <div className="flex items-center gap-2 mb-6">
           <Terminal className="w-5 h-5 text-indigo-500" />
           <h2 className="text-lg font-bold text-slate-800">エディター</h2>
