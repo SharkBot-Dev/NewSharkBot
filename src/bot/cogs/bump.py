@@ -10,7 +10,7 @@ class BumpsCog(commands.Cog):
         print("init -> BumpsCog")
         self.bump_check_loop.start()
 
-        self.ON_MESSAGE_BOTS = ["302050872383242240", "1233072112139501608"]
+        self.ON_MESSAGE_BOTS = ["302050872383242240", "1233072112139501608", "903541413298450462", "850493201064132659"]
         self.ON_EDIT_BOTS = ["761562078095867916"]
 
     def cog_unload(self):
@@ -95,6 +95,64 @@ class BumpsCog(commands.Cog):
                 "last_bumped_at": datetime.now(timezone.utc).isoformat()
             }
             
+            if await self.update_single_bot_setting(message.guild.id, bot_id_str, updates):
+                await message.add_reaction("✅")
+
+    @commands.Cog.listener("on_message")
+    async def on_message_dicoall(self, message: discord.Message):
+        if not message.guild or not message.author.bot:
+            return
+
+        status = await self.bot.api.is_module_enabled(str(message.guild.id), "bump")
+        if not status or not status.get('enabled'):
+            return
+
+        is_success = False
+        if message.embeds:
+            title = message.embeds[0].title or ""
+            if "サーバーがリストの最上段に更新されました！" in title:
+                is_success = True
+
+        if is_success:
+            bot_id_str = str(message.author.id)
+            if bot_id_str not in self.ON_MESSAGE_BOTS:
+                return
+
+            next_time = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+            updates = {
+                "next_notify_at": next_time,
+                "last_bumped_at": datetime.now(timezone.utc).isoformat()
+            }
+
+            if await self.update_single_bot_setting(message.guild.id, bot_id_str, updates):
+                await message.add_reaction("✅")
+
+    @commands.Cog.listener("on_message")
+    async def on_message_dcafe(self, message: discord.Message):
+        if not message.guild or not message.author.bot:
+            return
+
+        status = await self.bot.api.is_module_enabled(str(message.guild.id), "bump")
+        if not status or not status.get('enabled'):
+            return
+
+        is_success = False
+        if message.embeds:
+            desc = message.embeds[0].description or ""
+            if "サーバーの表示順位を" in desc:
+                is_success = True
+
+        if is_success:
+            bot_id_str = str(message.author.id)
+            if bot_id_str not in self.ON_MESSAGE_BOTS:
+                return
+
+            next_time = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+            updates = {
+                "next_notify_at": next_time,
+                "last_bumped_at": datetime.now(timezone.utc).isoformat()
+            }
+
             if await self.update_single_bot_setting(message.guild.id, bot_id_str, updates):
                 await message.add_reaction("✅")
 

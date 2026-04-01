@@ -25,7 +25,9 @@ interface Props {
 
 const BUMP_BOT_PRESETS = [
   { id: "302050872383242240", name: "DISBOARD", defaultContent: "Bumpの時間が来たよ！\n</bump:947088344167366698>" },
-  { id: "761562078095867916", name: "Dissoku", defaultContent: "Upの時間が来たよ！\n</up:1363739182672904354>" },
+  { id: "761562078095867916", name: "Dissoku", defaultContent: "DissokuのUpの時間が来たよ！\n</up:1363739182672904354>" },
+  { id: "903541413298450462", name: "Dicoall", defaultContent: "DicoallのUpの時間が来たよ！\n</up:935190259111706754> でUp" },
+  { id: "850493201064132659", name: "DCafe", defaultContent: "DCafeのUpの時間が来たよ！\n</up:980136954169536525> でUp" },
   { id: "1233072112139501608", name: "鯖ちゃんねる", defaultContent: "Voteの時間が来たよ！\n</vote:1233256792507682860>" },
 ];
 

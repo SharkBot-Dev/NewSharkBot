@@ -193,16 +193,19 @@ const TicketButtonSelector: React.FC<TicketSelectorProps> = ({ buttons, onChange
       return;
     }
 
-    const defaultAction = mode === "panel" 
-      ? TicketActionType.Create 
-      : TicketActionType.Close;
+  const usedActions = buttons.map(b => b.action);
+    const possibleActions = mode === "panel" 
+      ? [TicketActionType.Create]
+      : [TicketActionType.Claim, TicketActionType.Close, TicketActionType.Reopen, TicketActionType.Delete];
+
+    const nextAction = possibleActions.find(a => !usedActions.includes(a)) || possibleActions[0];
 
     const newButton: TicketButtonConfig = {
       id: `btn_${Date.now()}`,
       label: '新規ボタン',
       emoji: '📩',
       style: ButtonStyle.Primary,
-      action: defaultAction,
+      action: nextAction,
     };
     onChange([...buttons, newButton]);
   };

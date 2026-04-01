@@ -203,3 +203,20 @@ export async function deleteSlashCommand(guildId: string, commandId: string) {
 
   return true;
 }
+
+export async function addRoleToMember(guildId: string, userId: string, roleId: string) {
+    const url = `https://discord.com/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`;
+
+    const res = await fetch(url, {
+        method: "PUT",
+        headers: headers,
+    });
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error("Discord API Error:", error);
+        throw new Error(`ロールの付与に失敗しました: ${res.status}`);
+    }
+
+    return true;
+}

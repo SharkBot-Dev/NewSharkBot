@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon, Check } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -37,6 +37,17 @@ export const modules = new Map<string, ModuleSetting>([
       description: "メンバーがリアクションするとロールが付与されるモジュールです",
       enabled: true,
       icon: SmilePlus,
+      group: "サーバー管理",
+    },
+  ],
+  [
+    "auth",
+    {
+      id: "auth",
+      name: "メンバー認証",
+      description: "メンバーをロボットではないことを確認します。",
+      enabled: true,
+      icon: Check,
       group: "サーバー管理",
     },
   ],

@@ -1,6 +1,6 @@
 "use client";
 
-import { Terminal, Save, Pin, Trash2, Send, Delete } from "lucide-react";
+import { Terminal, Save, Pin, Trash2, Send, Delete, Edit2, Plus } from "lucide-react";
 import { useState } from "react";
 import DiscordEmbedBuilder from "@/components/EmbedBuilder";
 import CollapsibleSection from "@/components/CollapsibleSection";
@@ -23,6 +23,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
 
   const [savedEmbeds, setSavedEmbeds] = useState<EmbedSetting[]>(initialEmbeds);
   const [currentEmbedData, setCurrentEmbedData] = useState<any>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [sending, setSending] = useState(false);
@@ -88,6 +89,17 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
       setSaving(false);
       await reFetch();
     }
+  };
+
+  const handleEditInitiate = (embed: EmbedSetting) => {
+    setCurrentEmbedData(embed.data); 
+    setEditingId(String(embed.ID)); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleResetEditor = () => {
+    setCurrentEmbedData(null);
+    setEditingId(null);
   };
 
   // 削除処理
@@ -221,6 +233,17 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
   return (
     <div className="space-y-8">
       <div className="flex justify-end">
+        <div className="flex gap-2">
+          {editingId && (
+            <button
+              onClick={handleResetEditor}
+              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-lg font-medium transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              新規作成へ
+            </button>
+          )}
+
         <button
           onClick={handleSave}
           disabled={saving}
@@ -229,6 +252,7 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
           <Save className="w-4 h-4" />
           {saving ? "保存中..." : "現在の埋め込みを保存"}
         </button>
+      </div>
       </div>
 
       <section className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -270,6 +294,14 @@ export default function EmbedEditorClient({ guildId, initialEmbeds, initChannels
 
                   {/* アクションエリア：ml-auto で強制的に右端へ押し出す */}
                   <div className="flex items-center gap-2 ml-auto pl-4">
+                    <button 
+                      onClick={() => handleEditInitiate(embed)}
+                      className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-full transition-colors"
+                      title="エディターで編集"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+
                     <button 
                       onClick={() => { setIsSendModalOpen(true); setSendingId(String(embed.ID)); }}
                       className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors"

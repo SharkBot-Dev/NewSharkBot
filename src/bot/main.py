@@ -14,7 +14,6 @@ from lib.api import ResourceAPIClient
 
 dotenv.load_dotenv()
 
-
 class NewSharkBot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
@@ -32,6 +31,8 @@ class NewSharkBot(commands.AutoShardedBot):
 
         self.slashcommands: Dict[str, Command] = {}
         self.embed = customEmbed(self)
+
+        self.DISCORD_API_BASE_URL = "https://discord.com/api/v10"
 
     def add_slashcommand(self, command: Command):
         self.slashcommands[command.name] = command
@@ -61,13 +62,9 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
                 except Exception as e:
                     logging.error(f"Failed to load {module}: {e}")
 
-
 @bot.event
 async def setup_hook() -> None:
     await load_cogs(bot)
-
-    # 既存のグローバルコマンドを削除
-    await bot.tree.sync()
 
     bot.session = aiohttp.ClientSession()
 

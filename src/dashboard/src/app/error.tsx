@@ -9,6 +9,7 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  console.error(error)
   return (
       <div className="h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full">
