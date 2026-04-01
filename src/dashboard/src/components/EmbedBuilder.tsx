@@ -87,10 +87,17 @@ export default function DiscordEmbedBuilder({ initialData, value, onChange }: Di
   const [embed, setEmbed] = useState<Embed>(value || initialData || defaultEmbed);
 
   useEffect(() => {
+    const newData = value || initialData;
+    if (newData && JSON.stringify(newData) !== JSON.stringify(embed)) {
+      setEmbed(newData);
+    }
+  }, [initialData, value]);
+
+  useEffect(() => {
     if (onChange) {
       onChange(embed);
     }
-  }, [embed, onChange]);
+  }, [embed]);
 
   const updateEmbed = (key: keyof Embed, value: any) => {
     setEmbed((prev) => ({ ...prev, [key]: value }));

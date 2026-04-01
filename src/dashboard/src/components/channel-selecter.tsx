@@ -15,6 +15,17 @@ interface Props {
   required?: boolean;
 }
 
+const getChannelIcon = (type: number) => {
+  switch (type) {
+    case 0: return "# ";      // Text
+    case 2: return "🔊 ";     // Voice
+    case 5: return "📢 ";     // Announcement
+    case 13: return "🎙️ ";    // Stage
+    case 15: return "📑 ";     // Forum
+    default: return "📄 ";     // Others
+  }
+};
+
 export default function ChannelSelecter({
   guildId,
   type_id,
@@ -78,8 +89,9 @@ export default function ChannelSelecter({
       <select
         value={value || ""}
         onChange={handleChange}
+        required={required}
         disabled={isLoading || (displayChannels.length === 0 && !isLoading)}
-        className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm text-slate-900 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        className="w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm text-slate-900 disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
       >
         <option value="" disabled={required}>
           {getPlaceholderText()}
@@ -87,14 +99,7 @@ export default function ChannelSelecter({
 
         {displayChannels.map((channel) => (
           <option key={channel.id} value={channel.id}>
-            {channel.type === 0 ? "# " : "🔊 "}
-            {channel.name}
-          </option>
-        ))}
-
-        {displayChannels.map((channel) => (
-          <option key={channel.id} value={channel.id}>
-            {channel.type === 0 ? "# " : "🔊 "}
+            {getChannelIcon(channel.type)}
             {channel.name}
           </option>
         ))}
