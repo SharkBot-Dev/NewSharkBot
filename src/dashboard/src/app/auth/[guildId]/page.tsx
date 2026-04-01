@@ -24,7 +24,7 @@ export default async function AuthPage({
 
     if (!session) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-6">
+            <div className="min-h-screen flex items-center justify-center p-6 bg-white text-black">
                 <div className="max-w-md w-full bg-card p-8 rounded-xl shadow-lg border text-center">
                     <h1 className="text-xl font-bold mb-4">ログインが必要です。</h1>
                     <div className="flex justify-center">
@@ -45,7 +45,7 @@ export default async function AuthPage({
 
     if (!discordAccountData) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-6">
+            <div className="min-h-screen flex items-center justify-center p-6 bg-white text-black">
                 <div className="max-w-md w-full bg-card p-8 rounded-xl shadow-lg border text-center">
                     <h1 className="text-xl font-bold mb-4">Discord連携が必要です</h1>
                     <p className="text-muted-foreground mb-6">
@@ -74,7 +74,7 @@ export default async function AuthPage({
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="min-h-screen flex items-center justify-center p-6 bg-white text-black">
             <div className="max-w-md w-full bg-card p-8 rounded-xl shadow-lg border">
                 <Suspense fallback={<LoadingSkeleton />}>
                     <AuthLogic 
@@ -121,7 +121,7 @@ async function AuthLogic({ userId, guildId, accessToken, code }: { userId: strin
         await addRoleToMember(guildId, userId, authData.role_id);
 
         return (
-            <div className="text-center animate-in fade-in zoom-in duration-300">
+            <div className="text-center animate-in fade-in zoom-in duration-300 bg-white text-black">
                 <div className="text-5xl mb-4">✅</div>
                 <h1 className="text-2xl font-bold text-primary mb-2">認証が完了しました！</h1>
                 <p className="text-muted-foreground">
@@ -132,7 +132,7 @@ async function AuthLogic({ userId, guildId, accessToken, code }: { userId: strin
 
     } catch (error: any) {
         return (
-            <div className="text-center">
+            <div className="text-center bg-white text-black">
                 <div className="text-5xl mb-4">⚠️</div>
                 <h1 className="text-xl font-semibold mb-2">エラーが発生しました</h1>
                 <p className="text-sm text-destructive mb-4">
