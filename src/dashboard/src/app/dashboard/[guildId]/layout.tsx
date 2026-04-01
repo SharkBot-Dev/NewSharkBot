@@ -22,7 +22,10 @@ export default function DashboardLayout({
 
   useEffect(() => {
     async function checkPermission() {
-      if (!guildId) return;
+      if (!guildId) {
+        setLoading(false);
+        return;
+      };
       setLoading(true);
       try {
         const res = await fetch(`/api/discord/guild/${guildId}`);
