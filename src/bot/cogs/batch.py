@@ -8,7 +8,7 @@ class BatchCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
         self.bot = bot
 
-        cmd = command.Command(name="slash", description="スラッシュコマンドの設定方法を知ります。", module_name="システム")
+        cmd = command.Command(name="why", description="スラッシュコマンドの設定方法を知ります。", module_name="システム")
         cmd.execute = self.why_command
         self.bot.add_slashcommand(cmd)
 

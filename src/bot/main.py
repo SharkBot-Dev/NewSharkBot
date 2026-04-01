@@ -14,13 +14,6 @@ from lib.api import ResourceAPIClient
 
 dotenv.load_dotenv()
 
-COMMANDS = [
-    {
-        "name": "why",
-        "description": "スラッシュコマンドの設定方法を知ります。",
-    },
-]
-
 class NewSharkBot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
@@ -54,30 +47,6 @@ class NewSharkBot(commands.AutoShardedBot):
 
         await super().close()
 
-    async def sync_slash_commands(self):
-        url = f"{self.DISCORD_API_BASE_URL}/applications/{bot.user.id}/commands"
-        
-        headers = {
-            "Authorization": f"Bot {self.http.token}",
-            "Content-Type": "application/json"
-        }
-
-        async with aiohttp.ClientSession() as session:
-            async with session.put(
-                url, 
-                headers=headers,
-                json=COMMANDS
-            ) as response:
-                
-                if not response.ok:
-                    try:
-                        error_data = await response.json()
-                    except Exception:
-                        error_data = {}
-                    raise Exception(f"Failed to sync commands: {COMMANDS}")
-
-                return await response.json()
-
 bot = NewSharkBot()
 
 
@@ -96,8 +65,6 @@ async def load_cogs(bot: commands.Bot, base_folder="cogs"):
 @bot.event
 async def setup_hook() -> None:
     await load_cogs(bot)
-
-    await bot.sync_slash_commands()
 
     bot.session = aiohttp.ClientSession()
 

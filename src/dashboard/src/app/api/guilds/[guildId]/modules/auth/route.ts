@@ -44,7 +44,7 @@ export async function POST(
 
         const { channelId, embed, buttons, content } = await request.json();
 
-        if (!channelId || !buttons || !Array.isArray(buttons) || buttons.length === 0) {
+        if (!channelId || !buttons || !Array.isArray(buttons) || buttons.length === 0 ||  buttons.length > 5) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
@@ -95,6 +95,8 @@ export async function POST(
         let status = 500;
         if (error.message === "Forbidden") status = 403;
         if (error.message === "Unauthorized") status = 401;
+        if (error.message === "Invalid Guild or Channel ID format") status = 400;
+        if (error.message === "Invalid channelId") status = 400;
 
         return NextResponse.json({ error: error.message }, { status });
     }

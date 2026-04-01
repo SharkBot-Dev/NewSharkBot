@@ -110,7 +110,7 @@ class BumpsCog(commands.Cog):
         is_success = False
         if message.embeds:
             title = message.embeds[0].title or ""
-            if "🎉 サーバーがリストの最上段に更新されました！" in title:
+            if "サーバーがリストの最上段に更新されました！" in title:
                 is_success = True
 
         if is_success:
@@ -138,7 +138,8 @@ class BumpsCog(commands.Cog):
 
         is_success = False
         if message.embeds:
-            if "サーバーの表示順位を" in message.embeds[0].description:
+            desc = message.embeds[0].description or ""
+            if "サーバーの表示順位を" in desc:
                 is_success = True
 
         if is_success:
