@@ -1,3 +1,4 @@
+import logging
 import os
 
 import aiohttp
@@ -60,8 +61,8 @@ class BotJoinCog(commands.Cog):
     async def on_guild_join(self, guild: discord.Guild):
         try:
             await self.sync_slash_commands(str(guild.id))
-        except:
-            pass
+        except Exception as e:
+            logging.warning(f"Failed to sync commands for guild {guild.id}: {e}")
 
         if guild.system_channel:
             try:
@@ -74,8 +75,8 @@ class BotJoinCog(commands.Cog):
                 embed_2.add_field(name="/dashboard", value="ダッシュボードのURLを取得できます。", inline=False)
 
                 await guild.system_channel.send(embeds=[embed_1, embed_2], view=view)
-            except:
-                return
+            except discord.HTTPException as e:
+                logging.warning(f"Failed to send welcome message to guild {guild.id}: {e}")
 
 async def setup(bot):
     await bot.add_cog(BotJoinCog(bot))
