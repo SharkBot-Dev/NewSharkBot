@@ -42,14 +42,15 @@ class WelcomeCog(commands.Cog):
             embed_setting = setting.get("Embed")
             
             if embed_setting:
-                embed_data = copy.deepcopy(embed_setting.get("data", {}))
+                embed_data = copy.deepcopy(embed_setting.get("data")) or {}
                 
-                if "description" in embed_data:
-                    embed_data["description"] = self.welcome_parse(embed_data["description"], member)
-                if "title" in embed_data:
-                    embed_data["title"] = self.welcome_parse(embed_data["title"], member)
-                
-                embed = discord.Embed.from_dict(embed_data)
+                if isinstance(embed_data, dict):
+                    if "description" in embed_data and embed_data["description"]:
+                        embed_data["description"] = self.welcome_parse(embed_data["description"], member)
+                    if "title" in embed_data and embed_data["title"]:
+                        embed_data["title"] = self.welcome_parse(embed_data["title"], member)
+                    
+                    embed = discord.Embed.from_dict(embed_data)
 
             if not content and not embed:
                 return
