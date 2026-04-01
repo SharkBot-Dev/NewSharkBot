@@ -213,8 +213,8 @@ export async function addRoleToMember(guildId: string, userId: string, roleId: s
     });
 
     if (!res.ok) {
-        const error = await res.json();
-        console.log(error)
+        const error = await res.json().catch(() => ({}));
+        console.error("Discord API Error:", error);
         throw new Error(`ロールの付与に失敗しました: ${res.status}`);
     }
 

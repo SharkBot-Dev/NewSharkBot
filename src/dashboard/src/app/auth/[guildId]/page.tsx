@@ -116,6 +116,10 @@ async function AuthLogic({ userId, guildId, accessToken, code }: { userId: strin
 
         const authData = await getAuthCode(guildId, code);
 
+        if (authData.user_id !== userId) {
+            throw new Error("この認証コードは現在のDiscordアカウントでは使用できません。");
+        }
+
         await deleteAuthCode(guildId, code);
 
         await addRoleToMember(guildId, userId, authData.role_id);

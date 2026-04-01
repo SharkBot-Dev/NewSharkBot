@@ -14,15 +14,7 @@ export default function AuthBlockSettings({ guildId, initialBlockedIds }: Props)
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (initialBlockedIds && initialBlockedIds.length > 0) {
-      setRawIds(initialBlockedIds.join("\n"));
-    }
-  }, [initialBlockedIds]);
-
-  useEffect(() => {
-    if (initialBlockedIds && initialBlockedIds.length > 0) {
-      setRawIds(initialBlockedIds.join("\n"));
-    }
+    setRawIds(initialBlockedIds.join("\n"));
   }, [initialBlockedIds]);
 
   const handleSave = async () => {

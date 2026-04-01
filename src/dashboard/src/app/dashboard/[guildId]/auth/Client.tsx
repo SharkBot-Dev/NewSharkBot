@@ -31,6 +31,7 @@ interface Props {
 }
 
 export default function AuthClient({ guildId, roles, channels, blockedGuilds }: Props) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [embed, setEmbed] = useState<string | null>(null);
 
   const [content, setContent] = useState("サーバーへようこそ！下のボタンから認証を行ってください。");
@@ -68,6 +69,8 @@ export default function AuthClient({ guildId, roles, channels, blockedGuilds }: 
   };
 
   const handleSaveAndSend = async () => {
+    if (isSubmitting) return;
+
     if (!targetChannelId) {
       alert("送信先チャンネルを選択してください。");
       return;
@@ -80,6 +83,8 @@ export default function AuthClient({ guildId, roles, channels, blockedGuilds }: 
       alert("ボタンにはラベルまたは絵文字のどちらかが必要です。");
       return;
     }
+
+    setIsSubmitting(true);
 
     const payload = {
       channelId: targetChannelId,
@@ -101,6 +106,8 @@ export default function AuthClient({ guildId, roles, channels, blockedGuilds }: 
     } catch (error) {
       console.error(error);
       alert("サーバーエラーが発生しました。");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -175,7 +182,7 @@ export default function AuthClient({ guildId, roles, channels, blockedGuilds }: 
             className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
           >
             <Send size={20} />
-            パネルを送信
+            {isSubmitting ? "送信中..." : "パネルを送信"}
           </button>
         </div>
       </div><br/><br/>

@@ -50,13 +50,28 @@ export async function PUT(
         await validateAdmin(guildId);
 
         const { blockd_guilds } = await request.json();
-        if (!Array.isArray(blockd_guilds)) {
+        if (
+            !Array.isArray(blockd_guilds) ||
+            !blockd_guilds.every((id): id is string => typeof id === "string" && /^\d{17,20}$/.test(id))
+        ) {
             return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
         }
 
         const result = await updateAuthBlockGuilds(guildId, blockd_guilds);
         return NextResponse.json(result);
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+        if (error instanceof SyntaxError) {
+            return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+        }
+        if (error?.message === "Forbidden") {
+            return NextResponse.json({ error: error.message }, { status: 403 });
+        }
+        if (error?.message === "Unauthorized") {
+            return NextResponse.json({ error: error.message }, { status: 401 });
+        }
+        return NextResponse.json(
+            { error: error?.message ?? "Internal Server Error" },
+            { status: 500 }
+        );
+     }
 }

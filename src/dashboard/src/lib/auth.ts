@@ -15,5 +15,6 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: ["https://www.sharkbot.xyz", "http://localhost:3000", "https://sharkbot.xyz"],
+  // 以下は本番では書く
   // baseURL: "https://www.sharkbot.xyz"
 });

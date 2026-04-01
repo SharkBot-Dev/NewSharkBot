@@ -597,10 +597,14 @@ export async function getAuthBlockGuilds(guildId: string) {
         headers: { "Content-Type": "application/json" }
     });
 
-    if (!res.ok) {
+    if (res.status === 404) {
         return { blockd_guilds: [] };
     }
 
+    if (!res.ok) {
+        throw new Error(`Failed to fetch auth block guilds: ${res.statusText}`);
+    }
+    
     return res.json();
 }
 
