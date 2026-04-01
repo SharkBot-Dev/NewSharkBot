@@ -552,7 +552,7 @@ class EconomyCog(commands.Cog):
             except asyncio.TimeoutError:
                 return await interaction.followup.send(f"⏰ 時間切れです！正解は **{answer}** でした。")
 
-        current_data = await self.bot.api.get_user_setting(guild_id, user_id)
+        current_data = await self.bot.api.get_economy_user(guild_id, user_id)
         latest_money = current_data.get('money', 0)
 
         if win:
