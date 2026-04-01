@@ -33,7 +33,7 @@ class SuperGlobalChatCog(commands.Cog):
             "userName": message.author.name,
             "x-userGlobal_name": getattr(message.author, "global_name", message.author.name),
             "userDiscriminator": message.author.discriminator,
-            "userAvatar": str(message.author.display_avatar.key) if message.author.avatar else None,
+            "userAvatar": str(message.author.avatar.key) if message.author.avatar else None,
             "isBot": message.author.bot,
             "guildId": str(message.guild.id) if message.guild else None,
             "guildName": message.guild.name if message.guild else "DM",
@@ -303,7 +303,7 @@ class SuperGlobalChatCog(commands.Cog):
                     embed.add_field(name="ルール", value=rule, inline=False)
                 
                 embed.set_footer(text="このメッセージは初回参加時のみ表示されます。")
-                
+
                 await message.channel.send(content=message.author.mention, embed=embed)
                 return
             
