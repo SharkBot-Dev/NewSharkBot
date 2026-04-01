@@ -594,8 +594,7 @@ export async function deleteAuthCode(guildId: string, code: string) {
 export async function getAuthBlockGuilds(guildId: string) {
     const res = await fetch(`${RESOURCE_API_BASE_URL}/auth/blockguilds/${guildId}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json" },
-        next: { revalidate: 60 }, 
+        headers: { "Content-Type": "application/json" }
     });
 
     if (!res.ok) {

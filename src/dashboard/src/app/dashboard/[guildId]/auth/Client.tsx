@@ -5,6 +5,7 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 import EmbedSelecter from "@/components/EmbedSelecter";
 import ButtonEditorItem from "@/components/ButtonEditorItem"; 
 import { Send, ShieldCheck, Plus, Layout } from "lucide-react";
+import AuthBlockSettings from "./AuthBlockSettings";
 
 enum ButtonStyle {
   Primary = 1,
@@ -26,9 +27,10 @@ interface Props {
   guildId: string;
   roles: { id: string, name: string, managed: boolean }[];
   channels: { id: string, name: string }[];
+  blockedGuilds: any
 }
 
-export default function AuthClient({ guildId, roles, channels }: Props) {
+export default function AuthClient({ guildId, roles, channels, blockedGuilds }: Props) {
   const [embed, setEmbed] = useState<string | null>(null);
 
   const [content, setContent] = useState("サーバーへようこそ！下のボタンから認証を行ってください。");
@@ -176,7 +178,8 @@ export default function AuthClient({ guildId, roles, channels }: Props) {
             パネルを送信
           </button>
         </div>
-      </div>
+      </div><br/><br/>
+      <AuthBlockSettings guildId={guildId} initialBlockedIds={blockedGuilds} />
     </div>
   );
 }

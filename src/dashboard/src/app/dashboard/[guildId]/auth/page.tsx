@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { isModuleEnabled } from "@/lib/api/requests";
+import { getAuthBlockGuilds, isModuleEnabled } from "@/lib/api/requests";
 import AuthClient from "./Client";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import Alert from "@/components/Alert";
@@ -47,19 +47,23 @@ export default async function AuthPageSetting({ params }: Props) {
 }
 
 async function AuthLoader({ guildId }: { guildId: string }) {
-  const [roles, channels] = await Promise.all([
+  const [roles, channels, bg] = await Promise.all([
     getGuildRoles(guildId),
     getGuildChannels(guildId),
+    getAuthBlockGuilds(guildId)
   ]);
 
   const safeRoles = roles || [];
   const safeChannels = channels || [];
+  const blockedGuilds = bg.blockd_guilds || [];
+  console.log(blockedGuilds)
 
   return (
     <AuthClient 
       guildId={guildId} 
       channels={safeChannels}
       roles={safeRoles}
+      blockedGuilds={blockedGuilds}
     />
   );
 }
