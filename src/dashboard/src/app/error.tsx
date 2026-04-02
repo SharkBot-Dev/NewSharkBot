@@ -10,8 +10,6 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
-  const [showDetail, setShowDetail] = useState(false)
-
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-slate-50 p-4 text-center">
       <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full">
@@ -21,22 +19,6 @@ export default function Error({
         <p className="text-red-500 font-medium mb-4">
           {error.message || "予期せぬエラーが発生しました。"}
         </p>
-
-        <div className="mb-6 text-left">
-          <button 
-            onClick={() => setShowDetail(!showDetail)}
-            className="flex items-center text-sm text-slate-500 hover:text-slate-700 mx-auto"
-          >
-            {showDetail ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-            エラーの詳細を表示
-          </button>
-
-          {showDetail && (
-            <pre className="mt-4 p-4 bg-slate-100 rounded-lg text-xs text-slate-700 overflow-x-auto whitespace-pre-wrap">
-              {error.stack}
-            </pre>
-          )}
-        </div>
 
         <button
           type="button"
