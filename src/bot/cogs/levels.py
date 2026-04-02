@@ -96,8 +96,8 @@ class LevelsCog(commands.Cog):
             "max_xp": display_max_xp,
             "avatar_url": str(user.display_avatar.url),
             "status": (
-                "offline" if user.status.name == "invisible"
-                else user.status.name
+                "offline" if user.status.value == "invisible"
+                else user.status.value
             ),
         }
 

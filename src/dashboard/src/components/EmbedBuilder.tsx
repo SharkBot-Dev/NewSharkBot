@@ -94,23 +94,27 @@ export default function DiscordEmbedBuilder({ initialData, value, onChange }: Di
   }, [initialData, value]);
 
   useEffect(() => {
-    if (onChange) {
-      onChange(embed);
+    if (value) {
+      setEmbed(value);
     }
-  }, [embed]);
+  }, [value]);
 
-  const updateEmbed = (key: keyof Embed, value: any) => {
-    setEmbed((prev) => ({ ...prev, [key]: value }));
+  const updateEmbed = (key: keyof Embed, newValue: any) => {
+    const updated = { ...embed, [key]: newValue };
+    setEmbed(updated);
+    onChange?.(updated);
   };
 
-  const updateNestedEmbed = (parentKey: keyof Embed, key: string, value: any) => {
-    setEmbed((prev) => ({
-      ...prev,
+  const updateNestedEmbed = (parentKey: keyof Embed, key: string, newValue: any) => {
+    const updated = {
+      ...embed,
       [parentKey]: {
-        ...(prev[parentKey] as any),
-        [key]: value || undefined,
+        ...(embed[parentKey] as any),
+        [key]: newValue || undefined,
       },
-    }));
+    };
+    setEmbed(updated);
+    onChange?.(updated);
   };
 
   const handleColorChange = (colorInt: number) => {
