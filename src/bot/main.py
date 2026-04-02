@@ -32,6 +32,8 @@ class NewSharkBot(commands.AutoShardedBot):
         self.slashcommands: Dict[str, Command] = {}
         self.embed = customEmbed(self)
 
+        self.debug = True
+
         self.DISCORD_API_BASE_URL = "https://discord.com/api/v10"
 
     def add_slashcommand(self, command: Command):

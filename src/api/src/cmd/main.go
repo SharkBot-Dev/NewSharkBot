@@ -201,6 +201,8 @@ func main() {
 		&model.BumpBotsSetting{},
 		&model.AuthCache{},
 		&model.WebAuthBlockdGuild{},
+		&model.InviteSetting{},
+		&model.InviteRanking{},
 	)
 	if err != nil {
 		panic("failed to migrate database")
@@ -238,6 +240,7 @@ func main() {
 	router.RegisterPremium(r.Group("/"))
 	router.RegisterBumps(r.Group("/"))
 	router.RegisterAuth(r.Group("/"))
+	router.RegisterInvite(r.Group("/"))
 
 	// シンプルなGETエンドポイントを定義
 	r.GET("/health", healthCheck)

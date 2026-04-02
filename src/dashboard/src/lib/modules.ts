@@ -1,4 +1,4 @@
-import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon, Check } from "lucide-react";
+import { HelpCircle, Hand, SearchIcon, SmilePlus, Rocket, BookCheck, Coins, Ban, LogsIcon, WholeWordIcon, Command, Ticket, Ghost, UploadIcon, Check, Link } from "lucide-react";
 
 export interface ModuleSetting {
   id: string;
@@ -115,6 +115,17 @@ export const modules = new Map<string, ModuleSetting>([
       enabled: true,
       icon: BookCheck,
       group: "ユーティリティ",
+    },
+  ],
+  [
+    "invite",
+    {
+      id: "invite",
+      name: "招待リンク管理",
+      description: "招待リンクの管理やログをとることができます。",
+      enabled: true,
+      icon: Link,
+      group: "サーバー管理",
     },
   ],
   [

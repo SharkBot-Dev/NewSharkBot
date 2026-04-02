@@ -29,8 +29,8 @@ class Embed:
             field.value = self.safe_format(field.value, placeholders)
             
         if embed.footer and embed.footer.text:
-            embed.footer.text = self.safe_format(field.name, placeholders)
-            embed.set_footer(text=self.safe_format(embed.footer.text, placeholders))
+            new_footer_text = self.safe_format(embed.footer.text, placeholders)
+            embed.set_footer(text=new_footer_text, icon_url=embed.footer.icon_url)
             
         return embed
     

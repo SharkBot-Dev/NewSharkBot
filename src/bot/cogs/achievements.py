@@ -16,8 +16,16 @@ class AchievementCog(commands.Cog):
     async def achievements_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
         
+        user = kwargs.get('user')
+
+        if user:
+            target_member = interaction.guild.get_member(int(user))
+            display_name = target_member.display_name if target_member else f"User {user}"
+        else:
+            display_name = interaction.user.display_name
+
         guild_id = str(interaction.guild_id)
-        user_id = str(interaction.user.id)
+        user_id = user if user else str(interaction.user.id)
 
         try:
             all_achievements = await self.bot.api.get_achievement_list(guild_id) 
@@ -39,7 +47,7 @@ class AchievementCog(commands.Cog):
 
         for i, chunk in enumerate(achievement_chunks):
             embed = discord.Embed(
-                title=f"🏆 {interaction.user.display_name} の実績一覧",
+                title=f"🏆 {display_name} の実績一覧",
                 description=f"現在の進捗状況です ({i+1}/{len(achievement_chunks)}ページ)",
                 color=discord.Color.gold()
             )
