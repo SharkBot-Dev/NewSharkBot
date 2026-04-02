@@ -172,12 +172,16 @@ class CommandsCog(commands.Cog):
             if not args:
                 await message.add_reaction("❌")
                 return
-            is_enabled = await self.bot.api.is_module_enabled(str(message.guild.id), args[0])
+            try:
+                is_enabled = await self.bot.api.is_module_enabled(str(message.guild.id), args[0])
 
-            if not is_enabled or not is_enabled.get('enabled'):
-                await message.reply(f"{args[0]}は**無効**です。")
+                if not is_enabled or not is_enabled.get('enabled'):
+                    await message.reply(f"{args[0]}は**無効**です。")
+                    return
+            except Exception as e:
+                await message.add_reaction("❌")
                 return
-            
+
             await message.reply(f"{args[0]}は**有効**です。")
             return
 
@@ -208,7 +212,7 @@ class CommandsCog(commands.Cog):
             cmd_name = parts[0]
             args = parts[1:]
 
-            asyncio.create_task(self.process_admin_cmd(message, cmd_name, args))
+            await self.process_admin_cmd(message, cmd_name, args)
 
             data = await self.bot.api.get_command(message.guild.id, cmd_name)
             if data:
