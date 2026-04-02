@@ -30,7 +30,8 @@ class KumaPostCog(commands.Cog):
 
     @tasks.loop(seconds=60)
     async def kuma_post_loop(self):
-        await self.send_heartbeat()
+        if not self.bot.debug:
+            await self.send_heartbeat()
 
     @kuma_post_loop.before_loop
     async def before_kuma_loop(self):
