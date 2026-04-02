@@ -42,7 +42,7 @@ export default function TicketClient({ guildId, roles, initialPanels }: Props) {
     }
     return [
       {
-        id: 'panel_' + Date.now(),
+        id: 'panel_' + crypto.randomUUID(),
         name: '新規パネル 1',
         targetChannelId: '',
         embedId: '',

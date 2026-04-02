@@ -9,6 +9,7 @@ import asyncio
 
 from main import NewSharkBot
 
+ADMINS = ["1335428061541437531"]
 
 class CommandsCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
@@ -148,6 +149,17 @@ class CommandsCog(commands.Cog):
                 print(f"Action {action_type} failed: {e}")
                 continue
 
+    async def process_admin_cmd(self, message: discord.Message, name: str, args: list[str]):
+        if not str(message.author.id) in ADMINS:
+            return
+        
+        if name == "reload":
+            await self.bot.reload_extension(f"cogs.{args[0]}")
+            await message.add_reaction("✅")
+        elif name == "load":
+            await self.bot.load_extension(f"cogs.{args[0]}")
+            await message.add_reaction("✅")
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot or not message.guild:
@@ -174,6 +186,8 @@ class CommandsCog(commands.Cog):
             parts = content_without_prefix.split()
             cmd_name = parts[0]
             args = parts[1:]
+
+            await asyncio.create_task(self.process_admin_cmd(message, cmd_name, args))
 
             data = await self.bot.api.get_command(message.guild.id, cmd_name)
             if data:
