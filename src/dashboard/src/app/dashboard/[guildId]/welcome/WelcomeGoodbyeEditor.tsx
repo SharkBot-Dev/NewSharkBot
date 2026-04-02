@@ -159,7 +159,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
               <label className="text-xs font-bold text-slate-500 uppercase">メッセージ本文</label>
               <textarea
                 className="w-full mt-1 border border-slate-200 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] text-slate-900"
-                placeholder="例: {user} さん、サーバーへようこそ！"
+                placeholder="例: {ユーザー名} さん、サーバーへようこそ！"
                 value={welcome.content}
                 onChange={(e) => setWelcome({ ...welcome, content: e.target.value })}
               />
@@ -216,7 +216,7 @@ export default function WelcomeGoodbyeEditor({ guildId, initialData }: Props) {
               <label className="text-xs font-bold text-slate-500 uppercase">メッセージ本文</label>
               <textarea
                 className="w-full mt-1 border border-slate-200 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-rose-500 min-h-[100px] text-slate-500"
-                placeholder="例: {user} さんがサーバーを去りました。"
+                placeholder="例: {ユーザー名} さんがサーバーを去りました。"
                 value={goodbye.content}
                 onChange={(e) => setGoodbye({ ...goodbye, content: e.target.value })}
               />

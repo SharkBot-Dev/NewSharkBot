@@ -720,3 +720,13 @@ class ResourceAPIClient:
                 error_text = await resp.text()
                 raise Exception(f"Failed to create auth code: {resp.status} - {error_text}")
             return await resp.json()
+        
+    async def get_invite_setting(self, guild_id: str):
+        url = f"{self.base_url}/invites/settings/{guild_id}"
+
+        async with self.session.get(url) as res:
+            if res.status != 200:
+                text = await res.text()
+                raise Exception(f"API Error: {res.status} {text}")
+
+            return await res.json()

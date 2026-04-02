@@ -621,3 +621,45 @@ export async function updateAuthBlockGuilds(guildId: string, blockdGuildIds: str
 
     return res.json();
 }
+
+export async function getInviteSetting(
+  guildId: string
+) {
+  const res = await fetch(`${RESOURCE_API_BASE_URL}/invites/settings/${guildId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to get invite setting");
+  }
+
+  return await res.json();
+}
+
+export async function saveInviteSetting(
+  guildId: string,
+  channelId: string,
+  content: string,
+  embed_id: string
+) {
+  const res = await fetch(`${RESOURCE_API_BASE_URL}/invites/settings/${guildId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      channel_id: channelId,
+      content: content,
+      embed_id: embed_id
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to save invite setting");
+  }
+
+  return await res.json();
+}

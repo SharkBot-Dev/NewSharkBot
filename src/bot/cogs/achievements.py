@@ -16,8 +16,10 @@ class AchievementCog(commands.Cog):
     async def achievements_command(self, interaction: discord.Interaction, **kwargs):
         await interaction.response.defer()
         
+        user = kwargs.get('user')
+
         guild_id = str(interaction.guild_id)
-        user_id = str(interaction.user.id)
+        user_id = user if user else str(interaction.user.id)
 
         try:
             all_achievements = await self.bot.api.get_achievement_list(guild_id) 
