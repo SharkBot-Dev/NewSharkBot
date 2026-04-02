@@ -67,7 +67,7 @@ class BumpsCog(commands.Cog):
                     embed = None
                     embed_id = item.get('embed_id')
                     if embed_id:
-                        embed = await self.bot.embed.getEmbed(guild_id, embed_id)
+                        embed = await self.bot.embed.getEmbed(guild_id, int(embed_id))
                         if embed:
                             embed = discord.Embed.from_dict(embed)
                     await channel.send(content, embed=embed)
