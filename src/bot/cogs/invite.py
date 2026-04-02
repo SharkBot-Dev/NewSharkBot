@@ -48,12 +48,33 @@ class InviteCog(commands.Cog):
                 continue
 
             try:
-                invites = await guild.invites()
-                data = {invite.code: invite.uses for invite in invites}
-                if data:
-                    await self.bot.redis.hset(self._get_cache_key(guild.id), mapping=data)
+                current_invites = await guild.invites()
+                cache_key = self._get_cache_key(guild.id)
+                
+                old_invites = await self.bot.redis.hgetall(cache_key)
+                
+                new_cache_data = {}
+                for invite in current_invites:
+                    new_cache_data[invite.code] = invite.uses
+                    
+                    if invite.code in old_invites:
+                        old_uses = int(old_invites[invite.code])
+                        diff = invite.uses - old_uses
+                        
+                        if diff > 0 and invite.inviter:
+                            await self.bot.redis.hincrby(
+                                self._get_count_key(guild.id), 
+                                str(invite.inviter.id), 
+                                diff
+                            )
+                            logging.info(f"Offline catch-up: {invite.inviter} +{diff} invites in {guild.name}")
+
+                if new_cache_data:
+                    await self.bot.redis.delete(cache_key)
+                    await self.bot.redis.hset(cache_key, mapping=new_cache_data)
+
             except Exception as e:
-                logging.error(f"Error caching invites for {guild.id}: {e}")
+                logging.error(f"Error syncing invites on startup for {guild.id}: {e}")
 
     async def create_invite(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -117,15 +138,25 @@ class InviteCog(commands.Cog):
         await interaction.response.defer()
         
         guild = interaction.guild
-        all_data = await self.bot.redis.hgetall(self._get_count_key(guild.id))
+        try:
+            invites = await guild.invites()
+        except discord.Forbidden:
+            await interaction.followup.send("招待リストを取得する権限（招待の管理）がありません。")
+            return
 
-        if not all_data:
-            await interaction.followup.send("まだ招待データがありません。")
+        invite_counts = {}
+        for invite in invites:
+            if invite.inviter:
+                user_id = invite.inviter.id
+                invite_counts[user_id] = invite_counts.get(user_id, 0) + invite.uses
+
+        if not invite_counts:
+            await interaction.followup.send("有効な招待データが見つかりませんでした。")
             return
 
         sorted_invites = sorted(
-            all_data.items(), 
-            key=lambda x: int(x[1]), 
+            invite_counts.items(), 
+            key=lambda x: x[1], 
             reverse=True
         )
 
@@ -140,7 +171,7 @@ class InviteCog(commands.Cog):
 
             leaderboard = []
             for i, (user_id, count) in enumerate(chunk, start + 1):
-                member = guild.get_member(int(user_id))
+                member = guild.get_member(user_id)
                 name = member.display_name if member else f"不明なユーザー({user_id})"
                 leaderboard.append(f"**{i}位**: {name} - `{count}` 回")
 
@@ -164,7 +195,7 @@ class InviteCog(commands.Cog):
         if invite.guild:
             await self.bot.redis.hset(self._get_cache_key(invite.guild.id), invite.code, invite.uses or 0)
 
-    def format_message(self, template: str, member: discord.Member, inviter: discord.User, count: int):
+    def format_message(self, template: str, member: discord.Member, inviter: discord.User, count: int, code: str):
         return template \
             .replace("{ユーザー名}", member.display_name) \
             .replace("{ユーザーID}", str(member.id)) \
@@ -173,7 +204,9 @@ class InviteCog(commands.Cog):
             .replace("{招待者ID}", str(inviter.id)) \
             .replace("{招待者メンション}", inviter.mention) \
             .replace("{カウント}", str(count)) \
-            .replace("{サーバー名}", member.guild.name)
+            .replace("{サーバー名}", member.guild.name) \
+            .replace("{招待コード}", code) \
+            .replace("{招待リンク}", f"https://discord.gg/{code}")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -242,7 +275,9 @@ class InviteCog(commands.Cog):
                         "招待者ID": str(inviter.id),
                         "招待者メンション": inviter.mention,
                         "カウント": str(count),
-                        "サーバー名": member.guild.name
+                        "招待コード": str(used_invite.code),
+                        "招待リンク": str(used_invite.url),
+                        "サーバー名": member.guild.name,
                     })
 
             content = None
