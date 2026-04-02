@@ -111,7 +111,7 @@ class InviteCog(commands.Cog):
             chunk = invites[i:i + items_per_page]
             embed = discord.Embed(
                 title=f"🔗 招待リンク一覧 ({len(invites)}件)",
-                description=f"サーバー全体の有効なリンクを表示しています。",
+                description="サーバー全体の有効なリンクを表示しています。",
                 color=discord.Color.blue()
             )
 
@@ -282,7 +282,7 @@ class InviteCog(commands.Cog):
 
             content = None
             if setting.get('content'):
-                content = self.format_message(setting.get('content'), member, inviter, count)
+                content = self.format_message(setting.get('content'), member, inviter, count, used_invite.code)
 
             if content or embed:
                 await channel.send(content=content, embed=embed)
