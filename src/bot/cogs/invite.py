@@ -187,14 +187,20 @@ class InviteCog(commands.Cog):
         except:
             return
 
-        old_invites = await self.bot.redis.hgetall(self._get_cache_key(guild.id))
         used_invite = None
 
-        for invite in new_invites:
-            old_uses = int(old_invites.get(invite.code, 0))
-            if invite.uses > old_uses:
-                used_invite = invite
-                break
+        cache_key = self._get_cache_key(guild.id)
+        old_invites = await self.bot.redis.hgetall(cache_key)
+
+        if not old_invites:
+            new_data = {invite.code: invite.uses for invite in new_invites}
+            if new_data:
+                await self.bot.redis.hset(cache_key, mapping=new_data)
+            logging.info(f"Initialized invite cache for guild {guild.id}. Skipping join processing for this member.")
+            return
+
+        if not used_invite or not used_invite.inviter:
+            return
 
         new_data = {invite.code: invite.uses for invite in new_invites}
         await self.bot.redis.delete(self._get_cache_key(guild.id))

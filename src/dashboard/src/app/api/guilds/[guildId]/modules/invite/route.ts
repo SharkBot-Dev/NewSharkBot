@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
         })
     }
     
-
-    const data = await saveInviteSetting(guildId, channelId, content, embed_id)
+    const safeGuildId = encodeURIComponent(guildId);
+    const data = await saveInviteSetting(safeGuildId, channelId, content, embed_id)
 
     return NextResponse.json(data);
   } catch (err) {

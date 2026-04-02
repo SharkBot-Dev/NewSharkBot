@@ -18,14 +18,18 @@ class KumaPostCog(commands.Cog):
         self.bot.loop.create_task(self.session.close())
 
     async def send_heartbeat(self):
+        url = os.environ.get("PUSH_URL")
+        if not url:
+            logging.warning("PUSH_URL is not set, skipping heartbeat")
+            return
+
         try:
-            url = os.environ.get("PUSH_URL")
             latency = round(self.bot.latency * 1000)
 
             await self.session.get(
                 f"{url}?status=up&msg=OK&ping={latency}"
             )
-        except Exception as e:
+        except aiohttp.ClientError as e:
             logging.error(f"UpTimeKumaにPostできませんでした: {e}")
 
     @tasks.loop(seconds=60)

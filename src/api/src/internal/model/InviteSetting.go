@@ -18,8 +18,8 @@ type InviteSetting struct {
 
 type InviteRanking struct {
 	ID      uint   `gorm:"primaryKey"`
-	GuildID string `gorm:"index;not null"`
-	UserID  string `gorm:"index;not null"`
+	GuildID string `gorm:"not null;uniqueIndex:idx_invite_rankings_guild_user"`
+	UserID  string `gorm:"not null;uniqueIndex:idx_invite_rankings_guild_user"`
 	Count   int    `gorm:"default:0"`
 
 	CreatedAt time.Time

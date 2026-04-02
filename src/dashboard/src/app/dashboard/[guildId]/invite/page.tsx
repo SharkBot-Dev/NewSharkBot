@@ -10,7 +10,7 @@ import CollapsibleSection from "@/components/CollapsibleSection";
 import { getGuildChannels } from "@/lib/Discord/Bot";
 import Client from "./Client";
 
-export default async function InviteModulePage({ params }: { params: { guildId: string } }) {
+export default async function InviteModulePage({ params }: { params: Promise<{ guildId: string }> }) {
   const { guildId } = await params;
   try {
     const data = await isModuleEnabled(guildId, "invite");
