@@ -39,18 +39,21 @@ class WelcomeCog(commands.Cog):
                 return
 
             embed = None
-            embed_setting = setting.get("Embed")
             
-            if isinstance(embed_setting, dict):
-                embed_data = copy.deepcopy(embed_setting.get("data")) or {}
-                
-                if isinstance(embed_data, dict):
-                    if "description" in embed_data and embed_data["description"]:
-                        embed_data["description"] = self.welcome_parse(embed_data["description"], member)
-                    if "title" in embed_data and embed_data["title"]:
-                        embed_data["title"] = self.welcome_parse(embed_data["title"], member)
-                    
-                    embed = discord.Embed.from_dict(embed_data)
+            embed_id = setting.get('embed_id')
+            if embed_id:
+                embed_setting = await self.bot.embed.getEmbed(guild_id, embed_id)
+                if embed_setting:
+                    embed_data = copy.deepcopy(embed_setting) or {}
+                        
+                    if isinstance(embed_data, dict):
+                        embed = discord.Embed.from_dict(embed_data)
+                        embed = self.bot.embed._apply_placeholders_to_embed(embed, {
+                            "ユーザー名": member.display_name,
+                            "ユーザーID": str(member.id),
+                            "メンション": member.mention,
+                            "サーバー名": member.guild.name
+                        })
 
             if not content and not embed:
                 return

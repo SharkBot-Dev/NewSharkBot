@@ -43,12 +43,14 @@ export async function POST(req: NextRequest) {
 
     try {
         await validateAdmin(guildId);
-    } catch {
-        return NextResponse.json({
-            error: "Forbidden"
-        }, {
-            status: 403
-        })
+    } catch (error) {
+        if (error instanceof Error && error.message === "Unauthorized") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (error instanceof Error && error.message === "Forbidden") {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        throw error;
     }
     
     const safeGuildId = encodeURIComponent(guildId);

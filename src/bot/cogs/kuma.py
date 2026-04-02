@@ -26,9 +26,14 @@ class KumaPostCog(commands.Cog):
         try:
             latency = round(self.bot.latency * 1000)
 
-            await self.session.get(
-                f"{url}?status=up&msg=OK&ping={latency}"
-            )
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with self.session.get(
+                url,
+                params={"status": "up", "msg": "OK", "ping": latency},
+                timeout=timeout,
+            ) as resp:
+                resp.raise_for_status()
+                await resp.read()
         except aiohttp.ClientError as e:
             logging.error(f"UpTimeKumaにPostできませんでした: {e}")
 

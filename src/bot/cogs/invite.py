@@ -196,8 +196,14 @@ class InviteCog(commands.Cog):
             new_data = {invite.code: invite.uses for invite in new_invites}
             if new_data:
                 await self.bot.redis.hset(cache_key, mapping=new_data)
-            logging.info(f"Initialized invite cache for guild {guild.id}. Skipping join processing for this member.")
+            logging.error(f"Initialized invite cache for guild {guild.id}. Skipping join processing for this member.")
             return
+
+        for invite in new_invites:
+            old_uses = int(old_invites.get(invite.code, 0))
+            if (invite.uses or 0) > old_uses:
+                used_invite = invite
+                break
 
         if not used_invite or not used_invite.inviter:
             return
