@@ -622,10 +622,18 @@ export async function updateAuthBlockGuilds(guildId: string, blockdGuildIds: str
     return res.json();
 }
 
+function sanitizeGuildId(guildId: string): string {
+    if (!/^[0-9]{17,20}$/.test(guildId)) {
+        throw new Error("Invalid guildId");
+    }
+    return guildId;
+}
+
 export async function getInviteSetting(
   guildId: string
 ) {
-  const res = await fetch(`${RESOURCE_API_BASE_URL}/invites/settings/${guildId}`, {
+  const safeGuildId = sanitizeGuildId(guildId);
+  const res = await fetch(`${RESOURCE_API_BASE_URL}/invites/settings/${safeGuildId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -645,7 +653,8 @@ export async function saveInviteSetting(
   content: string,
   embed_id: string
 ) {
-  const res = await fetch(`${RESOURCE_API_BASE_URL}/invites/settings/${guildId}`, {
+  const safeGuildId = sanitizeGuildId(guildId);
+  const res = await fetch(`${RESOURCE_API_BASE_URL}/invites/settings/${safeGuildId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
