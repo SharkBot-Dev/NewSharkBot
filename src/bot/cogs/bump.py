@@ -4,16 +4,20 @@ import time
 import discord
 from discord.ext import commands, tasks
 
+from main import NewSharkBot
+
 class BumpsCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: NewSharkBot):
         self.bot = bot
         print("init -> BumpsCog")
-        self.bump_check_loop.start()
 
         self.ON_MESSAGE_BOTS = ["302050872383242240", "1233072112139501608", "903541413298450462", "850493201064132659"]
         self.ON_EDIT_BOTS = ["761562078095867916"]
 
-    def cog_unload(self):
+    async def cog_load(self):
+        self.bump_check_loop.start()
+
+    async def cog_unload(self):
         self.bump_check_loop.cancel()
 
     async def update_single_bot_setting(self, guild_id: int, bot_id: str, updates: dict):
@@ -59,7 +63,14 @@ class BumpsCog(commands.Cog):
                     role_ids = item.get('role_ids', [])
                     mentions = " ".join([f"<@&{rid}>" for rid in role_ids])
                     content = f"{mentions}\n{item.get('content', '')}"
-                    await channel.send(content)
+
+                    embed = None
+                    embed_id = item.get('embed_id')
+                    if embed_id:
+                        embed = await self.bot.embed.getEmbed(str(guild_id), int(embed_id))
+                        if embed:
+                            embed = discord.Embed.from_dict(embed)
+                    await channel.send(content, embed=embed)
 
                     await self.update_single_bot_setting(
                         guild_id, 

@@ -88,7 +88,7 @@ class LevelsCog(commands.Cog):
         )
 
         image_api_url = "http://images:8000/levels/rank"
-        
+
         params = {
             "name": self.process_string(user.name),
             "level": current_level,
@@ -96,8 +96,8 @@ class LevelsCog(commands.Cog):
             "max_xp": display_max_xp,
             "avatar_url": str(user.display_avatar.url),
             "status": (
-                "offline" if user.status.name == "invisible"
-                else user.status.name
+                "offline" if str(user.status) == "invisible"
+                else str(user.status)
             ),
         }
 

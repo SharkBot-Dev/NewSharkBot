@@ -37,7 +37,7 @@ class KumaPostCog(commands.Cog):
         except aiohttp.ClientError as e:
             logging.error(f"UpTimeKumaにPostできませんでした: {e}")
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=50)
     async def kuma_post_loop(self):
         if not self.bot.debug:
             await self.send_heartbeat()
