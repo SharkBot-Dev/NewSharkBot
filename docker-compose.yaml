@@ -15,6 +15,9 @@ services:
       - sharkbot_network
   bot:
     build: ./src/bot
+    volumes:
+      - ./src/bot:/app
+      - bot_venv:/app/.venv
     depends_on:
       redis:
         condition: service_healthy
@@ -79,6 +82,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  bot_venv:
 networks:
   sharkbot_network:
     driver: bridge

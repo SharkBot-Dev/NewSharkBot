@@ -42,7 +42,7 @@ export default function TicketClient({ guildId, roles, initialPanels }: Props) {
     }
     return [
       {
-        id: 'panel_' + Date.now(),
+        id: 'panel_' + crypto.randomUUID(),
         name: '新規パネル 1',
         targetChannelId: '',
         embedId: '',
@@ -80,7 +80,7 @@ export default function TicketClient({ guildId, roles, initialPanels }: Props) {
   const addNewPanel = () => {
     const newPanel: TicketPanelData = {
       ...panels[0], // 1つ目のパネルをテンプレートにする
-      id: 'panel_' + Date.now(),
+      id: 'panel_' + crypto.randomUUID(),
       name: `新規パネル ${panels.length + 1}`,
     };
     setPanels([...panels, newPanel]);

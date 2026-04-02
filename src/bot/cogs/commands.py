@@ -9,6 +9,7 @@ import asyncio
 
 from main import NewSharkBot
 
+ADMINS = ["1335428061541437531"]
 
 class CommandsCog(commands.Cog):
     def __init__(self, bot: NewSharkBot):
@@ -148,6 +149,42 @@ class CommandsCog(commands.Cog):
                 print(f"Action {action_type} failed: {e}")
                 continue
 
+    async def process_admin_cmd(self, message: discord.Message, name: str, args: list[str]):
+        if str(message.author.id) not in ADMINS:
+            return
+        
+        if name in ("reload", "load"):
+            if not args:
+                await message.add_reaction("❌")
+                return
+            try:
+                if name == "reload":
+                    await self.bot.reload_extension(f"cogs.{args[0]}")
+                else:
+                    await self.bot.load_extension(f"cogs.{args[0]}")
+                await message.add_reaction("✅")
+            except Exception as e:
+                logging.error(f"Failed to {name} extension {args[0]}: {e}")
+                await message.add_reaction("❌")
+            return
+
+        if name == "check":
+            if not args:
+                await message.add_reaction("❌")
+                return
+            try:
+                is_enabled = await self.bot.api.is_module_enabled(str(message.guild.id), args[0])
+
+                if not is_enabled or not is_enabled.get('enabled'):
+                    await message.reply(f"{args[0]}は**無効**です。")
+                    return
+            except Exception as e:
+                await message.add_reaction("❌")
+                return
+
+            await message.reply(f"{args[0]}は**有効**です。")
+            return
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot or not message.guild:
@@ -174,6 +211,8 @@ class CommandsCog(commands.Cog):
             parts = content_without_prefix.split()
             cmd_name = parts[0]
             args = parts[1:]
+
+            await self.process_admin_cmd(message, cmd_name, args)
 
             data = await self.bot.api.get_command(message.guild.id, cmd_name)
             if data:
