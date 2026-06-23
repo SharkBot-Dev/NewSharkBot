@@ -4,7 +4,11 @@ import "time"
 
 // ギルドごとの全体設定
 type EconomySetting struct {
-	GuildID   string    `gorm:"primaryKey;size:255" json:"guild_id"`
+	GuildID string `gorm:"primaryKey;size:255" json:"guild_id"`
+
+	CoinName  string `json:"coin_name"`
+	ChatMoney int    `json:"chatmoney"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

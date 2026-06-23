@@ -18,6 +18,7 @@ func RegisterEconomy(router *gin.RouterGroup) {
 	{
 		// 設定
 		guilds.GET("/:id", getEconomySetting)
+		guilds.POST("/:id", saveEconomySetting)
 
 		// アイテム
 		guilds.GET("/:id/items", getEconomyItems)
@@ -50,6 +51,39 @@ func getEconomySetting(c *gin.Context) {
 		}
 		return
 	}
+	c.JSON(http.StatusOK, setting)
+}
+
+func saveEconomySetting(c *gin.Context) {
+	id := c.Param("id")
+	db := c.MustGet("db").(*gorm.DB)
+
+	var input struct {
+		CoinName  string `json:"coin_name" binding:"required"`
+		ChatMoney int    `json:"chatmoney"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var setting model.EconomySetting
+
+	result := db.Where("guild_id = ?", id).First(&setting)
+
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if result.Error == gorm.ErrRecordNotFound {
+		if err := db.Save(&setting).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save item"})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, setting)
 }
 

@@ -30,7 +30,7 @@ export async function GET(
       body: {
         providerId: "discord",
         accountId: discordAccountData.accountId,
-        userId: discordAccountData.userId,
+        userId: discordAccountData.accountId,
       },
     });
   } catch (e) {
